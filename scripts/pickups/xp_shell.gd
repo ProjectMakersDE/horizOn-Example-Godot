@@ -17,11 +17,11 @@ func _ready() -> void:
 	shape.shape = circle
 	add_child(shape)
 
-	var visual := ColorRect.new()
+	var visual := Sprite2D.new()
 	visual.name = "Visual"
-	visual.color = Color("#FFD700")
-	visual.size = Vector2(8, 8)
-	visual.position = Vector2(-4, -4)
+	visual.texture = preload("res://assets/sprites/pickups.png")
+	visual.region_enabled = true
+	visual.region_rect = Rect2(0, 0, 16, 16)
 	add_child(visual)
 
 

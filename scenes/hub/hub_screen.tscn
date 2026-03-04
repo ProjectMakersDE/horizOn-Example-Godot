@@ -162,7 +162,7 @@ text = "Feedback"
 [node name="SettingsButton" type="Button" parent="Content/RightPanel/BottomButtons"]
 layout_mode = 2
 size_flags_horizontal = 3
-text = "Sign Out"
+text = "Settings"
 
 [node name="StatusLabel" type="Label" parent="."]
 layout_mode = 1

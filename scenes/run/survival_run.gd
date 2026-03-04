@@ -198,10 +198,14 @@ func _apply_levelup_choice(choice: Dictionary) -> void:
 
 	match type:
 		"weapon_upgrade":
-			# Upgrade existing weapon damage
 			for w in weapons_container.get_children():
 				if w is WeaponBase:
-					w.upgrade()
+					match id:
+						"feather_speed":
+							if "projectile_speed" in w:
+								w.projectile_speed *= 1.15
+						_:
+							w.upgrade()
 		"weapon_new":
 			match id:
 				"screech_new":
@@ -386,12 +390,27 @@ func _show_pause_feedback() -> void:
 
 
 func _generate_ground() -> void:
-	var bg := ColorRect.new()
-	bg.color = Color("#F2D2A9")
-	bg.size = Vector2(2000, 2000)
-	bg.position = Vector2(-1000, -1000)
-	bg.z_index = -10
-	add_child(bg)
+	var tilemap := TileMapLayer.new()
+	tilemap.name = "Ground"
+	tilemap.z_index = -10
+
+	var tileset := TileSet.new()
+	tileset.tile_size = Vector2i(16, 16)
+
+	var source := TileSetAtlasSource.new()
+	source.texture = preload("res://assets/sprites/tilemap.png")
+	source.texture_region_size = Vector2i(16, 16)
+	tileset.add_source(source, 0)
+
+	tilemap.tile_set = tileset
+
+	# Fill a 125x125 tile area (2000x2000 pixels / 16px tiles) centered at origin
+	var half := 62
+	for x in range(-half, half + 1):
+		for y in range(-half, half + 1):
+			tilemap.set_cell(Vector2i(x, y), 0, Vector2i(0, 0))
+
+	add_child(tilemap)
 
 
 func _clear_children(node: Node) -> void:

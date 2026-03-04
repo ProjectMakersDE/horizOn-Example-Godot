@@ -40,10 +40,10 @@ func _create_projectile() -> Node2D:
 	shape.shape = circle
 	proj.add_child(shape)
 
-	var sprite := ColorRect.new()
-	sprite.color = Color("#F5F5F0")
-	sprite.size = Vector2(8, 4)
-	sprite.position = Vector2(-4, -2)
+	var sprite := Sprite2D.new()
+	sprite.texture = preload("res://assets/sprites/weapons.png")
+	sprite.region_enabled = true
+	sprite.region_rect = Rect2(0, 0, 32, 32)
 	proj.add_child(sprite)
 
 	var script := GDScript.new()

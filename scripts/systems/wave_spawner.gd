@@ -79,16 +79,24 @@ func _spawn_enemy(enemy_type: String) -> void:
 	if script:
 		enemy.set_script(script)
 
-	# Visual placeholder
-	var size := 24.0 if enemy_type != "boss" else 48.0
-	var visual := ColorRect.new()
+	# Visual sprite
+	var visual := Sprite2D.new()
 	visual.name = "Visual"
-	visual.color = _enemy_colors.get(enemy_type, Color.RED)
-	visual.size = Vector2(size, size)
-	visual.position = Vector2(-size / 2, -size / 2)
+	visual.texture = preload("res://assets/sprites/enemies.png")
+	visual.region_enabled = true
+	match enemy_type:
+		"crab":
+			visual.region_rect = Rect2(0, 0, 32, 32)
+		"jellyfish":
+			visual.region_rect = Rect2(0, 64, 32, 32)
+		"pirate":
+			visual.region_rect = Rect2(0, 128, 32, 32)
+		"boss":
+			visual.region_rect = Rect2(0, 192, 64, 64)
 	enemy.add_child(visual)
 
 	# Collision shape
+	var size := 24.0 if enemy_type != "boss" else 48.0
 	var shape := CollisionShape2D.new()
 	var rect := RectangleShape2D.new()
 	rect.size = Vector2(size, size)

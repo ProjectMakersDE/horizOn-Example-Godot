@@ -1,8 +1,9 @@
-[gd_scene load_steps=7 format=3]
+[gd_scene load_steps=8 format=3]
 
 [ext_resource type="Script" path="res://scenes/run/survival_run.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/entities/player.gd" id="2"]
 [ext_resource type="Script" path="res://scripts/systems/wave_spawner.gd" id="3"]
+[ext_resource type="Texture2D" path="res://assets/sprites/seagull.png" id="seagull_tex"]
 
 [sub_resource type="RectangleShape2D" id="1"]
 size = Vector2(20, 20)
@@ -24,19 +25,10 @@ collision_layer = 1
 collision_mask = 2
 script = ExtResource("2")
 
-[node name="Visual" type="ColorRect" parent="Entities/Player"]
-offset_left = -12.0
-offset_top = -12.0
-offset_right = 12.0
-offset_bottom = 12.0
-color = Color(0.961, 0.961, 0.941, 1)
-
-[node name="BeakVisual" type="ColorRect" parent="Entities/Player"]
-offset_left = 8.0
-offset_top = -2.0
-offset_right = 14.0
-offset_bottom = 2.0
-color = Color(0.847, 0.475, 0.263, 1)
+[node name="Visual" type="Sprite2D" parent="Entities/Player"]
+texture = ExtResource("seagull_tex")
+region_enabled = true
+region_rect = Rect2(0, 0, 32, 32)
 
 [node name="CollisionShape" type="CollisionShape2D" parent="Entities/Player"]
 shape = SubResource("1")

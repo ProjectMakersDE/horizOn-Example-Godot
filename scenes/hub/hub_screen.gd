@@ -73,14 +73,6 @@ func _load_leaderboard() -> void:
 		label.add_theme_font_size_override("font_size", 6)
 		leaderboard_list.add_child(label)
 
-	var rank_entry := await Horizon.leaderboard.getRank()
-	if rank_entry:
-		var label := Label.new()
-		label.text = "You: #%d (%d)" % [rank_entry.position, rank_entry.score]
-		label.add_theme_font_size_override("font_size", 6)
-		label.add_theme_color_override("font_color", Color("#D87943"))
-		leaderboard_list.add_child(label)
-
 
 func _load_news() -> void:
 	var entries := await Horizon.news.loadNews(5, "en")
@@ -133,8 +125,55 @@ func _on_feedback_pressed() -> void:
 
 
 func _on_settings_pressed() -> void:
-	Horizon.auth.signOut()
-	GameManager.go_to_title()
+	if not has_node("Popups/SettingsPopup"):
+		_create_settings_popup()
+	$Popups/SettingsPopup.visible = true
+
+
+func _create_settings_popup() -> void:
+	var popup := PanelContainer.new()
+	popup.name = "SettingsPopup"
+	popup.set_anchors_preset(Control.PRESET_CENTER)
+	popup.offset_left = -100.0
+	popup.offset_top = -60.0
+	popup.offset_right = 100.0
+	popup.offset_bottom = 60.0
+
+	var vbox := VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 6)
+
+	var title := Label.new()
+	title.text = "Settings"
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	vbox.add_child(title)
+
+	var volume_label := Label.new()
+	volume_label.text = "Music Volume"
+	vbox.add_child(volume_label)
+
+	var volume_slider := HSlider.new()
+	volume_slider.min_value = 0.0
+	volume_slider.max_value = 1.0
+	volume_slider.step = 0.1
+	volume_slider.value = 0.7
+	volume_slider.value_changed.connect(func(val): AudioServer.set_bus_volume_db(0, linear_to_db(val)))
+	vbox.add_child(volume_slider)
+
+	var signout_btn := Button.new()
+	signout_btn.text = "Sign Out"
+	signout_btn.pressed.connect(func():
+		Horizon.auth.signOut()
+		GameManager.go_to_title()
+	)
+	vbox.add_child(signout_btn)
+
+	var close_btn := Button.new()
+	close_btn.text = "Close"
+	close_btn.pressed.connect(func(): popup.visible = false)
+	vbox.add_child(close_btn)
+
+	popup.add_child(vbox)
+	$Popups.add_child(popup)
 
 
 func _clear_children(node: Node) -> void:

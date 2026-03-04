@@ -12,6 +12,8 @@ var _loaded: bool = false
 
 
 func load_all() -> void:
+	if _loaded:
+		return
 	if not Horizon.isConnected() or not Horizon.isSignedIn():
 		return
 	_configs = await Horizon.remoteConfig.getAllConfigs()
@@ -58,21 +60,26 @@ func get_json(key: String) -> Variant:
 	return JSON.parse_string(val)
 
 
-## Helper: get enemy stats dict from config key "enemy_{type}_stats"
+## Helper: get enemy stats from flat config keys (enemy_{type}_hp, enemy_{type}_speed, etc.)
 func get_enemy_stats(enemy_type: String) -> Dictionary:
-	var stats = get_json("enemy_%s_stats" % enemy_type)
-	if stats is Dictionary:
-		return stats
-	# Defaults
-	return {"hp": 30, "speed": 40.0, "damage": 10, "score": 10}
+	return {
+		"hp": get_int("enemy_%s_hp" % enemy_type, 30),
+		"speed": get_float("enemy_%s_speed" % enemy_type, 40.0),
+		"damage": get_int("enemy_%s_damage" % enemy_type, 10),
+		"xp": get_int("enemy_%s_xp" % enemy_type, 10),
+	}
 
 
-## Helper: get weapon stats dict from config key "weapon_{type}_stats"
+## Helper: get weapon stats from flat config keys (weapon_{type}_damage, weapon_{type}_cooldown, etc.)
 func get_weapon_stats(weapon_type: String) -> Dictionary:
-	var stats = get_json("weapon_%s_stats" % weapon_type)
-	if stats is Dictionary:
-		return stats
-	return {"damage": 10, "cooldown": 1.0, "range": 100.0}
+	return {
+		"damage": get_float("weapon_%s_damage" % weapon_type, 20.0),
+		"cooldown": get_float("weapon_%s_cooldown" % weapon_type, 1.0),
+		"projectiles": get_int("weapon_%s_projectiles" % weapon_type, 1),
+		"radius": get_float("weapon_%s_radius" % weapon_type, 80.0),
+		"range": get_float("weapon_%s_range" % weapon_type, 120.0),
+		"knockback": get_float("weapon_%s_knockback" % weapon_type, 60.0),
+	}
 
 
 ## Helper: get upgrade costs array

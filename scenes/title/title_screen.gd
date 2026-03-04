@@ -126,7 +126,7 @@ func _on_create_account_pressed() -> void:
 
 
 func _on_google_pressed() -> void:
-	status_label.text = "Google OAuth requires platform-specific flow.\nSee horizOn docs for setup."
+	status_label.text = "Google Sign-In not available on this platform."
 
 
 func _set_buttons_disabled(disabled: bool) -> void:

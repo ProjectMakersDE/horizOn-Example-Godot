@@ -22,7 +22,7 @@ var is_dead: bool = false
 var _hurt_timer: float = 0.0
 var _invincible_time: float = 0.5
 
-@onready var visual: ColorRect = $Visual
+@onready var visual: Node2D = $Visual
 @onready var pickup_area: Area2D = $PickupArea
 @onready var hitbox: Area2D = $Hitbox
 
@@ -35,6 +35,7 @@ func _ready() -> void:
 	var pickup_shape := pickup_area.get_node("CollisionShape2D")
 	if pickup_shape and pickup_shape.shape is CircleShape2D:
 		pickup_shape.shape.radius = pickup_radius
+	pickup_area.area_entered.connect(_on_pickup_area_entered)
 
 
 func _apply_upgrades() -> void:
@@ -104,6 +105,11 @@ func _level_up() -> void:
 	xp_to_next_level = int(50.0 * pow(curve, level - 1))
 	AudioManager.play_sfx("sfx_levelup")
 	leveled_up.emit(level)
+
+
+func _on_pickup_area_entered(area: Area2D) -> void:
+	if area.has_method("_collect"):
+		area._collect(self)
 
 
 func get_xp_progress() -> float:

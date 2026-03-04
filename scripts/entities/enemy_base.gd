@@ -49,11 +49,11 @@ func take_damage(amount: int) -> void:
 	AudioManager.play_sfx("sfx_enemy_hit")
 
 	var visual := get_node_or_null("Visual")
-	if visual is ColorRect:
-		var orig_color := visual.color
-		visual.color = Color(1, 0.3, 0.3)
+	if visual:
+		var orig_modulate := visual.modulate
+		visual.modulate = Color(1, 0.3, 0.3)
 		var tween := create_tween()
-		tween.tween_property(visual, "color", orig_color, 0.15)
+		tween.tween_property(visual, "modulate", orig_modulate, 0.15)
 
 	if hp <= 0:
 		_die()
@@ -62,7 +62,6 @@ func take_damage(amount: int) -> void:
 func _die() -> void:
 	is_dead = true
 	GameManager.run_state.kills += 1
-	GameManager.run_state.currentScore += score_value
 	died.emit(self, global_position)
 	var tween := create_tween()
 	tween.tween_property(self, "modulate:a", 0.0, 0.3)
@@ -76,8 +75,8 @@ func setup(enemy_type: String, player_target: Node2D) -> void:
 	max_hp = hp
 	speed = float(stats.get("speed", 40.0))
 	damage = int(stats.get("damage", 10))
-	score_value = int(stats.get("score", 10))
-	xp_reward = int(stats.get("xp", 10)) if stats.has("xp") else score_value
+	xp_reward = int(stats.get("xp", 10))
+	score_value = xp_reward
 
 
 func _get_enemy_type() -> String:
