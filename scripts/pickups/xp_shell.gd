@@ -29,8 +29,8 @@ func _physics_process(delta: float) -> void:
 	if _attracted:
 		var players := get_tree().get_nodes_in_group("player")
 		if players.size() > 0:
-			var player := players[0]
-			var dir := (player.global_position - global_position).normalized()
+			var player: Node2D = players[0]
+			var dir: Vector2 = (player.global_position - global_position).normalized()
 			global_position += dir * _attract_speed * delta
 			if global_position.distance_to(player.global_position) < 12.0:
 				_collect(player)
