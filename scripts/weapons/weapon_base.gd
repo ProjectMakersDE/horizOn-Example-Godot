@@ -1,6 +1,5 @@
 ## Weapon Base - Auto-firing weapon system
 extends Node2D
-class_name WeaponBase
 
 var weapon_id: String = ""
 var weapon_damage: float = 20.0

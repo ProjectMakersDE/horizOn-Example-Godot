@@ -1,5 +1,5 @@
 ## Dive Bomb - Dash-damage in move direction
-extends WeaponBase
+extends "res://scripts/weapons/weapon_base.gd"
 
 var dive_range: float = 120.0
 var dive_width: float = 30.0

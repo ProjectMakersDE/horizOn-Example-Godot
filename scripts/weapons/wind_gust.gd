@@ -1,5 +1,5 @@
 ## Wind Gust - Knockback wave all around
-extends WeaponBase
+extends "res://scripts/weapons/weapon_base.gd"
 
 var knockback_force: float = 60.0
 var gust_radius: float = 100.0

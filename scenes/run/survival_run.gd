@@ -198,7 +198,7 @@ func _apply_levelup_choice(choice: Dictionary) -> void:
 	match type:
 		"weapon_upgrade":
 			for w in weapons_container.get_children():
-				if w is WeaponBase:
+				if w.has_method("fire"):
 					match id:
 						"feather_speed":
 							if w.weapon_id == "feather_throw":

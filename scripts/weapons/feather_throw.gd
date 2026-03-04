@@ -1,5 +1,5 @@
 ## Feather Throw - Projectile weapon firing in move direction
-extends WeaponBase
+extends "res://scripts/weapons/weapon_base.gd"
 
 var projectile_speed: float = 300.0
 var projectile_count: int = 1

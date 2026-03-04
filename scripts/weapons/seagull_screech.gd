@@ -1,5 +1,5 @@
 ## Seagull Screech - AoE ring around player
-extends WeaponBase
+extends "res://scripts/weapons/weapon_base.gd"
 
 var radius: float = 80.0
 
