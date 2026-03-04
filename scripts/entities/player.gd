@@ -28,6 +28,7 @@ var _invincible_time: float = 0.5
 
 
 func _ready() -> void:
+	add_to_group("player")
 	_apply_upgrades()
 	current_hp = max_hp
 	health_changed.emit(current_hp, max_hp)

@@ -32,7 +32,16 @@ func _connect_to_server() -> void:
 	var success := await Horizon.connect_to_server()
 	if success:
 		status_label.text = "Connected!"
-		# Try to restore session
+
+		# Check if already signed in (e.g. cached email session)
+		if Horizon.auth.isSignedIn():
+			status_label.text = "Checking session..."
+			var valid := await Horizon.auth.checkAuth()
+			if valid:
+				GameManager.go_to_hub()
+				return
+
+		# Try to restore anonymous session
 		if Horizon.auth.hasCachedAnonymousToken():
 			status_label.text = "Restoring session..."
 			var restored := await Horizon.auth.restoreAnonymousSession()

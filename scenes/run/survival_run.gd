@@ -23,6 +23,8 @@ extends Node2D
 
 var run_timer: float = 180.0
 var boss_spawned: bool = false
+var _pause_news_panel: Control = null
+var _pause_feedback_panel: Control = null
 
 
 func _ready() -> void:
@@ -251,15 +253,136 @@ func _setup_pause_menu() -> void:
 		pause_menu.visible = false
 	)
 	news_btn.pressed.connect(func():
-		pass  # Could show news panel
+		_show_pause_news()
 	)
 	feedback_btn.pressed.connect(func():
-		pass  # Could show feedback dialog
+		_show_pause_feedback()
 	)
 	quit_btn.pressed.connect(func():
 		get_tree().paused = false
 		GameManager.go_to_hub()
 	)
+
+
+func _show_pause_news() -> void:
+	if _pause_news_panel != null:
+		_pause_news_panel.visible = true
+		return
+	# Create a simple news panel overlay
+	_pause_news_panel = PanelContainer.new()
+	_pause_news_panel.set_anchors_preset(Control.PRESET_CENTER)
+	_pause_news_panel.offset_left = -140.0
+	_pause_news_panel.offset_top = -80.0
+	_pause_news_panel.offset_right = 140.0
+	_pause_news_panel.offset_bottom = 80.0
+	_pause_news_panel.process_mode = Node.PROCESS_MODE_ALWAYS
+
+	var vbox := VBoxContainer.new()
+	var title := Label.new()
+	title.text = "NEWS"
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	vbox.add_child(title)
+
+	var news_list := VBoxContainer.new()
+	news_list.name = "NewsList"
+	news_list.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	vbox.add_child(news_list)
+
+	var close_btn := Button.new()
+	close_btn.text = "Close"
+	close_btn.pressed.connect(func(): _pause_news_panel.visible = false)
+	vbox.add_child(close_btn)
+
+	_pause_news_panel.add_child(vbox)
+	pause_menu.add_child(_pause_news_panel)
+
+	# Load news entries
+	var entries := await Horizon.news.loadNews(5, "en")
+	for entry in entries:
+		var label := Label.new()
+		label.text = "* %s" % entry.title
+		label.add_theme_font_size_override("font_size", 6)
+		news_list.add_child(label)
+
+
+func _show_pause_feedback() -> void:
+	if _pause_feedback_panel != null:
+		_pause_feedback_panel.visible = true
+		return
+	# Create a simple feedback dialog overlay
+	_pause_feedback_panel = PanelContainer.new()
+	_pause_feedback_panel.set_anchors_preset(Control.PRESET_CENTER)
+	_pause_feedback_panel.offset_left = -140.0
+	_pause_feedback_panel.offset_top = -100.0
+	_pause_feedback_panel.offset_right = 140.0
+	_pause_feedback_panel.offset_bottom = 100.0
+	_pause_feedback_panel.process_mode = Node.PROCESS_MODE_ALWAYS
+
+	var vbox := VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 4)
+
+	var title_lbl := Label.new()
+	title_lbl.text = "FEEDBACK"
+	title_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	vbox.add_child(title_lbl)
+
+	var title_input := LineEdit.new()
+	title_input.name = "TitleInput"
+	title_input.placeholder_text = "Title..."
+	vbox.add_child(title_input)
+
+	var msg_input := TextEdit.new()
+	msg_input.name = "MessageInput"
+	msg_input.placeholder_text = "Your message..."
+	msg_input.custom_minimum_size = Vector2(0, 50)
+	vbox.add_child(msg_input)
+
+	var category := OptionButton.new()
+	category.name = "CategoryOption"
+	category.add_item("BUG", 0)
+	category.add_item("FEATURE_REQUEST", 1)
+	category.add_item("GENERAL", 2)
+	vbox.add_child(category)
+
+	var status_lbl := Label.new()
+	status_lbl.name = "StatusLabel"
+	status_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	vbox.add_child(status_lbl)
+
+	var btn_row := HBoxContainer.new()
+	var submit_btn := Button.new()
+	submit_btn.text = "Submit"
+	submit_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var close_btn := Button.new()
+	close_btn.text = "Close"
+	close_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	btn_row.add_child(submit_btn)
+	btn_row.add_child(close_btn)
+	vbox.add_child(btn_row)
+
+	close_btn.pressed.connect(func(): _pause_feedback_panel.visible = false)
+	submit_btn.pressed.connect(func():
+		var t := title_input.text.strip_edges()
+		var m := msg_input.text.strip_edges()
+		if t.is_empty() or m.is_empty():
+			status_lbl.text = "Fill in title and message."
+			return
+		var cat := category.get_item_text(category.selected)
+		status_lbl.text = "Submitting..."
+		submit_btn.disabled = true
+		var success := await Horizon.feedback.submit(t, m, cat)
+		if success:
+			status_lbl.text = "Feedback sent!"
+			title_input.text = ""
+			msg_input.text = ""
+			Horizon.crashes.record_breadcrumb("user_action", "submitted_feedback_pause")
+		else:
+			status_lbl.text = "Failed to send."
+		submit_btn.disabled = false
+	)
+
+	_pause_feedback_panel.add_child(vbox)
+	pause_menu.add_child(_pause_feedback_panel)
 
 
 func _generate_ground() -> void:

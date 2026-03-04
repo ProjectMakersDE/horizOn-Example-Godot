@@ -19,17 +19,35 @@ var _sfx_counts: Dictionary = {}
 
 
 func _ready() -> void:
+	_ensure_audio_buses()
+
 	_music_player_a = AudioStreamPlayer.new()
-	_music_player_a.bus = "Master"
+	_music_player_a.bus = "Music"
 	_music_player_a.volume_db = MUSIC_VOLUME_DB
 	add_child(_music_player_a)
 
 	_music_player_b = AudioStreamPlayer.new()
-	_music_player_b.bus = "Master"
+	_music_player_b.bus = "Music"
 	_music_player_b.volume_db = -80.0
 	add_child(_music_player_b)
 
 	_active_player = _music_player_a
+
+
+func _ensure_audio_buses() -> void:
+	# Create Music and SFX buses if they don't exist
+	if AudioServer.get_bus_index("Music") == -1:
+		AudioServer.add_bus()
+		var idx := AudioServer.bus_count - 1
+		AudioServer.set_bus_name(idx, "Music")
+		AudioServer.set_bus_send(idx, "Master")
+		AudioServer.set_bus_volume_db(idx, MUSIC_VOLUME_DB)
+	if AudioServer.get_bus_index("SFX") == -1:
+		AudioServer.add_bus()
+		var idx := AudioServer.bus_count - 1
+		AudioServer.set_bus_name(idx, "SFX")
+		AudioServer.set_bus_send(idx, "Master")
+		AudioServer.set_bus_volume_db(idx, SFX_VOLUME_DB)
 
 
 func play_music(track_name: String) -> void:
@@ -92,7 +110,7 @@ func play_sfx(sfx_name: String) -> void:
 	var player := AudioStreamPlayer.new()
 	player.stream = load(path)
 	player.volume_db = SFX_VOLUME_DB
-	player.bus = "Master"
+	player.bus = "SFX"
 	add_child(player)
 	player.play()
 
