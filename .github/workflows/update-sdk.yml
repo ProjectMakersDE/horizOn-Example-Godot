@@ -1,0 +1,54 @@
+name: Update SDK
+
+on:
+  repository_dispatch:
+    types: [update-sdk]
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout example project
+        uses: actions/checkout@v4
+
+      - name: Checkout SDK at release tag
+        uses: actions/checkout@v4
+        with:
+          repository: ProjectMakersDE/horizOn-SDK-Godot
+          ref: v${{ github.event.client_payload.version }}
+          path: sdk-source
+          token: ${{ secrets.SYNC_TOKEN }}
+
+      - name: Backup example config
+        run: |
+          if [ -f addons/horizon_sdk/horizon_config.tres ]; then
+            cp addons/horizon_sdk/horizon_config.tres /tmp/horizon_config.tres.bak
+          fi
+
+      - name: Replace SDK files
+        run: |
+          rm -rf addons/horizon_sdk
+          cp -r sdk-source/addons/horizon_sdk addons/horizon_sdk
+
+      - name: Restore example config
+        run: |
+          if [ -f /tmp/horizon_config.tres.bak ]; then
+            cp /tmp/horizon_config.tres.bak addons/horizon_sdk/horizon_config.tres
+          fi
+
+      - name: Cleanup
+        run: rm -rf sdk-source
+
+      - name: Commit and push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          VERSION="${{ github.event.client_payload.version }}"
+          git add -A
+          git diff --staged --quiet || {
+            git commit -m "chore(sdk): update horizOn SDK to v${VERSION}"
+            git push
+          }
