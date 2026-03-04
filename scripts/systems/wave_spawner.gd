@@ -12,12 +12,7 @@ var _wave_timer: float = 0.0
 var _wave_interval: float = 15.0
 var _viewport_size: Vector2 = Vector2(480, 270)
 
-var _enemy_scripts: Dictionary = {
-	"crab": preload("res://scripts/entities/enemy_crab.gd"),
-	"jellyfish": preload("res://scripts/entities/enemy_jellyfish.gd"),
-	"pirate": preload("res://scripts/entities/enemy_pirate.gd"),
-	"boss": preload("res://scripts/entities/enemy_boss.gd"),
-}
+var _enemy_scripts: Dictionary = {}
 
 var _enemy_colors: Dictionary = {
 	"crab": Color("#E05B4B"),
@@ -33,6 +28,13 @@ func setup(player: Node2D, enemies: Node2D, pickups: Node2D) -> void:
 	_pickups_container = pickups
 	_wave_interval = ConfigCache.get_float("wave_interval_seconds", 15.0)
 	_wave_timer = 2.0  # First wave after 2 seconds
+	# Load enemy scripts at runtime to avoid parse-order dependency on EnemyBase
+	_enemy_scripts = {
+		"crab": load("res://scripts/entities/enemy_crab.gd"),
+		"jellyfish": load("res://scripts/entities/enemy_jellyfish.gd"),
+		"pirate": load("res://scripts/entities/enemy_pirate.gd"),
+		"boss": load("res://scripts/entities/enemy_boss.gd"),
+	}
 
 
 func _process(delta: float) -> void:
@@ -139,7 +141,7 @@ func _get_spawn_position() -> Vector2:
 	return player_pos + Vector2(300, 0)
 
 
-func _on_enemy_died(_enemy: EnemyBase, pos: Vector2) -> void:
+func _on_enemy_died(_enemy: Node2D, pos: Vector2) -> void:
 	_spawn_xp_pickup(pos, _enemy.xp_reward)
 
 
