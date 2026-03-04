@@ -16,6 +16,7 @@ var xp_to_next_level: int = 50
 var level: int = 1
 var pickup_radius: float = 50.0
 var damage_multiplier: float = 1.0
+var speed_multiplier: float = 1.0
 var is_dead: bool = false
 
 var _hurt_timer: float = 0.0
@@ -39,6 +40,7 @@ func _apply_upgrades() -> void:
 	max_hp = int(GameManager.get_upgrade_value("hp"))
 	damage_multiplier = GameManager.get_upgrade_value("damage")
 	pickup_radius = GameManager.get_upgrade_value("magnet")
+	speed_multiplier = GameManager.get_upgrade_value("speed")
 
 
 func _physics_process(delta: float) -> void:
@@ -47,7 +49,6 @@ func _physics_process(delta: float) -> void:
 
 	if _hurt_timer > 0:
 		_hurt_timer -= delta
-		# Flash effect
 		if visual:
 			visual.modulate = Color(1, 0.5, 0.5) if int(_hurt_timer * 10) % 2 == 0 else Color.WHITE
 	else:
@@ -61,8 +62,7 @@ func _physics_process(delta: float) -> void:
 	if input.length() > 0:
 		input = input.normalized()
 		move_direction = input
-		var speed_mult := GameManager.get_upgrade_value("speed")
-		velocity = input * BASE_SPEED * speed_mult
+		velocity = input * BASE_SPEED * speed_multiplier
 	else:
 		velocity = Vector2.ZERO
 
@@ -74,6 +74,7 @@ func take_damage(amount: int) -> void:
 		return
 	_hurt_timer = _invincible_time
 	current_hp -= amount
+	GameManager.run_state.playerHP = current_hp
 	health_changed.emit(current_hp, max_hp)
 	AudioManager.play_sfx("sfx_player_hit")
 	if current_hp <= 0:
@@ -89,7 +90,7 @@ func _die() -> void:
 
 func add_xp(amount: int) -> void:
 	xp += amount
-	GameManager.run_xp_collected += amount
+	GameManager.run_state.xpCollected += amount
 	xp_gained.emit(amount)
 	if xp >= xp_to_next_level:
 		_level_up()
@@ -98,8 +99,7 @@ func add_xp(amount: int) -> void:
 func _level_up() -> void:
 	xp -= xp_to_next_level
 	level += 1
-	GameManager.current_level = level
-	var curve: float = ConfigManager.get_float("xp_level_curve", 1.4)
+	var curve: float = ConfigCache.get_float("xp_level_curve", 1.4)
 	xp_to_next_level = int(50.0 * pow(curve, level - 1))
 	AudioManager.play_sfx("sfx_levelup")
 	leveled_up.emit(level)

@@ -1,4 +1,4 @@
-## Gift Code Popup - Validate and redeem gift codes
+## Gift Code Dialog - Validate and redeem gift codes
 extends PanelContainer
 
 @onready var code_input: LineEdit = $VBox/CodeInput
@@ -41,7 +41,7 @@ func _on_redeem() -> void:
 		return
 
 	# Check if already redeemed locally
-	if code in GameManager.gift_codes_redeemed:
+	if code in GameManager.save_data.giftCodesRedeemed:
 		status_label.text = "Already redeemed!"
 		return
 
@@ -49,12 +49,11 @@ func _on_redeem() -> void:
 	var result := await Horizon.giftCodes.redeem(code)
 	if result.get("success", false):
 		var gift_data: String = result.get("giftData", "")
-		# Parse gift data for coins
 		var parsed = JSON.parse_string(gift_data)
 		if parsed is Dictionary and parsed.has("coins"):
-			GameManager.coins += int(parsed["coins"])
-			GameManager.coins_changed.emit(GameManager.coins)
-		GameManager.gift_codes_redeemed.append(code)
+			GameManager.save_data.coins += int(parsed["coins"])
+			GameManager.coins_changed.emit(GameManager.save_data.coins)
+		GameManager.save_data.giftCodesRedeemed.append(code)
 		status_label.text = "Code redeemed!"
 		redeem_button.disabled = true
 		Horizon.crashes.record_breadcrumb("user_action", "redeemed_gift_code_%s" % code)

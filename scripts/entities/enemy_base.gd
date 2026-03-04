@@ -9,6 +9,7 @@ var hp: int = 30
 var max_hp: int = 30
 var damage: int = 10
 var xp_reward: int = 10
+var score_value: int = 10
 var is_dead: bool = false
 var target: Node2D = null
 
@@ -19,17 +20,16 @@ var _attack_timer: float = 0.0
 func _physics_process(delta: float) -> void:
 	if is_dead or target == null:
 		return
-
 	if not is_instance_valid(target):
 		return
 
 	_attack_timer -= delta
+	_on_special_behavior(delta)
 
 	var direction := (target.global_position - global_position).normalized()
 	velocity = direction * speed
 	move_and_slide()
 
-	# Check if close enough to attack
 	var dist := global_position.distance_to(target.global_position)
 	if dist < 24.0 and _attack_timer <= 0:
 		_attack_timer = _attack_cooldown
@@ -48,7 +48,6 @@ func take_damage(amount: int) -> void:
 	hp -= amount
 	AudioManager.play_sfx("sfx_enemy_hit")
 
-	# Flash red
 	var visual := get_node_or_null("Visual")
 	if visual is ColorRect:
 		var orig_color := visual.color
@@ -62,18 +61,28 @@ func take_damage(amount: int) -> void:
 
 func _die() -> void:
 	is_dead = true
-	GameManager.run_kills += 1
-	GameManager.current_score += xp_reward
+	GameManager.run_state.kills += 1
+	GameManager.run_state.currentScore += score_value
 	died.emit(self, global_position)
 	var tween := create_tween()
 	tween.tween_property(self, "modulate:a", 0.0, 0.3)
 	tween.tween_callback(queue_free)
 
 
-func setup(config_prefix: String, player_target: Node2D) -> void:
+func setup(enemy_type: String, player_target: Node2D) -> void:
 	target = player_target
-	speed = ConfigManager.get_float("enemy_%s_speed" % config_prefix, speed)
-	hp = ConfigManager.get_int("enemy_%s_hp" % config_prefix, hp)
+	var stats := ConfigCache.get_enemy_stats(enemy_type)
+	hp = int(stats.get("hp", 30))
 	max_hp = hp
-	damage = ConfigManager.get_int("enemy_%s_damage" % config_prefix, damage)
-	xp_reward = ConfigManager.get_int("enemy_%s_xp" % config_prefix, xp_reward)
+	speed = float(stats.get("speed", 40.0))
+	damage = int(stats.get("damage", 10))
+	score_value = int(stats.get("score", 10))
+	xp_reward = int(stats.get("xp", 10)) if stats.has("xp") else score_value
+
+
+func _get_enemy_type() -> String:
+	return "crab"
+
+
+func _on_special_behavior(_delta: float) -> void:
+	pass

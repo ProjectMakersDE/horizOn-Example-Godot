@@ -6,9 +6,10 @@ var projectile_count: int = 1
 
 
 func _ready() -> void:
-	weapon_damage = ConfigManager.get_float("weapon_feather_damage", 20.0)
-	cooldown = ConfigManager.get_float("weapon_feather_cooldown", 0.8)
-	projectile_count = ConfigManager.get_int("weapon_feather_projectiles", 1)
+	var stats := ConfigCache.get_weapon_stats("feather")
+	weapon_damage = float(stats.get("damage", 20.0))
+	cooldown = float(stats.get("cooldown", 0.8))
+	projectile_count = int(stats.get("projectiles", 1))
 	super._ready()
 
 
@@ -30,8 +31,8 @@ func fire() -> void:
 func _create_projectile() -> Node2D:
 	var proj := Area2D.new()
 	proj.name = "FeatherProjectile"
-	proj.collision_layer = 4  # projectiles
-	proj.collision_mask = 2   # enemies
+	proj.collision_layer = 4
+	proj.collision_mask = 2
 
 	var shape := CollisionShape2D.new()
 	var circle := CircleShape2D.new()

@@ -1,8 +1,8 @@
 [gd_scene load_steps=4 format=3]
 
-[ext_resource type="Script" path="res://scripts/ui/hub_screen.gd" id="1"]
-[ext_resource type="Script" path="res://scripts/ui/gift_code_popup.gd" id="2"]
-[ext_resource type="Script" path="res://scripts/ui/feedback_popup.gd" id="3"]
+[ext_resource type="Script" path="res://scenes/hub/hub_screen.gd" id="1"]
+[ext_resource type="Script" path="res://scenes/hub/gift_code_dialog.gd" id="2"]
+[ext_resource type="Script" path="res://scenes/hub/feedback_dialog.gd" id="3"]
 
 [node name="HubScreen" type="Control"]
 layout_mode = 3

@@ -41,16 +41,18 @@ func _ready() -> void:
 	hp_button.pressed.connect(func(): _buy_upgrade("hp"))
 	magnet_button.pressed.connect(func(): _buy_upgrade("magnet"))
 
-	# Load all data
+	GameManager.coins_changed.connect(func(_c): _update_ui())
+	GameManager.highscore_changed.connect(func(_s): _update_ui())
+
 	await _load_hub_data()
 
 
 func _load_hub_data() -> void:
 	# Load remote config
-	await ConfigManager.load_configs()
+	await ConfigCache.load_all()
 
 	# Load cloud save
-	await SaveManager.load_game()
+	await GameManager.load_save_data()
 
 	# Load leaderboard
 	_load_leaderboard()
@@ -71,10 +73,8 @@ func _load_leaderboard() -> void:
 		label.add_theme_font_size_override("font_size", 6)
 		leaderboard_list.add_child(label)
 
-	# Get user rank
 	var rank_entry := await Horizon.leaderboard.getRank()
 	if rank_entry:
-		GameManager.user_rank = rank_entry.position
 		var label := Label.new()
 		label.text = "You: #%d (%d)" % [rank_entry.position, rank_entry.score]
 		label.add_theme_font_size_override("font_size", 6)
@@ -93,37 +93,35 @@ func _load_news() -> void:
 
 
 func _update_ui() -> void:
-	coins_label.text = "Coins: %d" % GameManager.coins
-	best_label.text = "Best: %d" % GameManager.highscore
+	coins_label.text = "Coins: %d" % GameManager.save_data.coins
+	best_label.text = "Best: %d" % GameManager.save_data.highscore
 	_update_upgrade_button("speed", speed_button, speed_label)
 	_update_upgrade_button("damage", damage_button, damage_label)
 	_update_upgrade_button("hp", hp_button, hp_label)
 	_update_upgrade_button("magnet", magnet_button, magnet_label)
 
 
-func _update_upgrade_button(name: String, button: Button, label: Label) -> void:
-	var lvl: int = GameManager.upgrades.get(name, 0)
-	if GameManager.is_upgrade_maxed(name):
-		label.text = "%s Lv.%d MAX" % [name.capitalize(), lvl]
+func _update_upgrade_button(upgrade_name: String, button: Button, label: Label) -> void:
+	var lvl: int = GameManager.save_data.upgrades.get(upgrade_name, 0)
+	if GameManager.is_upgrade_maxed(upgrade_name):
+		label.text = "%s Lv.%d MAX" % [upgrade_name.capitalize(), lvl]
 		button.text = "MAX"
 		button.disabled = true
 	else:
-		var cost := GameManager.get_upgrade_cost(name)
-		label.text = "%s Lv.%d" % [name.capitalize(), lvl]
+		var cost := GameManager.get_upgrade_cost(upgrade_name)
+		label.text = "%s Lv.%d" % [upgrade_name.capitalize(), lvl]
 		button.text = "[+] %d" % cost
-		button.disabled = not GameManager.can_afford_upgrade(name)
+		button.disabled = not GameManager.can_afford_upgrade(upgrade_name)
 
 
 func _buy_upgrade(upgrade_name: String) -> void:
 	if GameManager.buy_upgrade(upgrade_name):
 		AudioManager.play_sfx("sfx_upgrade_select")
-		Horizon.crashes.record_breadcrumb("user_action", "bought_%s_%d" % [upgrade_name, GameManager.upgrades[upgrade_name]])
 		_update_ui()
 
 
 func _on_play_pressed() -> void:
-	Horizon.crashes.record_breadcrumb("navigation", "entered_run")
-	get_tree().change_scene_to_file("res://scenes/run/survival_run.tscn")
+	GameManager.start_run()
 
 
 func _on_gift_code_pressed() -> void:
@@ -135,10 +133,8 @@ func _on_feedback_pressed() -> void:
 
 
 func _on_settings_pressed() -> void:
-	# Sign out and return to title
 	Horizon.auth.signOut()
-	GameManager.is_signed_in = false
-	get_tree().change_scene_to_file("res://scenes/title/title_screen.tscn")
+	GameManager.go_to_title()
 
 
 func _clear_children(node: Node) -> void:

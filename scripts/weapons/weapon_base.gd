@@ -25,3 +25,7 @@ func fire() -> void:
 
 func get_damage() -> float:
 	return weapon_damage * GameManager.get_upgrade_value("damage")
+
+
+func upgrade() -> void:
+	weapon_damage *= 1.15

@@ -6,9 +6,10 @@ var dive_width: float = 30.0
 
 
 func _ready() -> void:
-	weapon_damage = ConfigManager.get_float("weapon_dive_damage", 50.0)
-	cooldown = ConfigManager.get_float("weapon_dive_cooldown", 3.0)
-	dive_range = ConfigManager.get_float("weapon_dive_range", 120.0)
+	var stats := ConfigCache.get_weapon_stats("dive")
+	weapon_damage = float(stats.get("damage", 50.0))
+	cooldown = float(stats.get("cooldown", 3.0))
+	dive_range = float(stats.get("range", 120.0))
 	super._ready()
 
 
@@ -19,9 +20,7 @@ func fire() -> void:
 
 	var dir: Vector2 = owner_node.move_direction.normalized()
 	var start_pos := owner_node.global_position
-	var end_pos := start_pos + dir * dive_range
 
-	# Visual dash effect
 	var effect := ColorRect.new()
 	effect.color = Color(0.4, 0.8, 1.0, 0.5)
 	effect.size = Vector2(dive_range, dive_width)
@@ -33,11 +32,9 @@ func fire() -> void:
 	tween.tween_property(effect, "modulate:a", 0.0, 0.3)
 	tween.tween_callback(effect.queue_free)
 
-	# Damage enemies along the path
 	var enemies := get_tree().get_nodes_in_group("enemies")
 	for enemy in enemies:
 		if enemy is EnemyBase and not enemy.is_dead:
-			# Check if enemy is within the dive rectangle
 			var to_enemy := enemy.global_position - start_pos
 			var along := to_enemy.dot(dir)
 			var perp := abs(to_enemy.dot(dir.orthogonal()))
