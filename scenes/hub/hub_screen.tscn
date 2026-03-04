@@ -1,0 +1,280 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/hub_screen.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/ui/gift_code_popup.gd" id="2"]
+[ext_resource type="Script" path="res://scripts/ui/feedback_popup.gd" id="3"]
+
+[node name="HubScreen" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0.102, 0.102, 0.18, 1)
+
+[node name="TopBar" type="HBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 20.0
+theme_override_constants/separation = 20
+
+[node name="TitleLabel" type="Label" parent="TopBar"]
+layout_mode = 2
+text = "Seagull Storm"
+
+[node name="CoinsLabel" type="Label" parent="TopBar"]
+layout_mode = 2
+size_flags_horizontal = 10
+text = "Coins: 0"
+
+[node name="BestLabel" type="Label" parent="TopBar"]
+layout_mode = 2
+text = "Best: 0"
+
+[node name="Content" type="HSplitContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = 24.0
+offset_bottom = -4.0
+
+[node name="LeftPanel" type="PanelContainer" parent="Content"]
+layout_mode = 2
+custom_minimum_size = Vector2(140, 0)
+
+[node name="UpgradeList" type="VBoxContainer" parent="Content/LeftPanel"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="UpgradeTitle" type="Label" parent="Content/LeftPanel/UpgradeList"]
+layout_mode = 2
+text = "UPGRADES"
+
+[node name="SpeedUpgrade" type="HBoxContainer" parent="Content/LeftPanel/UpgradeList"]
+layout_mode = 2
+
+[node name="InfoLabel" type="Label" parent="Content/LeftPanel/UpgradeList/SpeedUpgrade"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Speed Lv.0"
+
+[node name="BuyButton" type="Button" parent="Content/LeftPanel/UpgradeList/SpeedUpgrade"]
+layout_mode = 2
+text = "[+] 100"
+
+[node name="DamageUpgrade" type="HBoxContainer" parent="Content/LeftPanel/UpgradeList"]
+layout_mode = 2
+
+[node name="InfoLabel" type="Label" parent="Content/LeftPanel/UpgradeList/DamageUpgrade"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Damage Lv.0"
+
+[node name="BuyButton" type="Button" parent="Content/LeftPanel/UpgradeList/DamageUpgrade"]
+layout_mode = 2
+text = "[+] 100"
+
+[node name="HPUpgrade" type="HBoxContainer" parent="Content/LeftPanel/UpgradeList"]
+layout_mode = 2
+
+[node name="InfoLabel" type="Label" parent="Content/LeftPanel/UpgradeList/HPUpgrade"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "HP Lv.0"
+
+[node name="BuyButton" type="Button" parent="Content/LeftPanel/UpgradeList/HPUpgrade"]
+layout_mode = 2
+text = "[+] 150"
+
+[node name="MagnetUpgrade" type="HBoxContainer" parent="Content/LeftPanel/UpgradeList"]
+layout_mode = 2
+
+[node name="InfoLabel" type="Label" parent="Content/LeftPanel/UpgradeList/MagnetUpgrade"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Magnet Lv.0"
+
+[node name="BuyButton" type="Button" parent="Content/LeftPanel/UpgradeList/MagnetUpgrade"]
+layout_mode = 2
+text = "[+] 200"
+
+[node name="RightPanel" type="VBoxContainer" parent="Content"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 4
+
+[node name="PlayButton" type="Button" parent="Content/RightPanel"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 30)
+text = "PLAY"
+
+[node name="LeaderboardPanel" type="VBoxContainer" parent="Content/RightPanel"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="LeaderboardTitle" type="Label" parent="Content/RightPanel/LeaderboardPanel"]
+layout_mode = 2
+text = "LEADERBOARD"
+
+[node name="LeaderboardList" type="VBoxContainer" parent="Content/RightPanel/LeaderboardPanel"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="NewsPanel" type="VBoxContainer" parent="Content/RightPanel"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="NewsTitle" type="Label" parent="Content/RightPanel/NewsPanel"]
+layout_mode = 2
+text = "NEWS"
+
+[node name="NewsList" type="VBoxContainer" parent="Content/RightPanel/NewsPanel"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="BottomButtons" type="HBoxContainer" parent="Content/RightPanel"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="GiftCodeButton" type="Button" parent="Content/RightPanel/BottomButtons"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Gift Code"
+
+[node name="FeedbackButton" type="Button" parent="Content/RightPanel/BottomButtons"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Feedback"
+
+[node name="SettingsButton" type="Button" parent="Content/RightPanel/BottomButtons"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Sign Out"
+
+[node name="StatusLabel" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -100.0
+offset_top = -16.0
+offset_right = 100.0
+grow_horizontal = 2
+grow_vertical = 0
+text = ""
+horizontal_alignment = 1
+
+[node name="Popups" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+
+[node name="GiftCodePopup" type="PanelContainer" parent="Popups"]
+visible = false
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -120.0
+offset_top = -80.0
+offset_right = 120.0
+offset_bottom = 80.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("2")
+
+[node name="VBox" type="VBoxContainer" parent="Popups/GiftCodePopup"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="Title" type="Label" parent="Popups/GiftCodePopup/VBox"]
+layout_mode = 2
+text = "Redeem Gift Code"
+horizontal_alignment = 1
+
+[node name="CodeInput" type="LineEdit" parent="Popups/GiftCodePopup/VBox"]
+layout_mode = 2
+placeholder_text = "Enter code..."
+alignment = 1
+
+[node name="ValidateButton" type="Button" parent="Popups/GiftCodePopup/VBox"]
+layout_mode = 2
+text = "Validate"
+
+[node name="RedeemButton" type="Button" parent="Popups/GiftCodePopup/VBox"]
+layout_mode = 2
+text = "Redeem"
+
+[node name="StatusLabel" type="Label" parent="Popups/GiftCodePopup/VBox"]
+layout_mode = 2
+text = ""
+horizontal_alignment = 1
+
+[node name="CloseButton" type="Button" parent="Popups/GiftCodePopup/VBox"]
+layout_mode = 2
+text = "Close"
+
+[node name="FeedbackPopup" type="PanelContainer" parent="Popups"]
+visible = false
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -140.0
+offset_top = -100.0
+offset_right = 140.0
+offset_bottom = 100.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("3")
+
+[node name="VBox" type="VBoxContainer" parent="Popups/FeedbackPopup"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="Title" type="Label" parent="Popups/FeedbackPopup/VBox"]
+layout_mode = 2
+text = "Send Feedback"
+horizontal_alignment = 1
+
+[node name="TitleInput" type="LineEdit" parent="Popups/FeedbackPopup/VBox"]
+layout_mode = 2
+placeholder_text = "Title..."
+
+[node name="MessageInput" type="TextEdit" parent="Popups/FeedbackPopup/VBox"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 60)
+placeholder_text = "Your message..."
+
+[node name="CategoryOption" type="OptionButton" parent="Popups/FeedbackPopup/VBox"]
+layout_mode = 2
+
+[node name="SubmitButton" type="Button" parent="Popups/FeedbackPopup/VBox"]
+layout_mode = 2
+text = "Submit"
+
+[node name="StatusLabel" type="Label" parent="Popups/FeedbackPopup/VBox"]
+layout_mode = 2
+text = ""
+horizontal_alignment = 1
+
+[node name="CloseButton" type="Button" parent="Popups/FeedbackPopup/VBox"]
+layout_mode = 2
+text = "Close"
