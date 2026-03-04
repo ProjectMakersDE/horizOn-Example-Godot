@@ -140,11 +140,12 @@ func _get_spawn_position() -> Vector2:
 
 
 func _on_enemy_died(_enemy: EnemyBase, pos: Vector2) -> void:
-	_spawn_xp_pickup(pos)
+	_spawn_xp_pickup(pos, _enemy.xp_reward)
 
 
-func _spawn_xp_pickup(pos: Vector2) -> void:
+func _spawn_xp_pickup(pos: Vector2, xp: int = 10) -> void:
 	var pickup := Area2D.new()
 	pickup.set_script(load("res://scripts/pickups/xp_shell.gd"))
+	pickup.xp_amount = xp
 	pickup.global_position = pos
 	_pickups_container.add_child(pickup)

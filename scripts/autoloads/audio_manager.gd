@@ -41,7 +41,7 @@ func _ensure_audio_buses() -> void:
 		var idx := AudioServer.bus_count - 1
 		AudioServer.set_bus_name(idx, "Music")
 		AudioServer.set_bus_send(idx, "Master")
-		AudioServer.set_bus_volume_db(idx, MUSIC_VOLUME_DB)
+		AudioServer.set_bus_volume_db(idx, 0.0)
 	if AudioServer.get_bus_index("SFX") == -1:
 		AudioServer.add_bus()
 		var idx := AudioServer.bus_count - 1

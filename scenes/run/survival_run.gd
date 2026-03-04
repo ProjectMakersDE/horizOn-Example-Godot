@@ -107,8 +107,7 @@ func _update_hud() -> void:
 
 
 func _calculate_score() -> int:
-	var base_xp := ConfigCache.get_int("xp_per_kill_base", 10)
-	return GameManager.run_state.kills * base_xp + GameManager.run_state.xpCollected + int(GameManager.run_state.duration)
+	return GameManager.run_state.kills + GameManager.run_state.xpCollected + int(GameManager.run_state.duration)
 
 
 func _on_health_changed(current: int, maximum: int) -> void:
@@ -202,8 +201,11 @@ func _apply_levelup_choice(choice: Dictionary) -> void:
 				if w is WeaponBase:
 					match id:
 						"feather_speed":
-							if "projectile_speed" in w:
+							if w.weapon_id == "feather_throw":
 								w.projectile_speed *= 1.15
+						"feather_dmg":
+							if w.weapon_id == "feather_throw":
+								w.upgrade()
 						_:
 							w.upgrade()
 		"weapon_new":
@@ -234,6 +236,7 @@ func _add_weapon(weapon_id: String) -> void:
 		return
 	var weapon := WeaponBase.new()
 	weapon.set_script(load(path))
+	weapon.weapon_id = weapon_id
 	weapon.owner_node = player
 	weapons_container.add_child(weapon)
 	GameManager.run_state.activeWeapons.append(weapon_id)

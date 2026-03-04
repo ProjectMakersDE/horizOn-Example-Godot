@@ -2,6 +2,7 @@
 extends Node2D
 class_name WeaponBase
 
+var weapon_id: String = ""
 var weapon_damage: float = 20.0
 var cooldown: float = 0.8
 var _timer: float = 0.0

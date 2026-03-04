@@ -61,6 +61,11 @@ func _load_hub_data() -> void:
 	else:
 		_populate_leaderboard(lb_entries)
 
+	# Load user's own rank
+	var my_rank := await Horizon.leaderboard.getRank()
+	if my_rank != null:
+		_show_user_rank(my_rank)
+
 	# Load news
 	var news_entries := await Horizon.news.loadNews(5, "en")
 	if news_entries == null:
@@ -79,6 +84,16 @@ func _populate_leaderboard(entries: Array) -> void:
 		label.text = "#%d  %s  %d" % [entry.position, entry.username, entry.score]
 		label.add_theme_font_size_override("font_size", 6)
 		leaderboard_list.add_child(label)
+
+
+func _show_user_rank(entry: HorizonLeaderboardEntry) -> void:
+	var separator := HSeparator.new()
+	leaderboard_list.add_child(separator)
+	var label := Label.new()
+	label.text = "#%d  %s  %d" % [entry.position, entry.username, entry.score]
+	label.add_theme_font_size_override("font_size", 6)
+	label.add_theme_color_override("font_color", Color("#FFD700"))
+	leaderboard_list.add_child(label)
 
 
 func _populate_news(entries: Array) -> void:
