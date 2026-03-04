@@ -2,7 +2,7 @@
 extends CharacterBody2D
 class_name EnemyBase
 
-signal died(enemy: EnemyBase, position: Vector2)
+signal died(enemy: Node2D, position: Vector2)
 
 var speed: float = 40.0
 var hp: int = 30
