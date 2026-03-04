@@ -105,14 +105,46 @@ func end_run() -> void:
 	get_tree().change_scene_to_file("res://scenes/game_over/game_over_screen.tscn")
 
 
-## Upgrades
+## Upgrades — built-in defaults so the game works without remote config
+const _DEFAULT_UPGRADE_MAX: int = 5
+const _DEFAULT_UPGRADE_COSTS: Array = [10, 25, 50, 100, 200]
+const _DEFAULT_UPGRADE_VALUES: Dictionary = {
+	"speed": [1.0, 1.1, 1.2, 1.3, 1.4, 1.5],
+	"damage": [1.0, 1.15, 1.3, 1.5, 1.75, 2.0],
+	"hp": [100.0, 120.0, 140.0, 170.0, 200.0, 250.0],
+	"magnet": [50.0, 65.0, 80.0, 100.0, 120.0, 150.0],
+}
+
+
+func _get_upgrade_costs(upgrade_name: String) -> Array:
+	var costs = ConfigCache.get_json("upgrade_%s_costs" % upgrade_name)
+	if costs is Array and costs.size() > 0:
+		return costs
+	return _DEFAULT_UPGRADE_COSTS.duplicate()
+
+
+func _get_upgrade_values(upgrade_name: String) -> Array:
+	var values = ConfigCache.get_json("upgrade_%s_values" % upgrade_name)
+	if values is Array and values.size() > 0:
+		return values
+	if _DEFAULT_UPGRADE_VALUES.has(upgrade_name):
+		return _DEFAULT_UPGRADE_VALUES[upgrade_name].duplicate()
+	return [1.0]
+
+
+func _get_upgrade_max(upgrade_name: String) -> int:
+	var m := ConfigCache.get_int("upgrade_%s_max" % upgrade_name, 0)
+	if m > 0:
+		return m
+	return _DEFAULT_UPGRADE_MAX
+
+
 func can_afford_upgrade(upgrade_name: String) -> bool:
 	var current_level: int = save_data.upgrades.get(upgrade_name, 0)
-	var max_level := ConfigCache.get_int("upgrade_%s_max" % upgrade_name, 0)
-	if current_level >= max_level:
+	if current_level >= _get_upgrade_max(upgrade_name):
 		return false
-	var costs = ConfigCache.get_json("upgrade_%s_costs" % upgrade_name)
-	if costs is Array and current_level < costs.size():
+	var costs := _get_upgrade_costs(upgrade_name)
+	if current_level < costs.size():
 		return save_data.coins >= int(costs[current_level])
 	return false
 
@@ -121,8 +153,8 @@ func buy_upgrade(upgrade_name: String) -> bool:
 	if not can_afford_upgrade(upgrade_name):
 		return false
 	var current_level: int = save_data.upgrades.get(upgrade_name, 0)
-	var costs = ConfigCache.get_json("upgrade_%s_costs" % upgrade_name)
-	if costs is Array and current_level < costs.size():
+	var costs := _get_upgrade_costs(upgrade_name)
+	if current_level < costs.size():
 		var cost: int = int(costs[current_level])
 		save_data.coins -= cost
 		save_data.upgrades[upgrade_name] = current_level + 1
@@ -134,16 +166,16 @@ func buy_upgrade(upgrade_name: String) -> bool:
 
 func get_upgrade_cost(upgrade_name: String) -> int:
 	var current_level: int = save_data.upgrades.get(upgrade_name, 0)
-	var costs = ConfigCache.get_json("upgrade_%s_costs" % upgrade_name)
-	if costs is Array and current_level < costs.size():
+	var costs := _get_upgrade_costs(upgrade_name)
+	if current_level < costs.size():
 		return int(costs[current_level])
 	return 0
 
 
 func get_upgrade_value(upgrade_name: String) -> float:
 	var current_level: int = save_data.upgrades.get(upgrade_name, 0)
-	var values = ConfigCache.get_json("upgrade_%s_values" % upgrade_name)
-	if values is Array and current_level < values.size():
+	var values := _get_upgrade_values(upgrade_name)
+	if current_level < values.size():
 		return float(values[current_level])
 	match upgrade_name:
 		"speed": return 1.0
@@ -155,8 +187,7 @@ func get_upgrade_value(upgrade_name: String) -> float:
 
 func is_upgrade_maxed(upgrade_name: String) -> bool:
 	var current_level: int = save_data.upgrades.get(upgrade_name, 0)
-	var max_level := ConfigCache.get_int("upgrade_%s_max" % upgrade_name, 0)
-	return current_level >= max_level
+	return current_level >= _get_upgrade_max(upgrade_name)
 
 
 func on_levelup(level: int) -> void:

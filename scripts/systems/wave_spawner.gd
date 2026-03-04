@@ -142,7 +142,7 @@ func _get_spawn_position() -> Vector2:
 
 
 func _on_enemy_died(_enemy: Node2D, pos: Vector2) -> void:
-	_spawn_xp_pickup(pos, _enemy.xp_reward)
+	_spawn_xp_pickup.call_deferred(pos, _enemy.xp_reward)
 
 
 func _spawn_xp_pickup(pos: Vector2, xp: int = 10) -> void:
