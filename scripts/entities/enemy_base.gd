@@ -1,6 +1,5 @@
 ## Enemy Base - Common enemy behavior
 extends CharacterBody2D
-class_name EnemyBase
 
 signal died(enemy: Node2D, position: Vector2)
 

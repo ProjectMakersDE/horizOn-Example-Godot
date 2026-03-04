@@ -34,7 +34,7 @@ func fire() -> void:
 
 	var enemies := get_tree().get_nodes_in_group("enemies")
 	for enemy in enemies:
-		if enemy is EnemyBase and not enemy.is_dead:
+		if enemy.has_method("take_damage") and not enemy.is_dead:
 			var to_enemy := enemy.global_position - start_pos
 			var along := to_enemy.dot(dir)
 			var perp := abs(to_enemy.dot(dir.orthogonal()))

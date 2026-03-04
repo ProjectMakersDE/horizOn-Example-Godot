@@ -1,5 +1,5 @@
 ## Enemy Pirate - Faster, periodic direction change (evasive)
-extends EnemyBase
+extends "res://scripts/entities/enemy_base.gd"
 
 var _evade_timer: float = 2.0
 var _evade_interval: float = 2.0

@@ -1,5 +1,5 @@
 ## Enemy Jellyfish - Leaves poison zone periodically
-extends EnemyBase
+extends "res://scripts/entities/enemy_base.gd"
 
 var _poison_timer: float = 5.0
 var _poison_interval: float = 5.0

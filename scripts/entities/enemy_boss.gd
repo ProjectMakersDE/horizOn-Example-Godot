@@ -1,6 +1,6 @@
 ## Enemy Boss - Large, high HP, spawns at final wave
 ## Has faster attack cooldown and periodic charge attacks.
-extends EnemyBase
+extends "res://scripts/entities/enemy_base.gd"
 
 var _base_speed: float = 0.0
 var _charge_speed_mult: float = 2.5

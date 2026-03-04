@@ -77,7 +77,7 @@ func _on_body_entered(body: Node2D) -> void:
 
 func _on_area_entered(area: Area2D) -> void:
 	var parent := area.get_parent()
-	if parent is EnemyBase and parent.has_method(\"take_damage\"):
+	if parent.has_method(\"take_damage\"):
 		parent.take_damage(int(damage))
 		queue_free()
 """

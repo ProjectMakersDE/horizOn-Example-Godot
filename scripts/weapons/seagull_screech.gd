@@ -23,7 +23,7 @@ func fire() -> void:
 
 	var enemies := get_tree().get_nodes_in_group("enemies")
 	for enemy in enemies:
-		if enemy is EnemyBase and not enemy.is_dead:
+		if enemy.has_method("take_damage") and not enemy.is_dead:
 			var dist := owner_node.global_position.distance_to(enemy.global_position)
 			if dist <= radius:
 				enemy.take_damage(int(get_damage()))
