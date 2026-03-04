@@ -49,7 +49,7 @@ func _process(delta: float) -> void:
 
 func _spawn_wave() -> void:
 	var base_count := ConfigCache.get_int("wave_enemy_count_base", 5)
-	var growth := ConfigCache.get_float("wave_enemy_count_growth", 1.15)
+	var growth := ConfigCache.get_float("wave_enemy_count_growth", 1.3)
 	var count := int(base_count * pow(growth, _wave_number - 1))
 
 	for i in count:
