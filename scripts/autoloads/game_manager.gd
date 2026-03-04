@@ -28,8 +28,8 @@ func load_save_data() -> void:
 	highscore_changed.emit(save_data.highscore)
 
 
-func save_data_to_cloud() -> void:
-	await Horizon.cloudSave.saveObject(save_data.to_dict())
+func save_data_to_cloud() -> bool:
+	return await Horizon.cloudSave.saveObject(save_data.to_dict())
 
 
 ## Scene transitions
@@ -68,10 +68,14 @@ func end_run() -> void:
 	coins_changed.emit(save_data.coins)
 
 	# Submit score to leaderboard
-	await Horizon.leaderboard.submitScore(run_state.currentScore)
+	var lb_ok := await Horizon.leaderboard.submitScore(run_state.currentScore)
+	if not lb_ok:
+		await Horizon.crashes.record_exception("Failed to submit score to leaderboard", "")
 
 	# Save to cloud
-	await save_data_to_cloud()
+	var save_ok := await save_data_to_cloud()
+	if not save_ok:
+		await Horizon.crashes.record_exception("Failed to save cloud data after run", "")
 
 	# User log - run summary
 	var duration_str = "%dm%02ds" % [int(run_state.duration) / 60, int(run_state.duration) % 60]

@@ -266,6 +266,10 @@ layout_mode = 2
 custom_minimum_size = Vector2(0, 60)
 placeholder_text = "Your message..."
 
+[node name="EmailInput" type="LineEdit" parent="Popups/FeedbackPopup/VBox"]
+layout_mode = 2
+placeholder_text = "Email (optional)..."
+
 [node name="CategoryOption" type="OptionButton" parent="Popups/FeedbackPopup/VBox"]
 layout_mode = 2
 

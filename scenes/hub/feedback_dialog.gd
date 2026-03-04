@@ -3,6 +3,7 @@ extends PanelContainer
 
 @onready var title_input: LineEdit = $VBox/TitleInput
 @onready var message_input: TextEdit = $VBox/MessageInput
+@onready var email_input: LineEdit = $VBox/EmailInput
 @onready var category_option: OptionButton = $VBox/CategoryOption
 @onready var submit_button: Button = $VBox/SubmitButton
 @onready var close_button: Button = $VBox/CloseButton
@@ -27,15 +28,17 @@ func _on_submit() -> void:
 		return
 
 	var category := category_option.get_item_text(category_option.selected)
+	var email := email_input.text.strip_edges()
 
 	status_label.text = "Submitting..."
 	submit_button.disabled = true
 
-	var success := await Horizon.feedback.submit(title, message, category)
+	var success := await Horizon.feedback.submit(title, message, category, email)
 	if success:
 		status_label.text = "Feedback sent!"
 		title_input.text = ""
 		message_input.text = ""
+		email_input.text = ""
 		Horizon.crashes.record_breadcrumb("user_action", "submitted_feedback")
 	else:
 		status_label.text = "Failed to send feedback."

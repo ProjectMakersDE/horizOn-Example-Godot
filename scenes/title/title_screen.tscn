@@ -35,10 +35,10 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 6
 
-[node name="LogoPlaceholder" type="ColorRect" parent="VBoxContainer"]
+[node name="LogoPlaceholder" type="TextureRect" parent="VBoxContainer"]
 layout_mode = 2
 custom_minimum_size = Vector2(48, 48)
-color = Color(0.961, 0.961, 0.941, 1)
+stretch_mode = 5
 size_flags_horizontal = 4
 
 [node name="TitleLabel" type="Label" parent="VBoxContainer"]

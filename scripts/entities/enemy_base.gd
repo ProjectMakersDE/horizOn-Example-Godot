@@ -30,6 +30,10 @@ func _physics_process(delta: float) -> void:
 	velocity = direction * speed
 	move_and_slide()
 
+	var vis = get_node_or_null("Visual")
+	if vis and vis is Sprite2D:
+		vis.flip_h = direction.x < 0
+
 	var dist := global_position.distance_to(target.global_position)
 	if dist < 24.0 and _attack_timer <= 0:
 		_attack_timer = _attack_cooldown
@@ -72,6 +76,9 @@ func setup(enemy_type: String, player_target: Node2D) -> void:
 	target = player_target
 	var stats := ConfigCache.get_enemy_stats(enemy_type)
 	hp = int(stats.get("hp", 30))
+	# Boss uses dedicated wave_boss_hp config key with higher default
+	if enemy_type == "boss":
+		hp = int(ConfigCache.get_float("wave_boss_hp", 500.0))
 	max_hp = hp
 	speed = float(stats.get("speed", 40.0))
 	damage = int(stats.get("damage", 10))

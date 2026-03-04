@@ -8,7 +8,7 @@ func _ready() -> void:
 	var stats := ConfigCache.get_weapon_stats("screech")
 	weapon_damage = float(stats.get("damage", 15.0))
 	cooldown = float(stats.get("cooldown", 2.0))
-	radius = float(stats.get("range", 80.0))
+	radius = float(stats.get("radius", 80.0))
 	super._ready()
 
 

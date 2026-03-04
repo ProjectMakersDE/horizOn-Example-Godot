@@ -55,17 +55,24 @@ func _load_hub_data() -> void:
 	await GameManager.load_save_data()
 
 	# Load leaderboard
-	_load_leaderboard()
+	var lb_entries := await Horizon.leaderboard.getTop(10)
+	if lb_entries == null or lb_entries.is_empty():
+		await Horizon.crashes.record_exception("Failed to load leaderboard in hub", "")
+	else:
+		_populate_leaderboard(lb_entries)
 
 	# Load news
-	_load_news()
+	var news_entries := await Horizon.news.loadNews(5, "en")
+	if news_entries == null:
+		await Horizon.crashes.record_exception("Failed to load news in hub", "")
+	else:
+		_populate_news(news_entries)
 
 	_update_ui()
 	status_label.text = ""
 
 
-func _load_leaderboard() -> void:
-	var entries := await Horizon.leaderboard.getTop(10)
+func _populate_leaderboard(entries: Array) -> void:
 	_clear_children(leaderboard_list)
 	for entry in entries:
 		var label := Label.new()
@@ -74,8 +81,7 @@ func _load_leaderboard() -> void:
 		leaderboard_list.add_child(label)
 
 
-func _load_news() -> void:
-	var entries := await Horizon.news.loadNews(5, "en")
+func _populate_news(entries: Array) -> void:
 	_clear_children(news_list)
 	for entry in entries:
 		var label := Label.new()

@@ -65,6 +65,8 @@ func _physics_process(delta: float) -> void:
 		input = input.normalized()
 		move_direction = input
 		velocity = input * BASE_SPEED * speed_multiplier
+		if visual and visual is Sprite2D and input.x != 0:
+			visual.flip_h = input.x < 0
 	else:
 		velocity = Vector2.ZERO
 

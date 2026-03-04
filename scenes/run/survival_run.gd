@@ -300,8 +300,11 @@ func _show_pause_news() -> void:
 	_pause_news_panel.add_child(vbox)
 	pause_menu.add_child(_pause_news_panel)
 
-	# Load news entries
-	var entries := await Horizon.news.loadNews(5, "en")
+	# Use cached news from hub loading instead of making a new request
+	var entries = Horizon.news.getCachedNews()
+	if entries.is_empty():
+		# Fallback: load from server if cache is empty
+		entries = await Horizon.news.loadNews(5, "en")
 	for entry in entries:
 		var label := Label.new()
 		label.text = "* %s" % entry.title
@@ -341,6 +344,11 @@ func _show_pause_feedback() -> void:
 	msg_input.custom_minimum_size = Vector2(0, 50)
 	vbox.add_child(msg_input)
 
+	var email_input := LineEdit.new()
+	email_input.name = "EmailInput"
+	email_input.placeholder_text = "Email (optional)..."
+	vbox.add_child(email_input)
+
 	var category := OptionButton.new()
 	category.name = "CategoryOption"
 	category.add_item("BUG", 0)
@@ -372,13 +380,15 @@ func _show_pause_feedback() -> void:
 			status_lbl.text = "Fill in title and message."
 			return
 		var cat := category.get_item_text(category.selected)
+		var em := email_input.text.strip_edges()
 		status_lbl.text = "Submitting..."
 		submit_btn.disabled = true
-		var success := await Horizon.feedback.submit(t, m, cat)
+		var success := await Horizon.feedback.submit(t, m, cat, em)
 		if success:
 			status_lbl.text = "Feedback sent!"
 			title_input.text = ""
 			msg_input.text = ""
+			email_input.text = ""
 			Horizon.crashes.record_breadcrumb("user_action", "submitted_feedback_pause")
 		else:
 			status_lbl.text = "Failed to send."
