@@ -51,9 +51,9 @@ func take_damage(amount: int) -> void:
 	hp -= amount
 	AudioManager.play_sfx("sfx_enemy_hit")
 
-	var visual := get_node_or_null("Visual")
+	var visual: CanvasItem = get_node_or_null("Visual")
 	if visual:
-		var orig_modulate := visual.modulate
+		var orig_modulate: Color = visual.modulate
 		visual.modulate = Color(1, 0.3, 0.3)
 		var tween := create_tween()
 		tween.tween_property(visual, "modulate", orig_modulate, 0.15)
