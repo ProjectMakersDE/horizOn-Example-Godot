@@ -234,7 +234,7 @@ func _add_weapon(weapon_id: String) -> void:
 	var path := "res://scripts/weapons/%s.gd" % weapon_id
 	if not ResourceLoader.exists(path):
 		return
-	var weapon := WeaponBase.new()
+	var weapon := Node2D.new()
 	weapon.set_script(load(path))
 	weapon.weapon_id = weapon_id
 	weapon.owner_node = player
