@@ -17,7 +17,7 @@
 extends Node
 
 ## SDK Version
-const VERSION := "1.2.3"
+const VERSION := "1.3.0"
 
 ## Config resource path
 const CONFIG_PATH := "res://addons/horizon_sdk/horizon_config.tres"
@@ -51,6 +51,7 @@ var giftCodes: HorizonGiftCodes
 var feedback: HorizonFeedback
 var userLogs: HorizonUserLogs
 var crashes: HorizonCrashes
+var email_sending: HorizonEmailSending
 
 ## State
 var _isInitialized: bool = false
@@ -167,6 +168,10 @@ func _initializeManagers() -> void:
 	# Crash Reporting
 	crashes = HorizonCrashes.new()
 	crashes.initialize(_http, _logger, auth, VERSION)
+
+	# Email Sending
+	email_sending = HorizonEmailSending.new()
+	email_sending.initialize(_http, _logger, auth)
 
 	_logger.info("All managers initialized")
 
