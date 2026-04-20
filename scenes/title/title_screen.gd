@@ -8,6 +8,7 @@ extends Control
 @onready var email_signin_button: Button = $VBoxContainer/EmailSignInButton
 @onready var create_account_button: Button = $VBoxContainer/CreateAccountButton
 @onready var google_button: Button = $VBoxContainer/GoogleButton
+@onready var apple_button: Button = $VBoxContainer/AppleButton
 @onready var status_label: Label = $VBoxContainer/StatusLabel
 @onready var email_fields: VBoxContainer = $VBoxContainer/EmailFields
 
@@ -21,6 +22,7 @@ func _ready() -> void:
 	email_signin_button.pressed.connect(_on_email_signin_pressed)
 	create_account_button.pressed.connect(_on_create_account_pressed)
 	google_button.pressed.connect(_on_google_pressed)
+	apple_button.pressed.connect(_on_apple_pressed)
 
 	_connect_to_server()
 
@@ -150,8 +152,27 @@ func _on_google_pressed() -> void:
 		_set_buttons_disabled(false)
 
 
+func _on_apple_pressed() -> void:
+	# Apple Sign-In: native sheet on iOS via the bundled .gdip plugin,
+	# system-browser OAuth fallback on every other platform. The fallback
+	# requires the customer to register a Services ID in their horizOn API key
+	# and to provide it here.
+	_set_buttons_disabled(true)
+	status_label.text = "Attempting Apple Sign-In..."
+
+	var services_id := ""  # Provide your Apple Services ID here for non-iOS builds.
+	var success := await Horizon.auth.sign_in_with_apple(services_id)
+	if success:
+		Horizon.crashes.record_breadcrumb("navigation", "signed_in_apple")
+		GameManager.go_to_hub()
+	else:
+		status_label.text = "Apple Sign-In is not available on this platform."
+		_set_buttons_disabled(false)
+
+
 func _set_buttons_disabled(disabled: bool) -> void:
 	guest_button.disabled = disabled
 	email_signin_button.disabled = disabled
 	create_account_button.disabled = disabled
 	google_button.disabled = disabled
+	apple_button.disabled = disabled
