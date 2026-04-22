@@ -1,6 +1,9 @@
 ## Seagull Screech - AoE ring around player
 extends "res://scripts/weapons/weapon_base.gd"
 
+const SpriteSheetHelper = preload("res://scripts/visuals/sprite_sheet_helper.gd")
+const WEAPON_TEXTURE = preload("res://assets/sprites/weapons.png")
+
 var radius: float = 80.0
 
 
@@ -31,15 +34,14 @@ func fire() -> void:
 
 func _create_screech_effect() -> Node2D:
 	var effect := Node2D.new()
-	var circle := Sprite2D.new()
-	var img := Image.create(int(radius * 2), int(radius * 2), false, Image.FORMAT_RGBA8)
-	img.fill(Color(1, 1, 0.4, 0.3))
-	var tex := ImageTexture.create_from_image(img)
-	circle.texture = tex
-	effect.add_child(circle)
-	var tween := effect.create_tween()
-	tween.tween_property(circle, "modulate:a", 0.0, 0.3)
-	tween.tween_callback(effect.queue_free)
+	var sprite := AnimatedSprite2D.new()
+	var frames := SpriteFrames.new()
+	SpriteSheetHelper.add_row_animation(frames, "burst", WEAPON_TEXTURE, Vector2i(32, 32), 1, 4, 12.0, false)
+	sprite.sprite_frames = frames
+	sprite.scale = Vector2.ONE * max(radius / 24.0, 1.0)
+	effect.add_child(sprite)
+	sprite.play("burst")
+	sprite.animation_finished.connect(effect.queue_free, CONNECT_ONE_SHOT)
 	return effect
 
 

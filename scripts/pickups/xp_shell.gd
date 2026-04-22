@@ -1,6 +1,9 @@
 ## XP Shell - Pickup that grants XP to player
 extends Area2D
 
+const SpriteSheetHelper = preload("res://scripts/visuals/sprite_sheet_helper.gd")
+const PICKUP_TEXTURE = preload("res://assets/sprites/pickups.png")
+
 var xp_amount: int = 10
 var _attracted: bool = false
 var _attract_speed: float = 200.0
@@ -17,11 +20,12 @@ func _ready() -> void:
 	shape.shape = circle
 	add_child(shape)
 
-	var visual := Sprite2D.new()
+	var visual := AnimatedSprite2D.new()
 	visual.name = "Visual"
-	visual.texture = preload("res://assets/sprites/pickups.png")
-	visual.region_enabled = true
-	visual.region_rect = Rect2(0, 0, 16, 16)
+	var frames := SpriteFrames.new()
+	SpriteSheetHelper.add_row_animation(frames, "idle", PICKUP_TEXTURE, Vector2i(16, 16), 0, 4, 8.0)
+	visual.sprite_frames = frames
+	visual.play("idle")
 	add_child(visual)
 
 

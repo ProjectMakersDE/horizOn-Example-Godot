@@ -1,6 +1,9 @@
 ## Dive Bomb - Dash-damage in move direction
 extends "res://scripts/weapons/weapon_base.gd"
 
+const SpriteSheetHelper = preload("res://scripts/visuals/sprite_sheet_helper.gd")
+const WEAPON_TEXTURE = preload("res://assets/sprites/weapons.png")
+
 var dive_range: float = 120.0
 var dive_width: float = 30.0
 
@@ -21,16 +24,16 @@ func fire() -> void:
 	var dir: Vector2 = owner_node.move_direction.normalized()
 	var start_pos := owner_node.global_position
 
-	var effect := ColorRect.new()
-	effect.color = Color(0.4, 0.8, 1.0, 0.5)
-	effect.size = Vector2(dive_range, dive_width)
-	effect.position = start_pos - Vector2(0, dive_width / 2)
+	var effect := AnimatedSprite2D.new()
+	var frames := SpriteFrames.new()
+	SpriteSheetHelper.add_row_animation(frames, "dive", WEAPON_TEXTURE, Vector2i(32, 32), 2, 4, 14.0, false)
+	effect.sprite_frames = frames
+	effect.global_position = start_pos + dir * 18.0
 	effect.rotation = dir.angle()
-	effect.pivot_offset = Vector2(0, dive_width / 2)
+	effect.scale = Vector2.ONE * max(dive_width / 20.0, 1.0)
 	get_tree().current_scene.add_child(effect)
-	var tween := effect.create_tween()
-	tween.tween_property(effect, "modulate:a", 0.0, 0.3)
-	tween.tween_callback(effect.queue_free)
+	effect.play("dive")
+	effect.animation_finished.connect(effect.queue_free, CONNECT_ONE_SHOT)
 
 	var enemies := get_tree().get_nodes_in_group("enemies")
 	for enemy in enemies:

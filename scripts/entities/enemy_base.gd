@@ -1,6 +1,9 @@
 ## Enemy Base - Common enemy behavior
 extends CharacterBody2D
 
+const SpriteSheetHelper = preload("res://scripts/visuals/sprite_sheet_helper.gd")
+const ENEMY_TEXTURE = preload("res://assets/sprites/enemies.png")
+
 signal died(enemy: Node2D, position: Vector2)
 
 var speed: float = 40.0
@@ -30,7 +33,9 @@ func _physics_process(delta: float) -> void:
 	move_and_slide()
 
 	var vis = get_node_or_null("Visual")
-	if vis and vis is Sprite2D:
+	if vis and vis is AnimatedSprite2D:
+		vis.flip_h = direction.x < 0
+	elif vis and vis is Sprite2D:
 		vis.flip_h = direction.x < 0
 
 	var dist := global_position.distance_to(target.global_position)
@@ -63,12 +68,21 @@ func take_damage(amount: int) -> void:
 
 
 func _die() -> void:
+	if is_dead:
+		return
 	is_dead = true
+	velocity = Vector2.ZERO
+	collision_layer = 0
+	collision_mask = 0
 	GameManager.run_state.kills += 1
 	died.emit(self, global_position)
-	var tween := create_tween()
-	tween.tween_property(self, "modulate:a", 0.0, 0.3)
-	tween.tween_callback(queue_free)
+
+	var visual := get_node_or_null("Visual")
+	if visual and visual is AnimatedSprite2D and visual.sprite_frames and visual.sprite_frames.has_animation("death"):
+		visual.play("death")
+		visual.animation_finished.connect(_on_death_animation_finished, CONNECT_ONE_SHOT)
+	else:
+		queue_free()
 
 
 func setup(enemy_type: String, player_target: Node2D) -> void:
@@ -83,6 +97,7 @@ func setup(enemy_type: String, player_target: Node2D) -> void:
 	damage = int(stats.get("damage", 10))
 	xp_reward = int(stats.get("xp", 10))
 	score_value = xp_reward
+	_setup_visual()
 
 
 func _get_enemy_type() -> String:
@@ -91,3 +106,30 @@ func _get_enemy_type() -> String:
 
 func _on_special_behavior(_delta: float) -> void:
 	pass
+
+
+func _setup_visual() -> void:
+	var visual := get_node_or_null("Visual")
+	if visual == null or not visual is AnimatedSprite2D:
+		return
+
+	var frames := SpriteFrames.new()
+	match _get_enemy_type():
+		"crab":
+			SpriteSheetHelper.add_row_animation(frames, "move", ENEMY_TEXTURE, Vector2i(32, 32), 0, 4, 8.0)
+			SpriteSheetHelper.add_row_animation(frames, "death", ENEMY_TEXTURE, Vector2i(32, 32), 1, 3, 8.0, false)
+		"jellyfish":
+			SpriteSheetHelper.add_row_animation(frames, "move", ENEMY_TEXTURE, Vector2i(32, 32), 2, 4, 6.0)
+			SpriteSheetHelper.add_row_animation(frames, "death", ENEMY_TEXTURE, Vector2i(32, 32), 3, 3, 8.0, false)
+		"pirate":
+			SpriteSheetHelper.add_row_animation(frames, "move", ENEMY_TEXTURE, Vector2i(32, 32), 4, 4, 8.0)
+			SpriteSheetHelper.add_row_animation(frames, "death", ENEMY_TEXTURE, Vector2i(32, 32), 5, 3, 8.0, false)
+		"boss":
+			SpriteSheetHelper.add_row_animation(frames, "move", ENEMY_TEXTURE, Vector2i(64, 64), 6, 4, 5.0)
+			SpriteSheetHelper.add_row_animation(frames, "death", ENEMY_TEXTURE, Vector2i(64, 64), 7, 4, 6.0, false)
+	visual.sprite_frames = frames
+	visual.play("move")
+
+
+func _on_death_animation_finished() -> void:
+	queue_free()

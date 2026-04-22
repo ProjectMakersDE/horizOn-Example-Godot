@@ -82,19 +82,8 @@ func _spawn_enemy(enemy_type: String) -> void:
 		enemy.set_script(script)
 
 	# Visual sprite
-	var visual := Sprite2D.new()
+	var visual := AnimatedSprite2D.new()
 	visual.name = "Visual"
-	visual.texture = preload("res://assets/sprites/enemies.png")
-	visual.region_enabled = true
-	match enemy_type:
-		"crab":
-			visual.region_rect = Rect2(0, 0, 32, 32)
-		"jellyfish":
-			visual.region_rect = Rect2(0, 64, 32, 32)
-		"pirate":
-			visual.region_rect = Rect2(0, 128, 32, 32)
-		"boss":
-			visual.region_rect = Rect2(0, 192, 64, 64)
 	enemy.add_child(visual)
 
 	# Collision shape

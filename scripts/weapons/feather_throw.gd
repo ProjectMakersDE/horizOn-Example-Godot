@@ -1,6 +1,9 @@
 ## Feather Throw - Projectile weapon firing in move direction
 extends "res://scripts/weapons/weapon_base.gd"
 
+const SpriteSheetHelper = preload("res://scripts/visuals/sprite_sheet_helper.gd")
+const WEAPON_TEXTURE = preload("res://assets/sprites/weapons.png")
+
 var projectile_speed: float = 300.0
 var projectile_count: int = 1
 
@@ -40,10 +43,11 @@ func _create_projectile() -> Node2D:
 	shape.shape = circle
 	proj.add_child(shape)
 
-	var sprite := Sprite2D.new()
-	sprite.texture = preload("res://assets/sprites/weapons.png")
-	sprite.region_enabled = true
-	sprite.region_rect = Rect2(0, 0, 32, 32)
+	var sprite := AnimatedSprite2D.new()
+	var frames := SpriteFrames.new()
+	SpriteSheetHelper.add_row_animation(frames, "fly", WEAPON_TEXTURE, Vector2i(32, 32), 0, 4, 14.0)
+	sprite.sprite_frames = frames
+	sprite.play("fly")
 	proj.add_child(sprite)
 
 	var script := GDScript.new()

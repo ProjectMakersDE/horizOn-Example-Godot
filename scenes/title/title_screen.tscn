@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" path="res://scenes/title/title_screen.gd" id="1"]
 [ext_resource type="Theme" path="res://resources/theme/game_theme.tres" id="2"]
-[ext_resource type="Texture2D" path="res://assets/sprites/generated/seagull_logo_preview_v2.png" id="3"]
+[ext_resource type="Texture2D" path="res://assets/sprites/seagull_logo.png" id="3"]
 
 [node name="TitleScreen" type="Control"]
 layout_mode = 3
@@ -36,9 +36,9 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 6
 
-[node name="LogoPlaceholder" type="TextureRect" parent="VBoxContainer"]
+[node name="Logo" type="TextureRect" parent="VBoxContainer"]
 layout_mode = 2
-custom_minimum_size = Vector2(48, 48)
+custom_minimum_size = Vector2(72, 72)
 texture = ExtResource("3")
 stretch_mode = 5
 size_flags_horizontal = 4
