@@ -1,6 +1,48 @@
-[gd_resource type="Theme" load_steps=2 format=3]
+[gd_resource type="Theme" load_steps=8 format=3]
 
 [ext_resource type="FontFile" path="res://assets/fonts/PressStart2P-Regular.ttf" id="1"]
+[ext_resource type="Texture2D" path="res://assets/sprites/ui.png" id="2"]
+
+[sub_resource type="StyleBoxTexture" id="btn_normal"]
+texture = ExtResource("2")
+texture_margin_left = 4.0
+texture_margin_top = 4.0
+texture_margin_right = 4.0
+texture_margin_bottom = 4.0
+region_rect = Rect2(0, 0, 64, 16)
+
+[sub_resource type="StyleBoxTexture" id="btn_hover"]
+texture = ExtResource("2")
+texture_margin_left = 4.0
+texture_margin_top = 4.0
+texture_margin_right = 4.0
+texture_margin_bottom = 4.0
+region_rect = Rect2(0, 16, 64, 16)
+
+[sub_resource type="StyleBoxTexture" id="btn_pressed"]
+texture = ExtResource("2")
+texture_margin_left = 4.0
+texture_margin_top = 4.0
+texture_margin_right = 4.0
+texture_margin_bottom = 4.0
+region_rect = Rect2(0, 32, 64, 16)
+
+[sub_resource type="StyleBoxTexture" id="btn_disabled"]
+texture = ExtResource("2")
+texture_margin_left = 4.0
+texture_margin_top = 4.0
+texture_margin_right = 4.0
+texture_margin_bottom = 4.0
+region_rect = Rect2(0, 0, 64, 16)
+modulate_color = Color(0.6, 0.6, 0.6, 1)
+
+[sub_resource type="StyleBoxTexture" id="panel"]
+texture = ExtResource("2")
+texture_margin_left = 8.0
+texture_margin_top = 8.0
+texture_margin_right = 8.0
+texture_margin_bottom = 8.0
+region_rect = Rect2(0, 48, 48, 48)
 
 [resource]
 default_font = ExtResource("1")
@@ -8,8 +50,12 @@ default_font_size = 8
 
 Button/colors/font_color = Color(0.933, 0.933, 0.933, 1)
 Button/colors/font_hover_color = Color(1, 1, 1, 1)
-Button/colors/font_pressed_color = Color(0.847, 0.475, 0.263, 1)
+Button/colors/font_pressed_color = Color(0.933, 0.933, 0.933, 1)
 Button/font_sizes/font_size = 8
+Button/styles/normal = SubResource("btn_normal")
+Button/styles/hover = SubResource("btn_hover")
+Button/styles/pressed = SubResource("btn_pressed")
+Button/styles/disabled = SubResource("btn_disabled")
 
 Label/colors/font_color = Color(0.933, 0.933, 0.933, 1)
 Label/font_sizes/font_size = 8
@@ -22,3 +68,11 @@ TextEdit/font_sizes/font_size = 8
 
 OptionButton/colors/font_color = Color(0.933, 0.933, 0.933, 1)
 OptionButton/font_sizes/font_size = 8
+OptionButton/styles/normal = SubResource("btn_normal")
+OptionButton/styles/hover = SubResource("btn_hover")
+OptionButton/styles/pressed = SubResource("btn_pressed")
+OptionButton/styles/disabled = SubResource("btn_disabled")
+
+Panel/styles/panel = SubResource("panel")
+
+PanelContainer/styles/panel = SubResource("panel")

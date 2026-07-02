@@ -7,15 +7,14 @@ extends Node2D
 @onready var weapons_container: Node2D = $Weapons
 @onready var camera: Camera2D = $Camera2D
 @onready var wave_spawner: Node = $WaveSpawner
-@onready var run_timer_node: Timer = $RunTimer
 
 # HUD references
 @onready var hud: Control = $CanvasLayer/HUD
 @onready var wave_label: Label = $CanvasLayer/HUD/TopBar/WaveLabel
 @onready var timer_label: Label = $CanvasLayer/HUD/TopBar/TimerLabel
 @onready var score_label: Label = $CanvasLayer/HUD/TopBar/ScoreLabel
-@onready var hp_bar: ProgressBar = $CanvasLayer/HUD/HPBar
-@onready var xp_bar: ProgressBar = $CanvasLayer/HUD/XPBar
+@onready var hp_bar: TextureProgressBar = $CanvasLayer/HUD/HPBar
+@onready var xp_bar: TextureProgressBar = $CanvasLayer/HUD/XPBar
 @onready var level_label: Label = $CanvasLayer/HUD/LevelLabel
 @onready var pause_button: Button = $CanvasLayer/HUD/PauseButton
 @onready var pause_menu: Control = $CanvasLayer/PauseMenu
@@ -71,16 +70,21 @@ func _process(delta: float) -> void:
 
 	# Check for boss wave
 	if run_timer <= 0 and not boss_spawned:
+		boss_spawned = true
 		run_timer = 0
+		wave_spawner.stop_spawning()
 		if ConfigCache.get_bool("boss_wave_enabled", true):
-			boss_spawned = true
 			AudioManager.play_music("music_boss")
-			wave_spawner.spawn_boss()
+			var boss: Node = wave_spawner.spawn_boss()
+			if boss != null and boss.has_signal("died"):
+				boss.connect("died", _on_boss_died)
 		else:
-			_on_player_died()
+			# No boss configured: the run ends cleanly when the timer expires
+			GameManager.end_run()
+			return
 
-	# Attract XP pickups within magnet range
-	var magnet_radius := GameManager.get_upgrade_value("magnet")
+	# Attract XP pickups within magnet range (includes xp_magnet levelup boosts)
+	var magnet_radius: float = player.pickup_radius
 	var pickups := get_tree().get_nodes_in_group("xp_pickups")
 	for pickup in pickups:
 		if pickup.has_method("check_magnet"):
@@ -97,8 +101,9 @@ func _input(event: InputEvent) -> void:
 func _update_hud() -> void:
 	var run := GameManager.run_state
 	wave_label.text = "Wave %d" % run.currentWave
-	var minutes := int(run_timer) / 60
-	var seconds := int(run_timer) % 60
+	var time_left := maxi(int(run_timer), 0)
+	var minutes := time_left / 60
+	var seconds := time_left % 60
 	timer_label.text = "%d:%02d" % [minutes, seconds]
 	score_label.text = "Score: %d" % run.currentScore
 	level_label.text = "Lv. %d" % run.currentLevel
@@ -115,6 +120,10 @@ func _on_health_changed(current: int, maximum: int) -> void:
 
 
 func _on_player_died() -> void:
+	GameManager.end_run()
+
+
+func _on_boss_died(_enemy: Node2D, _pos: Vector2) -> void:
 	GameManager.end_run()
 
 
@@ -143,17 +152,57 @@ func _show_levelup_choices() -> void:
 			{"id": "max_hp", "type": "stat_boost", "weight": 2}
 		]
 
-	var choices: Array = _weighted_random_select(pool, num_choices)
+	# Filter out new-weapon choices whose weapon is already active
+	var available: Array = []
+	for entry in pool:
+		if entry.get("type", "") == "weapon_new":
+			var weapon_id := _weapon_id_for_choice(entry.get("id", ""))
+			if weapon_id.is_empty() or weapon_id in GameManager.run_state.activeWeapons:
+				continue
+		available.append(entry)
+
+	# Guard against a pathological remote config (e.g. only weapon_new entries
+	# for weapons already active): never pause with zero choices
+	if available.is_empty():
+		available = [
+			{"id": "max_hp", "type": "stat_boost", "weight": 1},
+			{"id": "move_speed", "type": "stat_boost", "weight": 1}
+		]
+
+	var choices: Array = _weighted_random_select(available, num_choices)
 
 	var container := levelup_panel.get_node("ChoiceContainer")
 	_clear_children(container)
 
+	var card_style := _make_card_style()
 	for choice in choices:
 		var btn := Button.new()
 		btn.text = _get_choice_label(choice)
-		btn.custom_minimum_size = Vector2(120, 60)
+		btn.custom_minimum_size = Vector2(100, 90)
+		for style_name in ["normal", "hover", "pressed", "focus"]:
+			btn.add_theme_stylebox_override(style_name, card_style)
 		btn.pressed.connect(func(): _apply_levelup_choice(choice))
 		container.add_child(btn)
+
+
+func _make_card_style() -> StyleBoxTexture:
+	# Upgrade card frame from ui.png, 9-slice safe margins 18 px top / 6 px others
+	var style := StyleBoxTexture.new()
+	style.texture = preload("res://assets/sprites/ui.png")
+	style.region_rect = Rect2(0, 96, 64, 80)
+	style.texture_margin_left = 6.0
+	style.texture_margin_top = 18.0
+	style.texture_margin_right = 6.0
+	style.texture_margin_bottom = 6.0
+	return style
+
+
+func _weapon_id_for_choice(choice_id: String) -> String:
+	match choice_id:
+		"screech_new": return "seagull_screech"
+		"dive_new": return "dive_bomb"
+		"gust_new": return "wind_gust"
+	return ""
 
 
 func _weighted_random_select(pool: Array, count: int) -> Array:
@@ -209,13 +258,9 @@ func _apply_levelup_choice(choice: Dictionary) -> void:
 						_:
 							w.upgrade()
 		"weapon_new":
-			match id:
-				"screech_new":
-					_add_weapon("seagull_screech")
-				"dive_new":
-					_add_weapon("dive_bomb")
-				"gust_new":
-					_add_weapon("wind_gust")
+			var new_weapon_id := _weapon_id_for_choice(id)
+			if not new_weapon_id.is_empty():
+				_add_weapon(new_weapon_id)
 		"stat_boost":
 			match id:
 				"move_speed":
@@ -224,13 +269,15 @@ func _apply_levelup_choice(choice: Dictionary) -> void:
 					player.max_hp += 20
 					player.current_hp = mini(player.current_hp + 20, player.max_hp)
 				"xp_magnet":
-					player.pickup_radius += 15.0
+					player.increase_pickup_radius(15.0)
 
 	levelup_panel.visible = false
 	get_tree().paused = false
 
 
 func _add_weapon(weapon_id: String) -> void:
+	if weapon_id in GameManager.run_state.activeWeapons:
+		return
 	var path := "res://scripts/weapons/%s.gd" % weapon_id
 	if not ResourceLoader.exists(path):
 		return
@@ -310,9 +357,20 @@ func _show_pause_news() -> void:
 		entries = await Horizon.news.loadNews(5, "en")
 	for entry in entries:
 		var label := Label.new()
-		label.text = "* %s" % entry.title
+		var date_str := _short_date(entry.releaseDate)
+		if date_str.is_empty():
+			label.text = "* %s" % entry.title
+		else:
+			label.text = "* %s (%s)" % [entry.title, date_str]
 		label.add_theme_font_size_override("font_size", 6)
 		news_list.add_child(label)
+
+
+func _short_date(release_date: String) -> String:
+	# ISO timestamps like "2026-07-02T10:30:00Z" -> "2026-07-02"
+	if release_date.length() >= 10:
+		return release_date.substr(0, 10)
+	return release_date
 
 
 func _show_pause_feedback() -> void:
@@ -413,15 +471,52 @@ func _generate_ground() -> void:
 	var source := TileSetAtlasSource.new()
 	source.texture = preload("res://assets/sprites/tilemap.png")
 	source.texture_region_size = Vector2i(16, 16)
+	# Register every tile of the 8x4 atlas so set_cell can reference them
+	for cx in 8:
+		for cy in 4:
+			source.create_tile(Vector2i(cx, cy))
 	tileset.add_source(source, 0)
 
 	tilemap.tile_set = tileset
 
-	# Fill a 125x125 tile area (2000x2000 pixels / 16px tiles) centered at origin
+	# Sand variants (row 0, cols 0-3), v1 weighted highest
+	var sand_variants: Array[Vector2i] = [
+		Vector2i(0, 0), Vector2i(0, 0), Vector2i(0, 0), Vector2i(0, 0),
+		Vector2i(1, 0), Vector2i(2, 0), Vector2i(3, 0),
+	]
+
+	# Fill a 125x125 tile area (2000x2000 pixels / 16px tiles) centered at origin:
+	# sand island interior with a water-edge border ring (row 1) and sparse
+	# sand decorations (row 0, cols 4-7).
 	var half := 62
 	for x in range(-half, half + 1):
 		for y in range(-half, half + 1):
-			tilemap.set_cell(Vector2i(x, y), 0, Vector2i(0, 0))
+			var is_north := y == -half
+			var is_south := y == half
+			var is_west := x == -half
+			var is_east := x == half
+			var atlas: Vector2i
+			if is_north and is_west:
+				atlas = Vector2i(4, 1)  # water corner NW
+			elif is_north and is_east:
+				atlas = Vector2i(5, 1)  # water corner NE
+			elif is_south and is_west:
+				atlas = Vector2i(6, 1)  # water corner SW
+			elif is_south and is_east:
+				atlas = Vector2i(7, 1)  # water corner SE
+			elif is_north:
+				atlas = Vector2i(0, 1)  # water edge N
+			elif is_south:
+				atlas = Vector2i(1, 1)  # water edge S
+			elif is_east:
+				atlas = Vector2i(2, 1)  # water edge E
+			elif is_west:
+				atlas = Vector2i(3, 1)  # water edge W
+			elif randf() < 0.03:
+				atlas = Vector2i(4 + randi() % 4, 0)  # sand decoration
+			else:
+				atlas = sand_variants[randi() % sand_variants.size()]
+			tilemap.set_cell(Vector2i(x, y), 0, atlas)
 
 	add_child(tilemap)
 

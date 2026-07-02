@@ -58,6 +58,9 @@ func play_music(track_name: String) -> void:
 		return
 	_current_music = track_name
 	var stream := load(path) as AudioStream
+	# Music must always loop, even if the import sidecar was generated with loop=false
+	if stream is AudioStreamOggVorbis and not stream.loop:
+		stream.loop = true
 
 	# Determine which player to fade in
 	var fade_in: AudioStreamPlayer

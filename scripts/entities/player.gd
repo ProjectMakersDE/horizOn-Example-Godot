@@ -35,6 +35,7 @@ func _ready() -> void:
 	_setup_visual()
 	add_to_group("player")
 	_apply_upgrades()
+	xp_to_next_level = _xp_curve_base()
 	current_hp = max_hp
 	health_changed.emit(current_hp, max_hp)
 	var pickup_shape := pickup_area.get_node("CollisionShape2D")
@@ -124,9 +125,22 @@ func _level_up() -> void:
 	xp -= xp_to_next_level
 	level += 1
 	var curve: float = ConfigCache.get_float("xp_level_curve", 1.4)
-	xp_to_next_level = int(50.0 * pow(curve, level - 1))
+	xp_to_next_level = int(float(_xp_curve_base()) * pow(curve, level - 1))
 	AudioManager.play_sfx("sfx_levelup")
 	leveled_up.emit(level)
+
+
+func _xp_curve_base() -> int:
+	# Level curve starts at 5x the configurable per-kill XP base (default 10),
+	# so the first level still needs 50 XP like the old hardcoded value.
+	return ConfigCache.get_int("xp_per_kill_base", 10) * 5
+
+
+func increase_pickup_radius(amount: float) -> void:
+	pickup_radius += amount
+	var pickup_shape := pickup_area.get_node("CollisionShape2D")
+	if pickup_shape and pickup_shape.shape is CircleShape2D:
+		pickup_shape.shape.radius = pickup_radius
 
 
 func _on_pickup_area_entered(area: Area2D) -> void:

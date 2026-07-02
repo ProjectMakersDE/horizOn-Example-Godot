@@ -246,6 +246,14 @@ func postAsync(endpoint: String, data: Dictionary = {}, useSessionToken: bool = 
 	return await _sendRequest(endpoint, HTTPClient.METHOD_POST, data, useSessionToken)
 
 
+## Make a DELETE request.
+## @param endpoint The API endpoint
+## @param useSessionToken Whether to include Authorization header
+## @return Network response
+func deleteAsync(endpoint: String, useSessionToken: bool = false) -> HorizonNetworkResponse:
+	return await _sendRequest(endpoint, HTTPClient.METHOD_DELETE, {}, useSessionToken)
+
+
 ## Make a POST request with raw binary data.
 ## @param endpoint The API endpoint
 ## @param binaryData Raw bytes to send

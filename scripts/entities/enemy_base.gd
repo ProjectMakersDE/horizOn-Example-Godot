@@ -11,7 +11,6 @@ var hp: int = 30
 var max_hp: int = 30
 var damage: int = 10
 var xp_reward: int = 10
-var score_value: int = 10
 var is_dead: bool = false
 var target: Node2D = null
 
@@ -96,7 +95,6 @@ func setup(enemy_type: String, player_target: Node2D) -> void:
 	speed = float(stats.get("speed", 40.0))
 	damage = int(stats.get("damage", 10))
 	xp_reward = int(stats.get("xp", 10))
-	score_value = xp_reward
 	_setup_visual()
 
 

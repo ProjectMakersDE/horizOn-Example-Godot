@@ -1,10 +1,12 @@
 ## Config Cache - Remote config cache with typed getters
 ##
-## Remote Config key format for structured data (enemy stats, weapon stats):
-## Each key stores a JSON object as its value string. For example:
-##   key: "enemy_crab_stats"  ->  value: '{"hp":30,"speed":40,"damage":10,"score":10}'
-##   key: "weapon_wave_stats" ->  value: '{"damage":15,"cooldown":1.5,"range":80}'
-## Use get_json(key) to parse these into Dictionaries.
+## Remote Config key format: flat scalar keys, one value per key. For example:
+##   enemy_crab_hp = 30, enemy_crab_speed = 40, weapon_feather_damage = 20
+## Structured helpers assemble these flat keys:
+##   get_enemy_stats() reads enemy_{type}_{hp|speed|damage|xp}
+##   get_weapon_stats() reads weapon_{type}_{damage|cooldown|projectiles|radius|range|knockback}
+## get_json(key) is only for the JSON-array/pool keys:
+##   upgrade_{type}_costs, upgrade_{type}_values, levelup_pool
 extends Node
 
 var _configs: Dictionary = {}

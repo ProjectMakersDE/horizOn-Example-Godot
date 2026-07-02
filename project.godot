@@ -30,6 +30,10 @@ window/stretch/aspect="keep"
 
 enabled=PackedStringArray("res://addons/horizon_sdk/plugin.cfg")
 
+[gui]
+
+theme/custom="res://resources/theme/game_theme.tres"
+
 [input]
 
 move_up={

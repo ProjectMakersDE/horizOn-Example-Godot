@@ -13,13 +13,7 @@ var _wave_interval: float = 15.0
 var _viewport_size: Vector2 = Vector2(480, 270)
 
 var _enemy_scripts: Dictionary = {}
-
-var _enemy_colors: Dictionary = {
-	"crab": Color("#E05B4B"),
-	"jellyfish": Color("#9B59B6"),
-	"pirate": Color("#4A4A4A"),
-	"boss": Color("#4A4A4A"),
-}
+var _spawning_stopped: bool = false
 
 
 func setup(player: Node2D, enemies: Node2D, pickups: Node2D) -> void:
@@ -38,6 +32,8 @@ func setup(player: Node2D, enemies: Node2D, pickups: Node2D) -> void:
 
 
 func _process(delta: float) -> void:
+	if _spawning_stopped:
+		return
 	if _player == null or not is_instance_valid(_player):
 		return
 
@@ -72,7 +68,11 @@ func _pick_enemy_type() -> String:
 	return "crab"
 
 
-func _spawn_enemy(enemy_type: String) -> void:
+func stop_spawning() -> void:
+	_spawning_stopped = true
+
+
+func _spawn_enemy(enemy_type: String) -> Node:
 	var enemy := CharacterBody2D.new()
 	enemy.collision_layer = 2
 	enemy.collision_mask = 1
@@ -109,10 +109,13 @@ func _spawn_enemy(enemy_type: String) -> void:
 	if enemy.has_signal("died"):
 		enemy.died.connect(_on_enemy_died)
 
+	return enemy
 
-func spawn_boss() -> void:
-	_spawn_enemy("boss")
+
+func spawn_boss() -> Node:
+	var boss := _spawn_enemy("boss")
 	boss_spawned.emit()
+	return boss
 
 
 func _get_spawn_position() -> Vector2:

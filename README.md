@@ -9,7 +9,7 @@
 
 | # | horizOn Feature | In-Game Usage |
 |---|----------------|---------------|
-| 1 | **Authentication** | Guest, Google, Email sign-in/sign-up on title screen |
+| 1 | **Authentication** | Guest, Email, Apple sign-in/sign-up on title screen (the Google button explains that a platform OAuth flow is required) |
 | 2 | **Leaderboards** | Score submission, Top 10 display, player rank |
 | 3 | **Cloud Save** | Persistent coins, upgrades, highscore across sessions |
 | 4 | **Remote Config** | All game balancing (enemies, weapons, upgrades, wave timing) |
@@ -25,7 +25,7 @@ You play as a seagull on a beach, surviving waves of crabs, jellyfish, and pirat
 
 - **Genre:** Vampire Survivors-style auto-attack roguelike
 - **Session Length:** 3–5 minutes
-- **Art Style:** Pixel art (32x32 sprites), placeholder graphics included
+- **Art Style:** Pixel art (32x32 sprites) with a 16x16 beach tileset and textured UI atlas
 - **Font:** Press Start 2P
 
 ## Getting Started
@@ -73,6 +73,7 @@ All values are optional — the game ships with sensible built-in defaults. Set 
 | `boss_wave_enabled` | bool | `true` | Whether a boss wave spawns when the timer runs out |
 | `coin_divisor` | int | `10` | Score is divided by this value to calculate coins earned |
 | `xp_level_curve` | float | `1.4` | XP-to-next-level scaling exponent (higher = steeper curve) |
+| `xp_per_kill_base` | int | `10` | Base XP unit for the level curve. Reaching level 2 requires 5x this value (50 XP by default); later levels scale by `xp_level_curve` |
 
 ### Wave Spawning
 

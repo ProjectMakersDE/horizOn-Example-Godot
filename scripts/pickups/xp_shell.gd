@@ -7,6 +7,7 @@ const PICKUP_TEXTURE = preload("res://assets/sprites/pickups.png")
 var xp_amount: int = 10
 var _attracted: bool = false
 var _attract_speed: float = 200.0
+var _collected: bool = false
 
 
 func _ready() -> void:
@@ -48,6 +49,9 @@ func check_magnet(player: Node2D, radius: float) -> void:
 
 
 func _collect(player: Node2D) -> void:
+	if _collected:
+		return
+	_collected = true
 	if player.has_method("add_xp"):
 		player.add_xp(xp_amount)
 	AudioManager.play_sfx("sfx_pickup_xp")

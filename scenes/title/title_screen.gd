@@ -128,28 +128,10 @@ func _on_create_account_pressed() -> void:
 
 
 func _on_google_pressed() -> void:
-	# Google OAuth requires a platform-specific authorization code flow.
-	# Attempt the SDK call; if it fails (e.g. no OAuth code), inform the user.
-	_set_buttons_disabled(true)
-	status_label.text = "Attempting Google Sign-In..."
-
-	# The SDK's signInGoogle() requires an authorization code and redirect URI
-	# which must be obtained from a platform-specific OAuth flow (e.g. browser redirect).
-	# On platforms without that flow, this will fail gracefully.
-	var auth_code := ""  # Would be populated by platform OAuth flow
-	var redirect_uri := ""
-	if auth_code.is_empty():
-		status_label.text = "Google Sign-In is not available on this platform."
-		_set_buttons_disabled(false)
-		return
-
-	var success := await Horizon.auth.signInGoogle(auth_code, redirect_uri)
-	if success:
-		Horizon.crashes.record_breadcrumb("navigation", "signed_in_google")
-		GameManager.go_to_hub()
-	else:
-		status_label.text = "Google Sign-In failed. Try another method."
-		_set_buttons_disabled(false)
+	# The SDK's signInGoogle() requires an OAuth authorization code and redirect
+	# URI obtained from a platform-specific browser flow, which this example does
+	# not implement. Show a clear message instead of firing a doomed request.
+	status_label.text = "Google Sign-In is not available on this platform."
 
 
 func _on_apple_pressed() -> void:

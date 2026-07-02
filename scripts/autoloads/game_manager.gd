@@ -10,6 +10,10 @@ var run_state: RunState = RunState.new()
 ## Consecutive wave-1 deaths for WARN log
 var _consecutive_wave1_deaths: int = 0
 
+## Guards end_run() against double entry (e.g. player dies while the
+## boss-kill end_run is still awaiting network calls)
+var _run_ending: bool = false
+
 
 func _ready() -> void:
 	Horizon.sdk_connected.connect(_on_sdk_connected)
@@ -44,6 +48,7 @@ func go_to_title() -> void:
 
 
 func start_run() -> void:
+	_run_ending = false
 	run_state = RunState.new()
 	run_state.playerMaxHP = int(get_upgrade_value("hp"))
 	run_state.playerHP = run_state.playerMaxHP
@@ -53,6 +58,10 @@ func start_run() -> void:
 
 
 func end_run() -> void:
+	if _run_ending:
+		return
+	_run_ending = true
+
 	# Calculate coins earned
 	var coin_divisor := ConfigCache.get_int("coin_divisor", 10)
 	if coin_divisor <= 0:
