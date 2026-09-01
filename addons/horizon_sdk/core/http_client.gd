@@ -246,14 +246,6 @@ func postAsync(endpoint: String, data: Dictionary = {}, useSessionToken: bool = 
 	return await _sendRequest(endpoint, HTTPClient.METHOD_POST, data, useSessionToken)
 
 
-## Make a DELETE request.
-## @param endpoint The API endpoint
-## @param useSessionToken Whether to include Authorization header
-## @return Network response
-func deleteAsync(endpoint: String, useSessionToken: bool = false) -> HorizonNetworkResponse:
-	return await _sendRequest(endpoint, HTTPClient.METHOD_DELETE, {}, useSessionToken)
-
-
 ## Make a POST request with raw binary data.
 ## @param endpoint The API endpoint
 ## @param binaryData Raw bytes to send
@@ -271,17 +263,6 @@ func getBinaryAsync(endpoint: String, useSessionToken: bool = false) -> Dictiona
 	return await _sendBinaryGetRequest(endpoint, useSessionToken)
 
 
-## Human-readable HTTP method name for logging and telemetry.
-func _methodName(method: int) -> String:
-	match method:
-		HTTPClient.METHOD_POST:
-			return "POST"
-		HTTPClient.METHOD_DELETE:
-			return "DELETE"
-		_:
-			return "GET"
-
-
 ## Internal request handler with retry logic.
 func _sendRequest(endpoint: String, method: int, data: Dictionary, useSessionToken: bool) -> HorizonNetworkResponse:
 	if activeHost.is_empty():
@@ -297,7 +278,7 @@ func _sendRequest(endpoint: String, method: int, data: Dictionary, useSessionTok
 
 	while attemptCount < maxAttempts:
 		attemptCount += 1
-		request_started.emit(url, _methodName(method))
+		request_started.emit(url, "POST" if method == HTTPClient.METHOD_POST else "GET")
 
 		var http := HTTPRequest.new()
 		add_child(http)
@@ -318,8 +299,12 @@ func _sendRequest(endpoint: String, method: int, data: Dictionary, useSessionTok
 			bodyJson = _toJsonExcludeEmpty(data)
 			_logger.debug("Request JSON: %s" % bodyJson)
 
-		# Send request (bodyJson is empty for body-less methods)
-		var error := http.request(url, headers, method, bodyJson)
+		# Send request
+		var error: int
+		if method == HTTPClient.METHOD_POST:
+			error = http.request(url, headers, HTTPClient.METHOD_POST, bodyJson)
+		else:
+			error = http.request(url, headers, HTTPClient.METHOD_GET)
 
 		if error != OK:
 			http.queue_free()
@@ -376,7 +361,7 @@ func _sendRequest(endpoint: String, method: int, data: Dictionary, useSessionTok
 		# Handle client errors (4xx)
 		if responseCode >= 400:
 			var errorMsg := _parseErrorMessage(bodyText, responseCode)
-			_logger.error("Request failed: %s %s - %s" % [_methodName(method), url, errorMsg])
+			_logger.error("Request failed: %s %s - %s" % ["POST" if method == HTTPClient.METHOD_POST else "GET", url, errorMsg])
 			var errorCode := HorizonErrorCodes.fromHttpStatus(responseCode)
 			request_failed.emit(url, errorMsg)
 			return HorizonNetworkResponse.failure(errorMsg, responseCode, errorCode)
