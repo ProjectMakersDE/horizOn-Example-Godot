@@ -38,9 +38,9 @@ func fire() -> void:
 	var enemies := get_tree().get_nodes_in_group("enemies")
 	for enemy in enemies:
 		if enemy.has_method("take_damage") and not enemy.is_dead:
-			var to_enemy := enemy.global_position - start_pos
-			var along := to_enemy.dot(dir)
-			var perp := abs(to_enemy.dot(dir.orthogonal()))
+			var to_enemy: Vector2 = enemy.global_position - start_pos
+			var along: float = to_enemy.dot(dir)
+			var perp: float = absf(to_enemy.dot(dir.orthogonal()))
 			if along >= 0 and along <= dive_range and perp <= dive_width:
 				enemy.take_damage(int(get_damage()))
 

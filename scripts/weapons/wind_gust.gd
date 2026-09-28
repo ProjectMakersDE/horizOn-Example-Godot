@@ -31,7 +31,7 @@ func fire() -> void:
 			var dist := owner_node.global_position.distance_to(enemy.global_position)
 			if dist <= gust_radius:
 				enemy.take_damage(int(get_damage()))
-				var dir := (enemy.global_position - owner_node.global_position).normalized()
+				var dir: Vector2 = (enemy.global_position - owner_node.global_position).normalized()
 				enemy.global_position += dir * knockback_force
 
 
