@@ -12,12 +12,12 @@
 ##   4. Use services: Horizon.auth, Horizon.leaderboard, etc.
 ##
 ## Channel: ProjectMakers
-## Documentation: https://docs.horizon.pm
+## Documentation: https://horizon.pm/quickstart
 ## ============================================================
 extends Node
 
 ## SDK Version
-const VERSION := "1.7.1"
+const VERSION := "1.7.2"
 
 ## Config resource path
 const CONFIG_PATH := "res://addons/horizon_sdk/horizon_config.tres"
