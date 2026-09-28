@@ -1,54 +1,76 @@
 name: Update SDK
 
+# Copies addons/horizon_sdk from a horizOn-SDK-Godot release tag.
+# horizOn-SDK-Godot sends the update-sdk dispatch after a release.
+# addons/horizon_sdk/horizon_config.tres (API key) is gitignored, so the
+# empty config that ships with the SDK is never committed.
+
 on:
   repository_dispatch:
     types: [update-sdk]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: SDK version, for example 1.7.2 (empty = latest release)
+        required: false
 
 permissions:
   contents: write
+
+env:
+  SDK_REPO: ProjectMakersDE/horizOn-SDK-Godot
 
 jobs:
   update:
     runs-on: ubuntu-latest
     steps:
+      - name: Resolve SDK release
+        id: sdk
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REQUESTED_VERSION: ${{ github.event.client_payload.version || inputs.version }}
+        run: |
+          set -euo pipefail
+          VERSION="${REQUESTED_VERSION#v}"
+          if [ -z "$VERSION" ]; then
+            VERSION=$(gh release view -R "$SDK_REPO" --json tagName -q .tagName)
+            VERSION="${VERSION#v}"
+          fi
+          if ! [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Invalid SDK version: $VERSION" >&2
+            exit 1
+          fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
       - name: Checkout example project
         uses: actions/checkout@v4
 
       - name: Checkout SDK at release tag
         uses: actions/checkout@v4
         with:
-          repository: ProjectMakersDE/horizOn-SDK-Godot
-          ref: v${{ github.event.client_payload.version }}
+          repository: ${{ env.SDK_REPO }}
+          ref: v${{ steps.sdk.outputs.version }}
           path: sdk-source
           token: ${{ secrets.SYNC_TOKEN }}
-
-      - name: Backup example config
-        run: |
-          if [ -f addons/horizon_sdk/horizon_config.tres ]; then
-            cp addons/horizon_sdk/horizon_config.tres /tmp/horizon_config.tres.bak
-          fi
 
       - name: Replace SDK files
         run: |
           rm -rf addons/horizon_sdk
           cp -r sdk-source/addons/horizon_sdk addons/horizon_sdk
 
-      - name: Restore example config
-        run: |
-          if [ -f /tmp/horizon_config.tres.bak ]; then
-            cp /tmp/horizon_config.tres.bak addons/horizon_sdk/horizon_config.tres
-          fi
-
       - name: Cleanup
         run: rm -rf sdk-source
 
       - name: Commit and push
+        env:
+          VERSION: ${{ steps.sdk.outputs.version }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          VERSION="${{ github.event.client_payload.version }}"
           git add -A
-          git diff --staged --quiet || {
+          if git diff --staged --quiet; then
+            echo "SDK is already at v${VERSION}"
+          else
             git commit -m "chore(sdk): update horizOn SDK to v${VERSION}"
             git push
-          }
+          fi
