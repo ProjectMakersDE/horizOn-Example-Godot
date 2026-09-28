@@ -3,7 +3,7 @@
 > **Status: Under Construction**
 > This project is actively being developed. Screenshots and a playable demo will be added soon.
 
-**Seagull Storm** is a mini Vampire Survivors-style roguelike built with Godot 4.x. It serves as a comprehensive example project demonstrating all 9 [horizOn](https://horizon.pm) SDK features in a real, playable game.
+**Seagull Storm** is a mini Vampire Survivors-style roguelike built with Godot 4.5. It serves as an example project demonstrating 9 of the 11 [horizOn](https://horizon.pm) SDK features in a playable game. The SDK's Email Sending and Localization features are not used.
 
 ## Features Demonstrated
 
@@ -33,7 +33,7 @@ You play as a seagull on a beach, surviving waves of crabs, jellyfish, and pirat
 ### Step 1 — Clone and Open
 
 1. Clone this repository
-2. Open the project in **Godot 4.x**
+2. Open the project in **Godot 4.5** or later
 
 ### Step 2 — Create a horizOn Account and API Key
 
@@ -173,7 +173,7 @@ project.godot          # Project configuration
 
 ## Requirements
 
-- [Godot Engine 4.x](https://godotengine.org/)
+- [Godot Engine 4.5 or later](https://godotengine.org/) (the horizOn SDK requires 4.5; the project was last checked with Godot 4.7)
 - [horizOn Account](https://horizon.pm) (free tier works)
 - [horizOn SDK for Godot](https://github.com/ProjectMakersDE/horizOn-SDK-Godot)
 
