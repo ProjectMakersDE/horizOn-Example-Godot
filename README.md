@@ -1,8 +1,5 @@
 # horizOn Example — Godot
 
-> **Status: Under Construction**
-> This project is actively being developed. Screenshots and a playable demo will be added soon.
-
 **Seagull Storm** is a mini Vampire Survivors-style roguelike built with Godot 4.5. It serves as an example project demonstrating 9 of the 11 [horizOn](https://horizon.pm) SDK features in a playable game. The SDK's Email Sending and Localization features are not used.
 
 ## Features Demonstrated
@@ -60,6 +57,13 @@ The game works out of the box with built-in defaults. To customize the game bala
 ### Step 5 — Run
 
 Press **F5** or click **Run Project** in the Godot editor.
+
+## Known Limitations
+
+- **Google Sign-In:** the Google button on the title screen only shows "Google Sign-In
+  is not available on this platform." The SDK's `signInGoogle()` needs an OAuth
+  authorization code from a platform-specific browser or loopback flow, which this
+  example does not implement.
 
 ## Remote Config Reference
 
