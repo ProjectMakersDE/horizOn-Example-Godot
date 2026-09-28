@@ -45,7 +45,9 @@ The horizOn SDK is already included in this project at `addons/horizon_sdk/`.
 
 1. In the Godot editor, go to **Project > Tools > horizOn: Import Config...**
 2. Select the config JSON file you downloaded from the dashboard
-3. The SDK saves the config to `addons/horizon_sdk/horizon_config.tres`
+3. The SDK saves the config to `addons/horizon_sdk/horizon_config.tres`. This file holds
+   your API key and is ignored by Git, so it stays on your machine. Until it exists, the
+   SDK logs "Config not found" and the title screen cannot connect.
 
 If the menu entry is not visible, make sure the plugin is enabled:
 **Project > Project Settings > Plugins > horizOn SDK > Enable**

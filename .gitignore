@@ -19,3 +19,6 @@ Thumbs.db
 .vscode/
 .idea/
 *.code-workspace
+
+# horizOn config: Project > Tools > horizOn: Import Config... writes your API key here
+addons/horizon_sdk/horizon_config.tres
