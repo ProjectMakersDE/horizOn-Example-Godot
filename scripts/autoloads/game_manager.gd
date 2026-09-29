@@ -6,6 +6,8 @@ signal highscore_changed(new_score: int)
 
 var save_data: GameData = GameData.new()
 var run_state: RunState = RunState.new()
+## Validated Actions: ticket, input log and validated submit of the current run
+var validated_run: ValidatedRunRecorder = ValidatedRunRecorder.new()
 
 ## Consecutive wave-1 deaths for WARN log
 var _consecutive_wave1_deaths: int = 0
@@ -13,6 +15,9 @@ var _consecutive_wave1_deaths: int = 0
 ## Guards end_run() against double entry (e.g. player dies while the
 ## boss-kill end_run is still awaiting network calls)
 var _run_ending: bool = false
+
+## Guards start_run() while the run ticket is requested (double click)
+var _run_starting: bool = false
 
 
 func _ready() -> void:
@@ -48,6 +53,13 @@ func go_to_title() -> void:
 
 
 func start_run() -> void:
+	if _run_starting:
+		return
+	_run_starting = true
+	# Validated Actions: request a run ticket and seed the RNG before the run
+	# scene builds the ground and spawns enemies. Falls back to a normal run.
+	await validated_run.begin()
+	_run_starting = false
 	_run_ending = false
 	run_state = RunState.new()
 	run_state.playerMaxHP = int(get_upgrade_value("hp"))
@@ -76,10 +88,16 @@ func end_run() -> void:
 
 	coins_changed.emit(save_data.coins)
 
-	# Submit score to leaderboard
-	var lb_ok := await Horizon.leaderboard.submitScore(run_state.currentScore)
-	if not lb_ok:
-		await Horizon.crashes.record_exception("Failed to submit score to leaderboard", "")
+	# Submit score to leaderboard: validated when the run has a ticket,
+	# the normal submit when Validated Actions is off or unavailable
+	var validated_str := "no"
+	if validated_run.is_active():
+		var result := await validated_run.finish(run_state.currentScore, "wave_%d" % run_state.currentWave, _validated_earned())
+		validated_str = "yes" if not result.is_empty() else "rejected:%s" % validated_run.last_error_code
+	else:
+		var lb_ok := await Horizon.leaderboard.submitScore(run_state.currentScore)
+		if not lb_ok:
+			await Horizon.crashes.record_exception("Failed to submit score to leaderboard", "")
 
 	# Save to cloud
 	var save_ok := await save_data_to_cloud()
@@ -92,9 +110,9 @@ func end_run() -> void:
 		save_data.upgrades.get("speed", 0), save_data.upgrades.get("damage", 0),
 		save_data.upgrades.get("hp", 0), save_data.upgrades.get("magnet", 0)
 	]
-	var log_msg = "Run ended | Waves: %d | Level: %d | Score: %d | Duration: %s | Upgrades: %s | Coins earned: %d" % [
+	var log_msg = "Run ended | Waves: %d | Level: %d | Score: %d | Duration: %s | Upgrades: %s | Coins earned: %d | Validated: %s" % [
 		run_state.currentWave, run_state.currentLevel, run_state.currentScore,
-		duration_str, upgrades_str, run_state.coinsEarned
+		duration_str, upgrades_str, run_state.coinsEarned, validated_str
 	]
 	await Horizon.userLogs.info(log_msg)
 
@@ -112,6 +130,15 @@ func end_run() -> void:
 
 	Horizon.crashes.record_breadcrumb("state", "run_ended_wave_%d_score_%d" % [run_state.currentWave, run_state.currentScore])
 	get_tree().change_scene_to_file("res://scenes/game_over/game_over_screen.tscn")
+
+
+## Earned values for the validated submit. Coins are sent only when Remote
+## Config `validated_runs_send_coins` is true, because the server rejects a
+## value key its rules do not define (UNKNOWN_VALUE_KEY).
+func _validated_earned() -> Array:
+	if not ConfigCache.get_bool("validated_runs_send_coins", false) or run_state.coinsEarned <= 0:
+		return []
+	return [{"key": "coins", "amount": run_state.coinsEarned}]
 
 
 ## Upgrades — built-in defaults so the game works without remote config

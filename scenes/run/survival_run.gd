@@ -175,13 +175,14 @@ func _show_levelup_choices() -> void:
 	_clear_children(container)
 
 	var card_style := _make_card_style()
-	for choice in choices:
+	for i in choices.size():
+		var choice: Dictionary = choices[i]
 		var btn := Button.new()
 		btn.text = _get_choice_label(choice)
 		btn.custom_minimum_size = Vector2(100, 90)
 		for style_name in ["normal", "hover", "pressed", "focus"]:
 			btn.add_theme_stylebox_override(style_name, card_style)
-		btn.pressed.connect(func(): _apply_levelup_choice(choice))
+		btn.pressed.connect(func(): _apply_levelup_choice(choice, i))
 		container.add_child(btn)
 
 
@@ -237,9 +238,10 @@ func _get_choice_label(choice: Dictionary) -> String:
 	return id
 
 
-func _apply_levelup_choice(choice: Dictionary) -> void:
+func _apply_levelup_choice(choice: Dictionary, index: int) -> void:
 	var id: String = choice.get("id", "")
 	var type: String = choice.get("type", "")
+	GameManager.validated_run.record_levelup_choice(index)
 
 	AudioManager.play_sfx("sfx_upgrade_select")
 	Horizon.crashes.record_breadcrumb("user_action", "levelup_%s" % id)

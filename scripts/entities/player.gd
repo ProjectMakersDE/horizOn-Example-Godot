@@ -70,6 +70,8 @@ func _physics_process(delta: float) -> void:
 
 	input.x = Input.get_axis("move_left", "move_right")
 	input.y = Input.get_axis("move_up", "move_down")
+	# Validated Actions: one input log event per direction change
+	GameManager.validated_run.record_move(input)
 
 	if input.length() > 0:
 		is_moving = true
