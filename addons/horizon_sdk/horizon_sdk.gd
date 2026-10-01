@@ -17,7 +17,7 @@
 extends Node
 
 ## SDK Version
-const VERSION := "1.7.3"
+const VERSION := "1.8.0"
 
 ## Config resource path
 const CONFIG_PATH := "res://addons/horizon_sdk/horizon_config.tres"
@@ -49,6 +49,8 @@ var remoteConfig: HorizonRemoteConfig
 var localization: HorizonLocalization
 var news: HorizonNews
 var giftCodes: HorizonGiftCodes
+var playerProfile: HorizonPlayerProfile
+var validatedActions: HorizonValidatedActions
 var feedback: HorizonFeedback
 var userLogs: HorizonUserLogs
 var crashes: HorizonCrashes
@@ -142,6 +144,11 @@ func _initializeManagers() -> void:
 	leaderboard = HorizonLeaderboard.new()
 	leaderboard.initialize(_http, _logger, auth)
 
+	# Validated Actions (clears the leaderboard cache after an accepted board run)
+	validatedActions = HorizonValidatedActions.new()
+	validatedActions.initialize(_http, _logger, auth)
+	validatedActions.setLeaderboard(leaderboard)
+
 	# Cloud Save
 	cloudSave = HorizonCloudSave.new()
 	cloudSave.initialize(_http, _logger, auth)
@@ -158,9 +165,14 @@ func _initializeManagers() -> void:
 	news = HorizonNews.new()
 	news.initialize(_http, _logger)
 
-	# Gift Codes
+	# Player Profile
+	playerProfile = HorizonPlayerProfile.new()
+	playerProfile.initialize(_http, _logger, auth)
+
+	# Gift Codes (drops the cached player profile when a code grants unlocks)
 	giftCodes = HorizonGiftCodes.new()
 	giftCodes.initialize(_http, _logger, auth)
+	giftCodes.setPlayerProfile(playerProfile)
 
 	# Feedback
 	feedback = HorizonFeedback.new()
