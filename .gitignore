@@ -22,3 +22,8 @@ Thumbs.db
 
 # horizOn config: Project > Tools > horizOn: Import Config... writes your API key here
 addons/horizon_sdk/horizon_config.tres
+
+# Local builds, captures and downloaded release packages
+tmp/
+exports/
+__pycache__/

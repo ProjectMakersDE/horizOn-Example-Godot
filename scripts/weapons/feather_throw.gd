@@ -25,7 +25,16 @@ func fire() -> void:
 		var spread := 0.0
 		if projectile_count > 1:
 			spread = (float(i) - float(projectile_count - 1) / 2.0) * 0.2
-		var dir: Vector2 = owner_node.move_direction.rotated(spread)
+		var aim: Vector2 = owner_node.move_direction
+		var best_dist := 360.0
+		for enemy in get_tree().get_nodes_in_group("enemies"):
+			if enemy.is_dead:
+				continue
+			var distance: float = enemy.global_position.distance_to(owner_node.global_position)
+			if distance < best_dist:
+				best_dist = distance
+				aim = owner_node.global_position.direction_to(enemy.global_position)
+		var dir: Vector2 = aim.rotated(spread)
 		proj.global_position = owner_node.global_position
 		proj.setup(dir, projectile_speed, get_damage())
 		get_tree().current_scene.add_child(proj)
@@ -50,43 +59,7 @@ func _create_projectile() -> Node2D:
 	sprite.play("fly")
 	proj.add_child(sprite)
 
-	var script := GDScript.new()
-	script.source_code = """extends Area2D
-
-var direction: Vector2 = Vector2.RIGHT
-var speed: float = 300.0
-var damage: float = 20.0
-var lifetime: float = 2.0
-
-func setup(dir: Vector2, spd: float, dmg: float) -> void:
-	direction = dir.normalized()
-	speed = spd
-	damage = dmg
-	rotation = direction.angle()
-
-func _ready() -> void:
-	body_entered.connect(_on_body_entered)
-	area_entered.connect(_on_area_entered)
-
-func _physics_process(delta: float) -> void:
-	position += direction * speed * delta
-	lifetime -= delta
-	if lifetime <= 0:
-		queue_free()
-
-func _on_body_entered(body: Node2D) -> void:
-	if body.has_method(\"take_damage\"):
-		body.take_damage(int(damage))
-		queue_free()
-
-func _on_area_entered(area: Area2D) -> void:
-	var parent := area.get_parent()
-	if parent.has_method(\"take_damage\"):
-		parent.take_damage(int(damage))
-		queue_free()
-"""
-	script.reload()
-	proj.set_script(script)
+	proj.set_script(preload("res://scripts/weapons/feather_projectile.gd"))
 	return proj
 
 

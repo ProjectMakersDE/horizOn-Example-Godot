@@ -9,7 +9,7 @@ signal xp_gained(amount: int)
 signal leveled_up(new_level: int)
 signal health_changed(current: int, maximum: int)
 
-const BASE_SPEED: float = 200.0
+const BASE_SPEED: float = 145.0
 
 var max_hp: int = 100
 var current_hp: int = 100
@@ -21,6 +21,10 @@ var pickup_radius: float = 50.0
 var damage_multiplier: float = 1.0
 var speed_multiplier: float = 1.0
 var is_dead: bool = false
+
+var dash_cooldown: float = 0.0
+var _dash_time: float = 0.0
+var _bob_time: float = 0.0
 
 var _hurt_timer: float = 0.0
 var _invincible_time: float = 0.5
@@ -56,6 +60,10 @@ func _physics_process(delta: float) -> void:
 	var input := Vector2.ZERO
 	var is_moving := false
 
+	dash_cooldown = maxf(dash_cooldown - delta, 0.0)
+	_dash_time = maxf(_dash_time - delta, 0.0)
+	_bob_time += delta
+	visual.position.y = sin(_bob_time * 7.0) * 2.0
 	if is_dead:
 		_update_animation(false)
 		return
@@ -83,8 +91,17 @@ func _physics_process(delta: float) -> void:
 	else:
 		velocity = Vector2.ZERO
 
+	if Input.is_action_just_pressed("dash") and dash_cooldown <= 0.0:
+		dash_cooldown = 3.0
+		_dash_time = 0.18
+		_hurt_timer = maxf(_hurt_timer, 0.25)
+		GameManager.run_state.dashes += 1
+		GameManager.validated_run.record_dash()
+	if _dash_time > 0.0:
+		velocity = move_direction * 430.0
 	_update_animation(is_moving)
 	move_and_slide()
+	position = position.clamp(Vector2(-350, -158), Vector2(350, 158))
 
 
 func take_damage(amount: int) -> void:
@@ -157,6 +174,19 @@ func get_xp_progress() -> float:
 
 
 func _setup_visual() -> void:
+	if ResourceLoader.exists("res://assets/shared/seagull_hero.png"):
+		var texture: Texture2D = load("res://assets/shared/seagull_hero.png")
+		var new_frames := SpriteFrames.new()
+		for animation_name in ["idle", "walk", "hurt", "death"]:
+			new_frames.add_animation(animation_name)
+			new_frames.add_frame(animation_name, texture)
+			new_frames.set_animation_loop(animation_name, animation_name != "death")
+			new_frames.set_animation_speed(animation_name, 4.0)
+		visual.sprite_frames = new_frames
+		visual.scale = Vector2.ONE * (52.0 / texture.get_width())
+		visual.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
+		visual.play("idle")
+		return
 	var frames := SpriteFrames.new()
 	SpriteSheetHelper.add_row_animation(frames, "idle", PLAYER_TEXTURE, Vector2i(32, 32), 0, 4, 6.0)
 	SpriteSheetHelper.add_row_animation(frames, "walk", PLAYER_TEXTURE, Vector2i(32, 32), 1, 6, 10.0)

@@ -25,10 +25,10 @@ func _physics_process(delta: float) -> void:
 		return
 
 	_attack_timer -= delta
-	_on_special_behavior(delta)
 
 	var direction := (target.global_position - global_position).normalized()
 	velocity = direction * speed
+	_on_special_behavior(delta)
 	move_and_slide()
 
 	var vis = get_node_or_null("Visual")
@@ -111,6 +111,21 @@ func _setup_visual() -> void:
 	if visual == null or not visual is AnimatedSprite2D:
 		return
 
+	var art_name := "octopus" if _get_enemy_type() == "boss" else _get_enemy_type()
+	var path := "res://assets/shared/enemy_%s.png" % art_name
+	if ResourceLoader.exists(path):
+		var texture: Texture2D = load(path)
+		var new_frames := SpriteFrames.new()
+		for animation_name in ["move", "death"]:
+			new_frames.add_animation(animation_name)
+			new_frames.add_frame(animation_name, texture)
+			new_frames.set_animation_loop(animation_name, animation_name != "death")
+			new_frames.set_animation_speed(animation_name, 6.0)
+		visual.sprite_frames = new_frames
+		visual.scale = Vector2.ONE * ((112.0 if art_name == "octopus" else 46.0) / texture.get_width())
+		visual.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
+		visual.play("move")
+		return
 	var frames := SpriteFrames.new()
 	match _get_enemy_type():
 		"crab":

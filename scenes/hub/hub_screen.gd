@@ -1,198 +1,188 @@
-## Hub Screen - Main menu with upgrades, leaderboard, news, etc.
 extends Control
 
-@onready var coins_label: Label = $TopBar/CoinsLabel
-@onready var best_label: Label = $TopBar/BestLabel
-@onready var play_button: Button = $Content/RightPanel/PlayButton
-@onready var leaderboard_list: VBoxContainer = $Content/RightPanel/LeaderboardPanel/LeaderboardList
-@onready var news_list: VBoxContainer = $Content/RightPanel/NewsPanel/NewsList
-@onready var gift_code_button: Button = $Content/RightPanel/BottomButtons/GiftCodeButton
-@onready var feedback_button: Button = $Content/RightPanel/BottomButtons/FeedbackButton
-@onready var settings_button: Button = $Content/RightPanel/BottomButtons/SettingsButton
-
-# Upgrade buttons
-@onready var speed_button: Button = $Content/LeftPanel/UpgradeList/SpeedUpgrade/BuyButton
-@onready var speed_label: Label = $Content/LeftPanel/UpgradeList/SpeedUpgrade/InfoLabel
-@onready var damage_button: Button = $Content/LeftPanel/UpgradeList/DamageUpgrade/BuyButton
-@onready var damage_label: Label = $Content/LeftPanel/UpgradeList/DamageUpgrade/InfoLabel
-@onready var hp_button: Button = $Content/LeftPanel/UpgradeList/HPUpgrade/BuyButton
-@onready var hp_label: Label = $Content/LeftPanel/UpgradeList/HPUpgrade/InfoLabel
-@onready var magnet_button: Button = $Content/LeftPanel/UpgradeList/MagnetUpgrade/BuyButton
-@onready var magnet_label: Label = $Content/LeftPanel/UpgradeList/MagnetUpgrade/InfoLabel
-
-@onready var status_label: Label = $StatusLabel
-
-# Popup containers
-@onready var gift_code_popup: PanelContainer = $Popups/GiftCodePopup
-@onready var feedback_popup: PanelContainer = $Popups/FeedbackPopup
-
+var coins_label: Label
+var best_label: Label
+var status_label: Label
+var upgrade_buttons: Dictionary = {}
+var leaderboard_list: VBoxContainer
+var board_picker: OptionButton
+var view_picker: OptionButton
+var rank_label: Label
+var validated_toggle: CheckButton
+var play_button: Button
+var _boards: Array = []
+var _loading := false
 
 func _ready() -> void:
 	AudioManager.play_music("music_menu")
-	status_label.text = "Loading..."
-
-	play_button.pressed.connect(_on_play_pressed)
-	gift_code_button.pressed.connect(_on_gift_code_pressed)
-	feedback_button.pressed.connect(_on_feedback_pressed)
-	settings_button.pressed.connect(_on_settings_pressed)
-
-	speed_button.pressed.connect(func(): _buy_upgrade("speed"))
-	damage_button.pressed.connect(func(): _buy_upgrade("damage"))
-	hp_button.pressed.connect(func(): _buy_upgrade("hp"))
-	magnet_button.pressed.connect(func(): _buy_upgrade("magnet"))
-
-	GameManager.coins_changed.connect(func(_c): _update_ui())
-	GameManager.highscore_changed.connect(func(_s): _update_ui())
-
-	await _load_hub_data()
-
-
-func _load_hub_data() -> void:
-	# Load remote config
-	await ConfigCache.load_all()
-
-	# Load cloud save
-	await GameManager.load_save_data()
-
-	# Load leaderboard
-	var lb_entries := await Horizon.leaderboard.getTop(10)
-	if lb_entries == null or lb_entries.is_empty():
-		await Horizon.crashes.record_exception("Failed to load leaderboard in hub", "")
-	else:
-		_populate_leaderboard(lb_entries)
-
-	# Load news
-	var news_entries := await Horizon.news.loadNews(5, "en")
-	if news_entries == null:
-		await Horizon.crashes.record_exception("Failed to load news in hub", "")
-	else:
-		_populate_news(news_entries)
-
+	var page := StormUI.page(self, "Seagull Storm", "BUILD YOUR NEXT RUN  /  " + ("Offline practice • local progression" if GameManager.practice_mode else "Online • player session active"))
+	var stats := HBoxContainer.new()
+	page.add_child(stats)
+	coins_label = StormUI.label(stats, "", 23, StormUI.ORANGE)
+	best_label = StormUI.label(stats, "", 23)
+	StormUI.button(stats, "Account / offline", GameManager.go_to_title)
+	var body := HBoxContainer.new()
+	body.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	page.add_child(body)
+	var upgrades := StormUI.scroll_card(body, 300)
+	StormUI.label(upgrades, "Island upgrades", 23)
+	play_button = StormUI.button(upgrades, "Launch survival run", _play, true)
+	StormUI.label(upgrades, "Every run earns coins. Pick a lasting advantage, then find a new weapon build on the beach.", 16, StormUI.MUTED)
+	for key in ["speed", "damage", "hp", "magnet"]:
+		var button := StormUI.button(upgrades, "", func(): _buy_upgrade(key))
+		button.add_theme_font_size_override("font_size", 15)
+		upgrade_buttons[key] = button
+	StormUI.label(upgrades, "WASD / arrows • Space dash (3 sec recharge)\nAuto-aim attacks • Collect shells to choose upgrades", 14, StormUI.MUTED)
+	var tabs := TabContainer.new()
+	tabs.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	body.add_child(tabs)
+	var boards := VBoxContainer.new()
+	boards.name = "Leaderboards"
+	tabs.add_child(boards)
+	var options := HBoxContainer.new()
+	boards.add_child(options)
+	board_picker = OptionButton.new()
+	board_picker.add_item("Default board")
+	board_picker.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	options.add_child(board_picker)
+	view_picker = OptionButton.new()
+	view_picker.add_item("Top 10")
+	view_picker.add_item("Around me ±5")
+	options.add_child(view_picker)
+	StormUI.button(options, "Refresh", _refresh_leaderboard)
+	board_picker.item_selected.connect(_select_board)
+	view_picker.item_selected.connect(func(_index): _refresh_leaderboard())
+	validated_toggle = CheckButton.new()
+	validated_toggle.text = "Request server-validated run"
+	validated_toggle.disabled = GameManager.practice_mode
+	validated_toggle.button_pressed = GameManager.validation_requested
+	validated_toggle.toggled.connect(func(enabled): GameManager.validation_requested = enabled)
+	boards.add_child(validated_toggle)
+	rank_label = StormUI.label(boards, "Sign in to view your rank and available boards." if GameManager.practice_mode else "Loading boards…", 16, StormUI.TEAL)
+	var scroll := ScrollContainer.new()
+	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	boards.add_child(scroll)
+	leaderboard_list = VBoxContainer.new()
+	leaderboard_list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	scroll.add_child(leaderboard_list)
+	StormUI.label(boards, "Validated runs use a server ticket and evidence log. A refused ticket or score is never retried as a standard score.", 14, StormUI.MUTED)
+	var sdk_scroll := ScrollContainer.new()
+	sdk_scroll.name = "SDK lab"
+	tabs.add_child(sdk_scroll)
+	var lab := VBoxContainer.new()
+	lab.set_script(load("res://scripts/ui/sdk_panel.gd"))
+	lab.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	sdk_scroll.add_child(lab)
+	status_label = StormUI.label(page, "", 14, StormUI.MUTED)
+	GameManager.locale_changed.connect(_update_locale)
+	_update_locale()
+	GameManager.coins_changed.connect(func(_coins): _update_ui())
+	GameManager.highscore_changed.connect(func(_best): _update_ui())
 	_update_ui()
-	status_label.text = ""
+	await _load_data()
 
+func _load_data() -> void:
+	if GameManager.practice_mode:
+		status_label.text = "Practice save ready. Leaderboards and SDK lab need an online project."
+		return
+	play_button.disabled = true
+	status_label.text = "Loading balancing and cloud save…"
+	await ConfigCache.load_all()
+	if not is_instance_valid(self) or not is_inside_tree():
+		return
+	if GameManager.selected_board == "default":
+		GameManager.selected_board = ConfigCache.get_string("validated_runs_board", "default")
+	await GameManager.load_save_data()
+	if not is_instance_valid(self) or not is_inside_tree():
+		return
+	validated_toggle.button_pressed = GameManager.validation_requested or ConfigCache.get_bool("validated_runs_enabled", false)
+	GameManager.validation_requested = validated_toggle.button_pressed
+	_boards = await Horizon.leaderboard.listBoards()
+	if not is_instance_valid(self) or not is_inside_tree():
+		return
+	board_picker.clear()
+	if _boards.is_empty():
+		_boards = [{"key": "default", "name": "Default", "validatedOnly": false}]
+	for i in _boards.size():
+		var board: Dictionary = _boards[i]
+		board_picker.add_item(str(board.get("name", board.get("key", "default"))) + (" · validated" if board.get("validatedOnly", false) else ""))
+		if str(board.get("key", "default")) == GameManager.selected_board:
+			board_picker.select(i)
+	_select_board(board_picker.selected)
+	play_button.disabled = false
+	_update_ui()
+	status_label.text = GameManager.cloud_status
 
-func _populate_leaderboard(entries: Array) -> void:
-	_clear_children(leaderboard_list)
+func _select_board(index: int) -> void:
+	if index < 0 or index >= _boards.size():
+		return
+	GameManager.selected_board = str(_boards[index].get("key", "default"))
+	var validated_only: bool = _boards[index].get("validatedOnly", false)
+	validated_toggle.disabled = validated_only or GameManager.practice_mode
+	if validated_only:
+		validated_toggle.button_pressed = true
+		GameManager.validation_requested = true
+	_refresh_leaderboard()
+
+func _refresh_leaderboard() -> void:
+	if _loading or not GameManager.online_available():
+		return
+	_loading = true
+	var requested_board := GameManager.selected_board
+	rank_label.text = "Refreshing board %s…" % GameManager.selected_board
+	var entries: Array
+	if view_picker.selected == 1:
+		entries = await Horizon.leaderboard.getAround(5, false, requested_board)
+	else:
+		entries = await Horizon.leaderboard.getTop(10, false, requested_board)
+	if not is_instance_valid(self) or not is_inside_tree():
+		return
+	StormUI.clear(leaderboard_list)
+	if entries.is_empty():
+		StormUI.label(leaderboard_list, "No entries returned. The board may be empty or unavailable.", 17, StormUI.MUTED)
 	for entry in entries:
-		var label := Label.new()
-		label.text = "#%d  %s  %d" % [entry.position, entry.username, entry.score]
-		label.add_theme_font_size_override("font_size", 6)
-		leaderboard_list.add_child(label)
-
-
-func _populate_news(entries: Array) -> void:
-	_clear_children(news_list)
-	for entry in entries:
-		var label := Label.new()
-		var date_str := _short_date(entry.releaseDate)
-		if date_str.is_empty():
-			label.text = "* %s" % entry.title
-		else:
-			label.text = "* %s (%s)" % [entry.title, date_str]
-		label.add_theme_font_size_override("font_size", 6)
-		news_list.add_child(label)
-
-
-func _short_date(release_date: String) -> String:
-	# ISO timestamps like "2026-07-02T10:30:00Z" -> "2026-07-02"
-	if release_date.length() >= 10:
-		return release_date.substr(0, 10)
-	return release_date
-
+		var row := HBoxContainer.new()
+		leaderboard_list.add_child(row)
+		StormUI.label(row, "#%02d" % entry.position, 19, StormUI.ORANGE)
+		StormUI.label(row, entry.username, 18)
+		StormUI.label(row, str(entry.score), 19, StormUI.TEAL)
+	var rank = await Horizon.leaderboard.getRank(requested_board)
+	if not is_instance_valid(self) or not is_inside_tree():
+		return
+	rank_label.text = "Your rank: #%d · best score %d" % [rank.position, rank.score] if rank != null and rank.position > 0 else "You have no rank yet, or the rank request was unavailable."
+	_loading = false
+	if GameManager.selected_board != requested_board:
+		_refresh_leaderboard.call_deferred()
 
 func _update_ui() -> void:
-	coins_label.text = "Coins: %d" % GameManager.save_data.coins
-	best_label.text = "Best: %d" % GameManager.save_data.highscore
-	_update_upgrade_button("speed", speed_button, speed_label)
-	_update_upgrade_button("damage", damage_button, damage_label)
-	_update_upgrade_button("hp", hp_button, hp_label)
-	_update_upgrade_button("magnet", magnet_button, magnet_label)
+	coins_label.text = "%d COINS" % GameManager.save_data.coins
+	best_label.text = "PERSONAL BEST  %d" % GameManager.save_data.highscore
+	var names := {"speed": "Tailwind / move faster", "damage": "Sharp feathers / more damage", "hp": "Sea legs / more health", "magnet": "Shell collector / larger radius"}
+	for key in upgrade_buttons:
+		var button: Button = upgrade_buttons[key]
+		var level: int = GameManager.save_data.upgrades.get(key, 0)
+		button.text = "%s  ·  %d/5\n%s" % [names[key], level, "MAXED" if GameManager.is_upgrade_maxed(key) else "%d coins" % GameManager.get_upgrade_cost(key)]
+		button.disabled = not GameManager.can_afford_upgrade(key)
 
-
-func _update_upgrade_button(upgrade_name: String, button: Button, label: Label) -> void:
-	var lvl: int = GameManager.save_data.upgrades.get(upgrade_name, 0)
-	if GameManager.is_upgrade_maxed(upgrade_name):
-		label.text = "%s Lv.%d MAX" % [upgrade_name.capitalize(), lvl]
-		button.text = "MAX"
-		button.disabled = true
-	else:
-		var cost := GameManager.get_upgrade_cost(upgrade_name)
-		label.text = "%s Lv.%d" % [upgrade_name.capitalize(), lvl]
-		button.text = "[+] %d" % cost
-		button.disabled = not GameManager.can_afford_upgrade(upgrade_name)
-
-
-func _buy_upgrade(upgrade_name: String) -> void:
-	if GameManager.buy_upgrade(upgrade_name):
+func _buy_upgrade(key: String) -> void:
+	if GameManager.buy_upgrade(key):
 		AudioManager.play_sfx("sfx_upgrade_select")
 		_update_ui()
+		if not GameManager.practice_mode:
+			await GameManager.save_data_to_cloud()
+			if is_instance_valid(status_label):
+				status_label.text = GameManager.cloud_status
+
+func _play() -> void:
+	play_button.disabled = true
+	board_picker.disabled = true
+	view_picker.disabled = true
+	validated_toggle.disabled = true
+	for button in upgrade_buttons.values():
+		button.disabled = true
+	status_label.text = "Requesting run ticket…" if GameManager.validation_requested else "Launching…"
+	await GameManager.start_run()
 
 
-func _on_play_pressed() -> void:
-	GameManager.start_run()
-
-
-func _on_gift_code_pressed() -> void:
-	gift_code_popup.visible = true
-
-
-func _on_feedback_pressed() -> void:
-	feedback_popup.visible = true
-
-
-func _on_settings_pressed() -> void:
-	if not has_node("Popups/SettingsPopup"):
-		_create_settings_popup()
-	$Popups/SettingsPopup.visible = true
-
-
-func _create_settings_popup() -> void:
-	var popup := PanelContainer.new()
-	popup.name = "SettingsPopup"
-	popup.set_anchors_preset(Control.PRESET_CENTER)
-	popup.offset_left = -100.0
-	popup.offset_top = -60.0
-	popup.offset_right = 100.0
-	popup.offset_bottom = 60.0
-
-	var vbox := VBoxContainer.new()
-	vbox.add_theme_constant_override("separation", 6)
-
-	var title := Label.new()
-	title.text = "Settings"
-	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	vbox.add_child(title)
-
-	var volume_label := Label.new()
-	volume_label.text = "Music Volume"
-	vbox.add_child(volume_label)
-
-	var volume_slider := HSlider.new()
-	volume_slider.min_value = 0.0
-	volume_slider.max_value = 1.0
-	volume_slider.step = 0.1
-	volume_slider.value = 0.7
-	volume_slider.value_changed.connect(func(val): AudioServer.set_bus_volume_db(0, linear_to_db(val)))
-	vbox.add_child(volume_slider)
-
-	var signout_btn := Button.new()
-	signout_btn.text = "Sign Out"
-	signout_btn.pressed.connect(func():
-		Horizon.auth.signOut()
-		GameManager.go_to_title()
-	)
-	vbox.add_child(signout_btn)
-
-	var close_btn := Button.new()
-	close_btn.text = "Close"
-	close_btn.pressed.connect(func(): popup.visible = false)
-	vbox.add_child(close_btn)
-
-	popup.add_child(vbox)
-	$Popups.add_child(popup)
-
-
-func _clear_children(node: Node) -> void:
-	for child in node.get_children():
-		child.queue_free()
+func _update_locale() -> void:
+	play_button.text = GameManager.ui_text("seagull.play", "Launch survival run")

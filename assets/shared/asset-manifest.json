@@ -1,0 +1,146 @@
+[
+  {
+    "file": "seagull_hero.png",
+    "model": "google/gemini-2.5-flash-image",
+    "size": [
+      512,
+      512
+    ],
+    "alpha_min": 0,
+    "alpha_max": 255,
+    "transparent_fraction": 0.6392,
+    "semitransparent_pixels": 6394,
+    "sha256": "d98d82baab77c32e6f07294e2ba9e41f68246f6e107d5b54ad86d1de7c96ca05",
+    "generation_cost_usd": 0.0388407,
+    "prompt": "Hand-drawn horizOn game cartoon, clean dark navy outline, soft flat cel shading, pale cream #F5F5F0, blue grey and coastal teal #5F8787, warm orange #E78A53. Chunky friendly toy-like forms, bold readable silhouette at 32-64 display pixels. NOT pixel art, NOT 3D, no text, no watermark, no checkerboard pattern. One full-body heroic seagull game sprite, facing three-quarter right. Match the reference character identity exactly: unusually large SQUARE HEAD with flat top and broad rounded corners, small three-feather crest, white body, blue-grey wings, small orange beak, dark expressive eyes, orange webbed feet. Happy confident pose, wings slightly lifted. Keep feet level and all extremities within the frame. One character, nothing else. Isolate on a perfectly flat bright magenta #FF00FF background for chroma key extraction. Never use magenta or purple in the character and generous clear padding.",
+    "processing": "Magenta key, transparent crop, padded resize"
+  },
+  {
+    "file": "enemy_crab.png",
+    "model": "google/gemini-2.5-flash-image",
+    "size": [
+      256,
+      256
+    ],
+    "alpha_min": 0,
+    "alpha_max": 255,
+    "transparent_fraction": 0.7131,
+    "semitransparent_pixels": 3579,
+    "sha256": "19cbe1d94d5772616a91ace4bdbbeb64afccebd6c002e6f62eb2e0e63edc5a9e",
+    "generation_cost_usd": 0.038751,
+    "prompt": "Hand-drawn horizOn game cartoon, clean dark navy outline, soft flat cel shading, pale cream #F5F5F0, blue grey and coastal teal #5F8787, warm orange #E78A53. Chunky friendly toy-like forms, bold readable silhouette at 32-64 display pixels. NOT pixel art, NOT 3D, no text, no watermark, no checkerboard pattern. One full-body charming chunky warm-orange crab enemy sprite, large claws, dark expressive eyes, a mischievous determined expression. Top-down three-quarter game view with symmetrical readable silhouette, all legs visible, no props. Isolate on a perfectly flat bright magenta #FF00FF background for chroma key extraction. Never use magenta or purple in the character and generous clear padding.",
+    "processing": "Magenta key, transparent crop, padded resize"
+  },
+  {
+    "file": "enemy_jellyfish.png",
+    "model": "google/gemini-2.5-flash-image",
+    "size": [
+      256,
+      256
+    ],
+    "alpha_min": 0,
+    "alpha_max": 255,
+    "transparent_fraction": 0.4505,
+    "semitransparent_pixels": 2921,
+    "sha256": "71f041bda40745ebadee9b94cfb471f33a4fe14b5afdb1884918915b7135368a",
+    "generation_cost_usd": 0.038751,
+    "prompt": "Hand-drawn horizOn game cartoon, clean dark navy outline, soft flat cel shading, pale cream #F5F5F0, blue grey and coastal teal #5F8787, warm orange #E78A53. Chunky friendly toy-like forms, bold readable silhouette at 32-64 display pixels. NOT pixel art, NOT 3D, no text, no watermark, no checkerboard pattern. One friendly but dangerous jellyfish enemy sprite, rounded sea-teal bell with pale creamy highlight, short orange-tipped tentacles, tiny dark determined eyes. Top-down three-quarter view, elegant simple readable silhouette, nothing else. Isolate on a perfectly flat bright magenta #FF00FF background for chroma key extraction. Never use magenta or purple in the character and generous clear padding.",
+    "processing": "Magenta key, transparent crop, padded resize"
+  },
+  {
+    "file": "enemy_pirate.png",
+    "model": "google/gemini-2.5-flash-image",
+    "size": [
+      256,
+      256
+    ],
+    "alpha_min": 0,
+    "alpha_max": 255,
+    "transparent_fraction": 0.6325,
+    "semitransparent_pixels": 2974,
+    "sha256": "f8f072387e0e151524cfd33dc8796bc453d1d5c902e0d569a3003b8657747dab",
+    "generation_cost_usd": 0.0388374,
+    "prompt": "Hand-drawn horizOn game cartoon, clean dark navy outline, soft flat cel shading, pale cream #F5F5F0, blue grey and coastal teal #5F8787, warm orange #E78A53. Chunky friendly toy-like forms, bold readable silhouette at 32-64 display pixels. NOT pixel art, NOT 3D, no text, no watermark, no checkerboard pattern. One full-body pirate seagull enemy game sprite, facing three-quarter left. Match the reference mascot with large SQUARE HEAD, flat top and broad rounded corners, chunky white body and blue-grey wings. Orange beak and feet. Small charcoal pirate hat with plain orange feather, simple eye patch. Mischievous expression. No weapons, no skull text, nothing else. Isolate on a perfectly flat bright magenta #FF00FF background for chroma key extraction. Never use magenta or purple in the character and generous clear padding.",
+    "processing": "Magenta key, transparent crop, padded resize"
+  },
+  {
+    "file": "enemy_octopus.png",
+    "model": "google/gemini-2.5-flash-image",
+    "size": [
+      512,
+      512
+    ],
+    "alpha_min": 0,
+    "alpha_max": 255,
+    "transparent_fraction": 0.5608,
+    "semitransparent_pixels": 6588,
+    "sha256": "696fbeb3f444028629bc9a76433f7dac429fd016b85c3bb30c339352fe46526d",
+    "generation_cost_usd": 0.0387806,
+    "prompt": "Hand-drawn horizOn game cartoon, clean dark navy outline, soft flat cel shading, pale cream #F5F5F0, blue grey and coastal teal #5F8787, warm orange #E78A53. Chunky friendly toy-like forms, bold readable silhouette at 32-64 display pixels. NOT pixel art, NOT 3D, no text, no watermark, no checkerboard pattern. One boss octopus game sprite viewed three-quarter from above. A large chunky deep teal octopus with warm orange underside and suction cups, several thick curling tentacles, pale cream glints and friendly determined eyes. Clear readable silhouette, playful coastal boss character, nothing else. Isolate on a perfectly flat bright magenta #FF00FF background for chroma key extraction. Never use magenta or purple in the character and generous clear padding.",
+    "processing": "Magenta key, transparent crop, padded resize"
+  },
+  {
+    "file": "pickup_shell.png",
+    "model": "google/gemini-2.5-flash-image",
+    "size": [
+      128,
+      128
+    ],
+    "alpha_min": 0,
+    "alpha_max": 255,
+    "transparent_fraction": 0.4119,
+    "semitransparent_pixels": 1025,
+    "sha256": "77da1874d6e1c77318bfd3fdbdf2f91f0ccd06cf2a550da389707f5474c1e7d1",
+    "generation_cost_usd": 0.0387297,
+    "prompt": "One scallop SEASHELL ONLY, orange fan-shaped shell, cream grooves, dark navy outline. Hand-drawn clean cartoon game pickup. Center one large seashell on a completely flat BRIGHT MAGENTA #FF00FF background. The seashell itself must have a fan silhouette, no circle, no badge, no tile, no panel, no frame, no white square, no surrounding disc. Just one shell with magenta all around it. No text, no other objects, no characters.",
+    "processing": "Magenta key, transparent crop, padded resize"
+  },
+  {
+    "file": "pickup_coin.png",
+    "model": "google/gemini-2.5-flash-image",
+    "size": [
+      128,
+      128
+    ],
+    "alpha_min": 0,
+    "alpha_max": 255,
+    "transparent_fraction": 0.3422,
+    "semitransparent_pixels": 960,
+    "sha256": "2e0083509111ec3d90489136c944b1cd69e629322585bee72455be34025833f2",
+    "generation_cost_usd": 0.0387506,
+    "prompt": "Game inventory ICON ONLY: one large thick golden orange coin with a simple feather embossed on its face. Single isolated object centered and occupying 75 percent of a square canvas. Dark navy outline, clean cartoon cel shading, warm orange and cream. Flat bright magenta #FF00FF background for chroma key extraction. NOTHING ELSE. No person, no creature, no bird, no robot, no vehicle, no mascot, no other items, no scene, no lettering, no pedestal. Exactly one isolated icon.",
+    "processing": "Magenta key, transparent crop, padded resize"
+  },
+  {
+    "file": "pickup_heart.png",
+    "model": "google/gemini-2.5-flash-image",
+    "size": [
+      128,
+      128
+    ],
+    "alpha_min": 0,
+    "alpha_max": 255,
+    "transparent_fraction": 0.4686,
+    "semitransparent_pixels": 950,
+    "sha256": "ba4e3445360719a4710250a3e93e55f8d7e820ccf19feccd2d27b031d9f11b14",
+    "generation_cost_usd": 0.0387459,
+    "prompt": "Hand-drawn horizOn game cartoon, clean dark navy outline, soft flat cel shading, pale cream #F5F5F0, blue grey and coastal teal #5F8787, warm orange #E78A53. Chunky friendly toy-like forms, bold readable silhouette at 32-64 display pixels. NOT pixel art, NOT 3D, no text, no watermark, no checkerboard pattern. One collectible coral-orange heart health pickup icon, chunky symmetric shape with soft pale highlight and navy outline. Centered, no other objects. Isolate on a perfectly flat bright magenta #FF00FF background for chroma key extraction. Never use magenta or purple in the character and generous clear padding.",
+    "processing": "Magenta key, transparent crop, padded resize"
+  },
+  {
+    "file": "arena_background.png",
+    "model": "google/gemini-2.5-flash-image",
+    "size": [
+      1536,
+      864
+    ],
+    "alpha_min": 255,
+    "alpha_max": 255,
+    "transparent_fraction": 0.0,
+    "semitransparent_pixels": 0,
+    "sha256": "041cf9bf91ab3cc12d6594b8cd7d0407a777d6f1d8bf8f28e8d2fe0b42ff50b7",
+    "generation_cost_usd": 0.03876,
+    "prompt": "Hand-drawn horizOn game cartoon, clean dark navy outline, soft flat cel shading, pale cream #F5F5F0, blue grey and coastal teal #5F8787, warm orange #E78A53. Chunky friendly toy-like forms, bold readable silhouette at 32-64 display pixels. NOT pixel art, NOT 3D, no text, no watermark, no checkerboard pattern. A top-down coastal island beach arena background for a compact survival game. Wide 16:9 composition. Main central 80 percent is clean pale warm sand with very subtle texture and a few tiny shells. Only at the outer edges: muted teal water, gentle white foam, small rounded coastal rocks and grasses. Gentle sunset warmth and soft shadows, calm uncluttered gameplay field. No characters, no buildings, no UI, no writing, no large object obscuring the central play area. Opaque full-frame scene.",
+    "processing": "Resize to 1536x864"
+  }
+]

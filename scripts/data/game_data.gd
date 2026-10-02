@@ -21,12 +21,12 @@ func to_dict() -> Dictionary:
 
 static func from_dict(data: Dictionary) -> GameData:
 	var d := GameData.new()
-	d.coins = int(data.get("coins", 0))
+	d.coins = maxi(int(data.get("coins", 0)), 0)
 	d.highscore = int(data.get("highscore", 0))
 	var u = data.get("upgrades", {})
 	if u is Dictionary:
-		for key in u:
-			d.upgrades[key] = int(u[key])
+		for key in d.upgrades:
+			d.upgrades[key] = clampi(int(u.get(key, 0)), 0, 5)
 	d.totalRuns = int(data.get("totalRuns", 0))
 	var codes = data.get("giftCodesRedeemed", [])
 	if codes is Array:
