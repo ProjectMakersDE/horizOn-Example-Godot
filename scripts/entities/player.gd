@@ -1,8 +1,7 @@
 ## Player - Seagull character controller
 extends CharacterBody2D
 
-const SpriteSheetHelper = preload("res://scripts/visuals/sprite_sheet_helper.gd")
-const PLAYER_TEXTURE = preload("res://assets/sprites/seagull.png")
+const CutoutRig = preload("res://scripts/visuals/cutout_rig.gd")
 
 signal died
 signal xp_gained(amount: int)
@@ -24,13 +23,12 @@ var is_dead: bool = false
 
 var dash_cooldown: float = 0.0
 var _dash_time: float = 0.0
-var _bob_time: float = 0.0
 
 var _hurt_timer: float = 0.0
 var _invincible_time: float = 0.5
 var _death_signal_emitted: bool = false
 
-@onready var visual: AnimatedSprite2D = $Visual
+@onready var visual: CutoutRig = $Visual
 @onready var pickup_area: Area2D = $PickupArea
 @onready var hitbox: Area2D = $Hitbox
 
@@ -62,19 +60,12 @@ func _physics_process(delta: float) -> void:
 
 	dash_cooldown = maxf(dash_cooldown - delta, 0.0)
 	_dash_time = maxf(_dash_time - delta, 0.0)
-	_bob_time += delta
-	visual.position.y = sin(_bob_time * 7.0) * 2.0
 	if is_dead:
 		_update_animation(false)
 		return
 
 	if _hurt_timer > 0:
 		_hurt_timer -= delta
-		if visual:
-			visual.modulate = Color(1, 0.5, 0.5) if int(_hurt_timer * 10) % 2 == 0 else Color.WHITE
-	else:
-		if visual:
-			visual.modulate = Color.WHITE
 
 	input.x = Input.get_axis("move_left", "move_right")
 	input.y = Input.get_axis("move_up", "move_down")
@@ -86,8 +77,6 @@ func _physics_process(delta: float) -> void:
 		input = input.normalized()
 		move_direction = input
 		velocity = input * BASE_SPEED * speed_multiplier
-		if visual and input.x != 0:
-			visual.flip_h = input.x < 0
 	else:
 		velocity = Vector2.ZERO
 
@@ -108,6 +97,7 @@ func take_damage(amount: int) -> void:
 	if is_dead or _hurt_timer > 0:
 		return
 	_hurt_timer = _invincible_time
+	visual.trigger_hurt()
 	current_hp -= amount
 	GameManager.run_state.playerHP = current_hp
 	health_changed.emit(current_hp, max_hp)
@@ -174,26 +164,12 @@ func get_xp_progress() -> float:
 
 
 func _setup_visual() -> void:
-	if ResourceLoader.exists("res://assets/shared/seagull_hero.png"):
-		var texture: Texture2D = load("res://assets/shared/seagull_hero.png")
-		var new_frames := SpriteFrames.new()
-		for animation_name in ["idle", "walk", "hurt", "death"]:
-			new_frames.add_animation(animation_name)
-			new_frames.add_frame(animation_name, texture)
-			new_frames.set_animation_loop(animation_name, animation_name != "death")
-			new_frames.set_animation_speed(animation_name, 4.0)
-		visual.sprite_frames = new_frames
-		visual.scale = Vector2.ONE * (52.0 / texture.get_width())
-		visual.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
-		visual.play("idle")
-		return
-	var frames := SpriteFrames.new()
-	SpriteSheetHelper.add_row_animation(frames, "idle", PLAYER_TEXTURE, Vector2i(32, 32), 0, 4, 6.0)
-	SpriteSheetHelper.add_row_animation(frames, "walk", PLAYER_TEXTURE, Vector2i(32, 32), 1, 6, 10.0)
-	SpriteSheetHelper.add_row_animation(frames, "hurt", PLAYER_TEXTURE, Vector2i(32, 32), 2, 2, 12.0)
-	SpriteSheetHelper.add_row_animation(frames, "death", PLAYER_TEXTURE, Vector2i(32, 32), 3, 4, 8.0, false)
-	visual.sprite_frames = frames
-	visual.play("idle")
+	visual.setup("gull", 52.0)
+
+
+func animate_attack() -> void:
+	if not is_dead:
+		visual.trigger_attack()
 
 
 func _update_animation(is_moving: bool) -> void:
@@ -201,21 +177,12 @@ func _update_animation(is_moving: bool) -> void:
 		return
 
 	if is_dead:
-		if visual.animation != "death":
-			visual.play("death")
+		visual.die()
 		return
-
-	var next_animation := "idle"
-	if _hurt_timer > 0:
-		next_animation = "hurt"
-	elif is_moving:
-		next_animation = "walk"
-
-	if visual.animation != next_animation:
-		visual.play(next_animation)
+	visual.set_locomotion(is_moving, move_direction.x)
 
 
 func _on_visual_animation_finished() -> void:
-	if is_dead and visual.animation == "death" and not _death_signal_emitted:
+	if is_dead and not _death_signal_emitted:
 		_death_signal_emitted = true
 		died.emit()

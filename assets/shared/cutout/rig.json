@@ -1,0 +1,355 @@
+{
+  "schemaVersion": 1,
+  "source": {
+    "kind": "accepted vector-part animation mockup",
+    "date": "2026-10-03",
+    "sha256": "2cdcee8eb30ae798cb0a0494e79029e76def6864f5022213532851cfae577529",
+    "generator": "export-parts.mjs",
+    "units": "source pixels, x right / y down, radians clockwise",
+    "usage": "Center the existing actor at actorOrigin. Rotate each full-canvas part around its pivot. Root pose rotates around rootPivot. Parts contain no other limbs or static base sprite."
+  },
+  "characters": {
+    "gull": {
+      "canvas": [
+        512,
+        512
+      ],
+      "actorOrigin": [
+        256,
+        256
+      ],
+      "rootPivot": [
+        256,
+        420
+      ],
+      "feetAnchor": [
+        256,
+        477
+      ],
+      "baseFacing": 1,
+      "parts": [
+        {
+          "name": "tail",
+          "file": "gull/tail.png",
+          "pivot": [
+            159,
+            355
+          ],
+          "layer": 0,
+          "bounds": [
+            85,
+            307,
+            91,
+            73
+          ],
+          "sha256": "1732ebec4e9aaf4cac70645ca536c38dcdefdc2325a16a62bf4a156e2cc4ea56",
+          "coloredPixels": 4210,
+          "edgePixels": 361
+        },
+        {
+          "name": "backWing",
+          "file": "gull/backWing.png",
+          "pivot": [
+            310,
+            304
+          ],
+          "layer": 1,
+          "bounds": [
+            299,
+            216,
+            128,
+            131
+          ],
+          "sha256": "d8e8dc34dacfa1038813a34e3974c53a374193afb70af99dbc06bb06397a46d1",
+          "coloredPixels": 8886,
+          "edgePixels": 505
+        },
+        {
+          "name": "leftFoot",
+          "file": "gull/leftFoot.png",
+          "pivot": [
+            215,
+            422
+          ],
+          "layer": 2,
+          "bounds": [
+            177,
+            413,
+            80,
+            73
+          ],
+          "sha256": "335131c6bf2fa2322a30d77d217ebee9b22a341117467ea93105057f0cce5f90",
+          "coloredPixels": 2750,
+          "edgePixels": 297
+        },
+        {
+          "name": "rightFoot",
+          "file": "gull/rightFoot.png",
+          "pivot": [
+            278,
+            422
+          ],
+          "layer": 3,
+          "bounds": [
+            255,
+            412,
+            73,
+            68
+          ],
+          "sha256": "21c8ecc18cbe8e06baad6095f76ef7ff238ae50cf67349939e5934688bcc2d5f",
+          "coloredPixels": 2617,
+          "edgePixels": 269
+        },
+        {
+          "name": "body",
+          "file": "gull/body.png",
+          "pivot": [
+            260,
+            366
+          ],
+          "layer": 4,
+          "bounds": [
+            161,
+            273,
+            172,
+            159
+          ],
+          "sha256": "fc6fb057e704436bbd763955975b98d32b1eda03776a0710377100447fd0483e",
+          "coloredPixels": 21758,
+          "edgePixels": 626
+        },
+        {
+          "name": "frontWing",
+          "file": "gull/frontWing.png",
+          "pivot": [
+            228,
+            307
+          ],
+          "layer": 5,
+          "bounds": [
+            109,
+            295,
+            131,
+            105
+          ],
+          "sha256": "f02223ee980e30632d98d788b2fbff11aa8711f71f4e32835e983332d53a64e9",
+          "coloredPixels": 8479,
+          "edgePixels": 439
+        },
+        {
+          "name": "head",
+          "file": "gull/head.png",
+          "pivot": [
+            247,
+            282
+          ],
+          "layer": 6,
+          "bounds": [
+            99,
+            26,
+            280,
+            266
+          ],
+          "sha256": "dfebdb08002a815338b3b18c44a4aaf5d669e5fd291a1bceb745b7c2d5c94cc3",
+          "coloredPixels": 56734,
+          "edgePixels": 2953
+        }
+      ]
+    },
+    "crab": {
+      "canvas": [
+        256,
+        256
+      ],
+      "actorOrigin": [
+        128,
+        128
+      ],
+      "rootPivot": [
+        140,
+        132
+      ],
+      "feetAnchor": [
+        130,
+        200
+      ],
+      "baseFacing": -1,
+      "parts": [
+        {
+          "name": "leftBack",
+          "file": "crab/leftBack.png",
+          "pivot": [
+            84,
+            124
+          ],
+          "layer": 0,
+          "bounds": [
+            47,
+            113,
+            43,
+            38
+          ],
+          "sha256": "9c2c050ef2d058d6578831cbf25b6cdfa19a6fdd2b7542b00eacfebe733e8b2b",
+          "coloredPixels": 806,
+          "edgePixels": 148
+        },
+        {
+          "name": "rightBack",
+          "file": "crab/rightBack.png",
+          "pivot": [
+            195,
+            133
+          ],
+          "layer": 1,
+          "bounds": [
+            189,
+            122,
+            54,
+            58
+          ],
+          "sha256": "de965792285f443218f87e9d7e6cbe90e986f5582f3bdcc58c5999bbeffeaf60",
+          "coloredPixels": 1077,
+          "edgePixels": 211
+        },
+        {
+          "name": "leftMiddle",
+          "file": "crab/leftMiddle.png",
+          "pivot": [
+            88,
+            136
+          ],
+          "layer": 2,
+          "bounds": [
+            60,
+            127,
+            35,
+            55
+          ],
+          "sha256": "7756f6ee25901b75135dedd22d2bc346eb01605a7ad40c356465f39dca23ae43",
+          "coloredPixels": 940,
+          "edgePixels": 177
+        },
+        {
+          "name": "rightMiddle",
+          "file": "crab/rightMiddle.png",
+          "pivot": [
+            192,
+            145
+          ],
+          "layer": 3,
+          "bounds": [
+            184,
+            134,
+            44,
+            56
+          ],
+          "sha256": "3eec6bc194b62fcb5644ec02d6c66720d7cb83b2f7bcba0c839b205f3f03c19f",
+          "coloredPixels": 1041,
+          "edgePixels": 195
+        },
+        {
+          "name": "leftFront",
+          "file": "crab/leftFront.png",
+          "pivot": [
+            98,
+            145
+          ],
+          "layer": 4,
+          "bounds": [
+            81,
+            137,
+            23,
+            43
+          ],
+          "sha256": "2c4e3ed512c4c678a3e0eef13adfd002e351161f3c6072cf4c2ad208e11303d6",
+          "coloredPixels": 596,
+          "edgePixels": 122
+        },
+        {
+          "name": "rightFront",
+          "file": "crab/rightFront.png",
+          "pivot": [
+            182,
+            153
+          ],
+          "layer": 5,
+          "bounds": [
+            175,
+            143,
+            27,
+            64
+          ],
+          "sha256": "4cc18d3c6060d37f902b423d5e460c26c05373e0c35c837ffdf2bc76e8257b70",
+          "coloredPixels": 954,
+          "edgePixels": 179
+        },
+        {
+          "name": "backClaw",
+          "file": "crab/backClaw.png",
+          "pivot": [
+            84,
+            118
+          ],
+          "layer": 6,
+          "bounds": [
+            14,
+            52,
+            76,
+            77
+          ],
+          "sha256": "2ed8e5a036bdc9efe365e63091a494a5752ec14e2ec2ad3b0d1205fe540b16e5",
+          "coloredPixels": 3277,
+          "edgePixels": 347
+        },
+        {
+          "name": "body",
+          "file": "crab/body.png",
+          "pivot": [
+            144,
+            116
+          ],
+          "layer": 7,
+          "bounds": [
+            79,
+            65,
+            130,
+            94
+          ],
+          "sha256": "3c7effa52433d897d77a6891ae3942754c9135661549a4439699f81d9b9dc8d9",
+          "coloredPixels": 9560,
+          "edgePixels": 424
+        },
+        {
+          "name": "frontClaw",
+          "file": "crab/frontClaw.png",
+          "pivot": [
+            169,
+            130
+          ],
+          "layer": 8,
+          "bounds": [
+            109,
+            125,
+            77,
+            57
+          ],
+          "sha256": "ddc6a8bb4717838f273dd4ecdff5bac7cf4f6ddf1c87a2df7f840bb00922224e",
+          "coloredPixels": 3354,
+          "edgePixels": 283
+        }
+      ]
+    }
+  },
+  "shadow": {
+    "file": "shadow.png",
+    "canvas": [
+      128,
+      32
+    ],
+    "pivot": [
+      64,
+      16
+    ],
+    "sha256": "5a22ac0e99b4bbaace52c4541c2e30492346b5db1c865c684b73b1f40abf99be"
+  }
+}

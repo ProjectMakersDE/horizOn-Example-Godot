@@ -143,6 +143,8 @@ def main():
             shutil.copy2(capture, ROOT / "tmp" / capture.name)
         print("LAYOUT_CHECKS_PASS: native renderer captures use isolated QA userdata.")
         return
+    animation = run("--headless", "--script", "tests/cutout_animation_smoke.gd")
+    assert "CUTOUT_ANIMATION_SMOKE_PASS" in animation
     offline = run("--headless", "--verbose", "--script", "tests/offline_smoke.gd")
     assert "OFFLINE_SMOKE_PASS" in offline
     with ThreadingHTTPServer(("127.0.0.1", 0), Fixture) as server:

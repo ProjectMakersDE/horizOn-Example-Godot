@@ -37,6 +37,14 @@ You play as a seagull on a beach, surviving waves of crabs, jellyfish, and pirat
 - **Art Style:** Shared cel-shaded coastal artwork, square-headed horizOn seagull, dark charcoal UI and warm orange/teal accents
 - **Font:** Godot default readable UI font (legacy Press Start 2P retained for compatibility)
 
+The gull and crab use the shared cutout rig in `assets/shared/cutout/rig.json`.
+Separate full-canvas parts rotate around authored pivots, with linear filtering
+and a contact shadow. Movement controls facing and the walk cycle. Actual weapon
+fire, melee attacks and damage trigger attack and hurt poses. Pausing freezes
+the rig clock and individual limbs. The walk cycle keeps running underneath
+attacks while the actor moves. Actor sizes, collision shapes and balance
+keep the existing gameplay values.
+
 ## Getting Started
 
 ### Step 1 — Clone and Open
@@ -102,6 +110,8 @@ physics, dash, pause/resume, XP/weapon choices, real waves/kills, victory, boss
 spawn/defeat, duplicate end protection, upgrades and replay. It checks protected
 SDK requests carry the fixture player session; test emails never leave loopback.
 Generated exports, logs and captures are ignored by Git.
+The cutout fixture also checks individual limb transforms, real gameplay attack
+and hurt hooks, facing, pause, death cleanup and absence of a full static sprite.
 Each fixture invocation removes only its own unique QA userdata directory. The
 macOS export verifier also removes its temporary project and instrumented app,
 while preserving the normal ZIP, logs and captures under `tmp/verification-artifacts`.

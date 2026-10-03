@@ -32,19 +32,13 @@ def main() -> None:
         raise SystemExit("This export verifier requires macOS and the Godot macOS export template.")
     ARTIFACTS.mkdir(parents=True, exist_ok=True)
     (ROOT / "tmp").mkdir(exist_ok=True)
+    (ROOT / "exports").mkdir(exist_ok=True)
     run("release-checks.log", [sys.executable, "tests/run_checks.py"])
     run("release-captures.log", [sys.executable, "tests/run_checks.py", "--render"])
     run("release-import.log", [GODOT, "--headless", "--editor", "--path", str(ROOT), "--import", "--quit"])
     run("release-export.log", [GODOT, "--headless", "--path", str(ROOT), "--export-release", "macOS", "exports/SeagullStorm.zip"])
-    project = QA / "project.godot"
-    project.write_text(project.read_text().replace("run/main_scene=", 'run/main_loop_type="SeagullOfflineSmoke"\nrun/main_scene='))
-    script = QA / "tests/offline_smoke.gd"
-    script.write_text(script.read_text().replace("extends SceneTree", "class_name SeagullOfflineSmoke\nextends SceneTree"))
     preset = QA / "export_presets.cfg"
     preset.write_text(preset.read_text().replace("tests/*,", ""))
-    run("release-isolated-import.log", [GODOT, "--headless", "--editor", "--path", str(QA), "--import", "--quit"])
-    pack = ROOT / "tmp/isolated-native-qa.pck"
-    run("release-isolated-pack.log", [GODOT, "--headless", "--path", str(QA), "--export-pack", "macOS", str(pack)])
     NATIVE_QA.mkdir(parents=True, exist_ok=True)
     with zipfile.ZipFile(ROOT / "exports/SeagullStorm.zip") as archive:
         archive.extractall(NATIVE_QA)
@@ -53,17 +47,29 @@ def main() -> None:
     assert len(packs) == 1, "Export must contain exactly one game pack"
     # Release templates disable --main-pack overrides. Substitute a QA-only
     # embedded pack in this owned app copy; the deliverable ZIP is untouched.
-    shutil.copy2(pack, packs[0])
     player = app / "Contents/MacOS/Seagull Storm"
     player.chmod(0o755)
-    output = run("release-native-smoke.log", [str(player), "--headless"])
-    assert "OFFLINE_SMOKE_PASS" in output
+    project = QA / "project.godot"
+    project_text = project.read_text()
+    for fixture, loop_type, marker in [
+        ("offline_smoke", "SeagullOfflineSmoke", "OFFLINE_SMOKE_PASS"),
+        ("cutout_animation_smoke", "SeagullCutoutSmoke", "CUTOUT_ANIMATION_SMOKE_PASS"),
+    ]:
+        project.write_text(project_text.replace("run/main_scene=", f'run/main_loop_type="{loop_type}"\nrun/main_scene='))
+        script = QA / "tests" / f"{fixture}.gd"
+        script.write_text(script.read_text().replace("extends SceneTree", f"class_name {loop_type}\nextends SceneTree"))
+        run(f"release-isolated-{fixture}-import.log", [GODOT, "--headless", "--editor", "--path", str(QA), "--import", "--quit"])
+        pack = ROOT / "tmp" / f"isolated-native-{fixture}.pck"
+        run(f"release-isolated-{fixture}-pack.log", [GODOT, "--headless", "--path", str(QA), "--export-pack", "macOS", str(pack)])
+        shutil.copy2(pack, packs[0])
+        output = run(f"release-native-{fixture}.log", [str(player), "--headless"])
+        assert marker in output
+        shutil.copy2(pack, ARTIFACTS / pack.name)
     for pattern in ["qa-*.png", "release-*.log", "check-*.log"]:
         for path in (ROOT / "tmp").glob(pattern):
             shutil.copy2(path, ARTIFACTS / path.name)
     shutil.copy2(ROOT / "exports/SeagullStorm.zip", ARTIFACTS / "SeagullStorm.zip")
-    shutil.copy2(pack, ARTIFACTS / pack.name)
-    print("RELEASE_VERIFY_PASS: current code, SDK fixture, UI captures, universal export binary gameplay; artifacts", ARTIFACTS, flush=True)
+    print("RELEASE_VERIFY_PASS: current code, SDK fixture, UI captures, universal export binary gameplay and cutout animation; artifacts", ARTIFACTS, flush=True)
 
 
 def cleanup() -> None:

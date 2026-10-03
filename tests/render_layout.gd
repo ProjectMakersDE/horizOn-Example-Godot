@@ -36,6 +36,25 @@ func _run() -> void:
 	await create_timer(3.0).timeout
 	await _capture("qa-run")
 	var run = current_scene
+	# Native close-up with overlapping crabs verifies contiguous actor layers
+	# and the actual linear-filtered textures instead of a separate mockup.
+	for enemy in run.enemies_container.get_children():
+		enemy.queue_free()
+	run.wave_spawner.stop_spawning()
+	run.player.position = Vector2(-30, 0)
+	for index in 2:
+		var crab = run.wave_spawner._spawn_enemy("crab")
+		crab.position = Vector2(28 + index * 9, index * 4)
+		crab.speed = 0.0
+		crab.get_node("Visual").trigger_attack()
+	run.player.visual.trigger_attack()
+	run.get_node("Camera2D").zoom = Vector2(3, 3)
+	await create_timer(0.25).timeout
+	paused = true
+	await _capture("qa-cutout-overlap")
+	paused = false
+	run.get_node("Camera2D").zoom = Vector2.ONE
+	run.player.position = Vector2.ZERO
 	run.player.add_xp(50)
 	await _capture("qa-levelup")
 	run._apply_levelup_choice(run._choices[0], 0)
@@ -52,7 +71,7 @@ func _run() -> void:
 	manager.go_to_title()
 	await _capture("qa-title-small")
 	DirAccess.remove_absolute("user://seagull_render_qa.json")
-	print("NATIVE_LAYOUT_CAPTURE_PASS: default and 960x540 title/hub, run, levelup, results")
+	print("NATIVE_LAYOUT_CAPTURE_PASS: default and 960x540 title/hub, run, cutout overlap, levelup, results")
 	root.get_node("AudioManager").shutdown()
 	await create_timer(0.15).timeout
 	call_deferred("quit",0)

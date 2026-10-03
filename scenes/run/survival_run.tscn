@@ -1,8 +1,9 @@
-[gd_scene load_steps=7 format=3]
+[gd_scene load_steps=8 format=3]
 
 [ext_resource type="Script" path="res://scenes/run/survival_run.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/entities/player.gd" id="2"]
 [ext_resource type="Script" path="res://scripts/systems/wave_spawner.gd" id="3"]
+[ext_resource type="Script" path="res://scripts/visuals/cutout_rig.gd" id="4"]
 [sub_resource type="RectangleShape2D" id="1"]
 size = Vector2(20, 20)
 
@@ -25,7 +26,8 @@ collision_layer = 1
 collision_mask = 2
 script = ExtResource("2")
 
-[node name="Visual" type="AnimatedSprite2D" parent="Entities/Player"]
+[node name="Visual" type="Node2D" parent="Entities/Player"]
+script = ExtResource("4")
 
 [node name="CollisionShape" type="CollisionShape2D" parent="Entities/Player"]
 shape = SubResource("1")
