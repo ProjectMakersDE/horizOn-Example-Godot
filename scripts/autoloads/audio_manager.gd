@@ -16,6 +16,8 @@ var _music_player_b: AudioStreamPlayer
 var _active_player: AudioStreamPlayer
 var _current_music: String = ""
 var _sfx_counts: Dictionary = {}
+var _music_tween: Tween
+var _shutting_down := false
 
 
 func _ready() -> void:
@@ -51,7 +53,7 @@ func _ensure_audio_buses() -> void:
 
 
 func play_music(track_name: String) -> void:
-	if _current_music == track_name:
+	if _shutting_down or _current_music == track_name:
 		return
 	var path := "res://assets/audio/music/%s.ogg" % track_name
 	if not ResourceLoader.exists(path):
@@ -77,11 +79,13 @@ func play_music(track_name: String) -> void:
 	fade_in.play()
 
 	# Crossfade tween
-	var tween := create_tween()
-	tween.set_parallel(true)
-	tween.tween_property(fade_out, "volume_db", -80.0, CROSSFADE_TIME)
-	tween.tween_property(fade_in, "volume_db", MUSIC_VOLUME_DB, CROSSFADE_TIME)
-	tween.chain().tween_callback(func():
+	if _music_tween:
+		_music_tween.kill()
+	_music_tween = create_tween()
+	_music_tween.set_parallel(true)
+	_music_tween.tween_property(fade_out, "volume_db", -80.0, CROSSFADE_TIME)
+	_music_tween.tween_property(fade_in, "volume_db", MUSIC_VOLUME_DB, CROSSFADE_TIME)
+	_music_tween.chain().tween_callback(func():
 		fade_out.stop()
 	)
 
@@ -89,16 +93,22 @@ func play_music(track_name: String) -> void:
 
 
 func stop_music() -> void:
+	if _shutting_down:
+		return
 	_current_music = ""
-	var tween := create_tween()
-	tween.tween_property(_active_player, "volume_db", -80.0, CROSSFADE_TIME)
-	tween.tween_callback(func():
+	if _music_tween:
+		_music_tween.kill()
+	_music_tween = create_tween()
+	_music_tween.tween_property(_active_player, "volume_db", -80.0, CROSSFADE_TIME)
+	_music_tween.tween_callback(func():
 		_music_player_a.stop()
 		_music_player_b.stop()
 	)
 
 
 func play_sfx(sfx_name: String) -> void:
+	if _shutting_down:
+		return
 	# Check polyphony limits
 	var limit: int = _polyphony_limits.get(sfx_name, 0)
 	if limit > 0:
@@ -126,3 +136,20 @@ func play_sfx(sfx_name: String) -> void:
 			_sfx_counts[sfx_name] = max(0, _sfx_counts.get(sfx_name, 0) - 1)
 		player.queue_free()
 	)
+
+func shutdown() -> void:
+	# Scene-ready callbacks can still arrive while an exit/test awaits its last frame.
+	# Shutdown is terminal, so those callbacks must not restart streams after cleanup.
+	_shutting_down = true
+	if _music_tween:
+		_music_tween.kill()
+		_music_tween = null
+	for child in get_children():
+		if child is AudioStreamPlayer:
+			child.stop()
+			child.stream = null
+	_current_music = ""
+	_sfx_counts.clear()
+
+func _exit_tree() -> void:
+	shutdown()

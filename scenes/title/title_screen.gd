@@ -1,160 +1,104 @@
-## Title Screen - Authentication and entry point
 extends Control
 
-@onready var name_input: LineEdit = $VBoxContainer/NameInput
-@onready var email_input: LineEdit = $VBoxContainer/EmailFields/EmailInput
-@onready var password_input: LineEdit = $VBoxContainer/EmailFields/PasswordInput
-@onready var guest_button: Button = $VBoxContainer/GuestButton
-@onready var email_signin_button: Button = $VBoxContainer/EmailSignInButton
-@onready var create_account_button: Button = $VBoxContainer/CreateAccountButton
-@onready var google_button: Button = $VBoxContainer/GoogleButton
-@onready var apple_button: Button = $VBoxContainer/AppleButton
-@onready var status_label: Label = $VBoxContainer/StatusLabel
-@onready var email_fields: VBoxContainer = $VBoxContainer/EmailFields
-
+var name_input: LineEdit
+var email_input: LineEdit
+var password_input: LineEdit
+var status_label: Label
+var online_button: Button
+var auth_panel: VBoxContainer
+var _busy := false
+var _request_generation := 0
 
 func _ready() -> void:
 	AudioManager.play_music("music_menu")
-	email_fields.visible = false
-	status_label.text = ""
-
-	guest_button.pressed.connect(_on_guest_pressed)
-	email_signin_button.pressed.connect(_on_email_signin_pressed)
-	create_account_button.pressed.connect(_on_create_account_pressed)
-	google_button.pressed.connect(_on_google_pressed)
-	apple_button.pressed.connect(_on_apple_pressed)
-
-	_connect_to_server()
-
-
-func _connect_to_server() -> void:
-	status_label.text = "Connecting..."
-	_set_buttons_disabled(true)
-
-	var success := await Horizon.connect_to_server()
-	if success:
-		status_label.text = "Connected!"
-
-		# Check if already signed in (e.g. cached email session)
-		if Horizon.auth.isSignedIn():
-			status_label.text = "Checking session..."
-			var valid := await Horizon.auth.checkAuth()
-			if valid:
-				GameManager.go_to_hub()
+	var page := StormUI.page(self, "Seagull Storm", "A small island. An enormous storm. Survive, collect shells, make your own build.")
+	var row := HBoxContainer.new()
+	row.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	page.add_child(row)
+	var hero := StormUI.scroll_card(row, 430)
+	StormUI.label(hero, "DEFEND YOUR PATCH\nOF PARADISE.", 27, StormUI.ORANGE)
+	StormUI.button(hero, "Play offline practice", _on_practice, true)
+	StormUI.art(hero, "res://assets/shared/seagull_hero.png", 100)
+	StormUI.label(hero, "Auto-attack survival • 3 minute runs • 4 weapons\nWASD / arrows to move · Space to dash · Esc to pause", 15)
+	StormUI.label(hero, "Progress saves on this device. Practice scores stay local.", 13, StormUI.MUTED)
+	auth_panel = StormUI.scroll_card(row, 420)
+	StormUI.label(auth_panel, "Connect your horizOn project", 23)
+	StormUI.label(auth_panel, "Online play adds cloud saves, boards, profiles and server-validated runs. Import your SDK config in the editor to connect.", 16, StormUI.MUTED)
+	name_input = StormUI.input(auth_panel, "Display name")
+	online_button = StormUI.button(auth_panel, "Connect and play as guest", _on_guest_pressed)
+	var email_form := VBoxContainer.new()
+	email_form.visible = false
+	StormUI.button(auth_panel, "Email sign in / create account", func(): email_form.visible = not email_form.visible)
+	auth_panel.add_child(email_form)
+	var email_row := HBoxContainer.new()
+	email_form.add_child(email_row)
+	email_input = StormUI.input(email_row, "Email")
+	email_input.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	password_input = StormUI.input(email_row, "Password", true)
+	password_input.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var buttons := HBoxContainer.new()
+	email_form.add_child(buttons)
+	StormUI.button(buttons, "Email sign in", func(): _email_auth(false))
+	StormUI.button(buttons, "Create account", func(): _email_auth(true))
+	status_label = StormUI.label(auth_panel, "SDK %s • %s" % [Horizon.getVersion(), "configuration ready" if Horizon.isInitialized() else "no configuration imported"], 14, StormUI.MUTED)
+	if not Horizon.isInitialized():
+		online_button.disabled = true
+		for child in buttons.get_children():
+			child.disabled = true
+	if Horizon.auth.isSignedIn():
+		StormUI.button(auth_panel, "Sign out of this account", func():
+			if GameManager.auth_in_progress():
+				status_label.text = "Authentication is still finishing. Please try again."
 				return
+			Horizon.auth.signOut()
+			status_label.text = "Signed out. Connect again to choose another player."
+		)
+	StormUI.label(page, "horizOn SDK example / Godot    •    One more run? One better build.", 14, StormUI.MUTED)
 
-		# Try to restore anonymous session
-		if Horizon.auth.hasCachedAnonymousToken():
-			status_label.text = "Restoring session..."
-			var restored := await Horizon.auth.restoreAnonymousSession()
-			if restored:
-				GameManager.go_to_hub()
-				return
-
-		_set_buttons_disabled(false)
-		status_label.text = "Welcome to Seagull Storm!"
-	else:
-		status_label.text = "Connection failed. Retry..."
-		await get_tree().create_timer(2.0).timeout
-		_connect_to_server()
-
+func _on_practice() -> void:
+	_request_generation += 1
+	GameManager.enter_practice()
+	GameManager.go_to_hub()
 
 func _on_guest_pressed() -> void:
-	var player_name := name_input.text.strip_edges()
-	if player_name.is_empty():
-		player_name = "Seagull_%d" % (randi() % 9999)
-
-	_set_buttons_disabled(true)
-	status_label.text = "Signing in as guest..."
-
-	var success := await Horizon.quickSignInAnonymous(player_name)
-	if success:
-		Horizon.crashes.record_breadcrumb("navigation", "signed_in_guest")
-		GameManager.go_to_hub()
-	else:
-		status_label.text = "Sign in failed. Try again."
-		_set_buttons_disabled(false)
-
-
-func _on_email_signin_pressed() -> void:
-	if not email_fields.visible:
-		email_fields.visible = true
-		email_signin_button.text = "Sign In"
+	if _busy:
 		return
+	_busy = true
+	_request_generation += 1
+	var request := _request_generation
+	var display_name := name_input.text.strip_edges()
+	online_button.disabled = true
+	status_label.text = "Connecting and signing in… Offline practice remains available."
+	var ok: bool = await GameManager.authenticate("guest", "", "", display_name)
+	if not is_instance_valid(self) or not is_inside_tree() or request != _request_generation:
+		return
+	if ok:
+		GameManager.enter_online()
+		GameManager.go_to_hub()
+		return
+	status_label.text = "Connection or sign in failed. Retry or enjoy offline practice."
+	_busy = false
+	online_button.disabled = false
 
+func _email_auth(create: bool) -> void:
+	if _busy:
+		return
+	if email_input.text.strip_edges().is_empty() or password_input.text.is_empty():
+		status_label.text = "Enter your email and password."
+		return
+	_busy = true
+	_request_generation += 1
+	var request := _request_generation
 	var email := email_input.text.strip_edges()
-	var password := password_input.text.strip_edges()
-	if email.is_empty() or password.is_empty():
-		status_label.text = "Enter email and password."
+	var password := password_input.text
+	var display_name := name_input.text.strip_edges()
+	status_label.text = "Connecting and authenticating… Offline practice remains available."
+	var ok: bool = await GameManager.authenticate("create" if create else "email", email, password, display_name)
+	if not is_instance_valid(self) or not is_inside_tree() or request != _request_generation:
 		return
-
-	_set_buttons_disabled(true)
-	status_label.text = "Signing in..."
-
-	var success := await Horizon.auth.signInEmail(email, password)
-	if success:
-		Horizon.crashes.record_breadcrumb("navigation", "signed_in_email")
+	if ok:
+		GameManager.enter_online()
 		GameManager.go_to_hub()
-	else:
-		status_label.text = "Sign in failed. Check credentials."
-		_set_buttons_disabled(false)
-
-
-func _on_create_account_pressed() -> void:
-	if not email_fields.visible:
-		email_fields.visible = true
-		create_account_button.text = "Create"
 		return
-
-	var player_name := name_input.text.strip_edges()
-	var email := email_input.text.strip_edges()
-	var password := password_input.text.strip_edges()
-	if email.is_empty() or password.is_empty():
-		status_label.text = "Enter email and password."
-		return
-	if player_name.is_empty():
-		player_name = "Seagull_%d" % (randi() % 9999)
-
-	_set_buttons_disabled(true)
-	status_label.text = "Creating account..."
-
-	var success := await Horizon.auth.signUpEmail(email, password, player_name)
-	if success:
-		Horizon.crashes.record_breadcrumb("navigation", "signed_up_email")
-		GameManager.go_to_hub()
-	else:
-		status_label.text = "Account creation failed."
-		_set_buttons_disabled(false)
-
-
-func _on_google_pressed() -> void:
-	# The SDK's signInGoogle() requires an OAuth authorization code and redirect
-	# URI obtained from a platform-specific browser flow, which this example does
-	# not implement. Show a clear message instead of firing a doomed request.
-	status_label.text = "Google Sign-In is not available on this platform."
-
-
-func _on_apple_pressed() -> void:
-	# Apple Sign-In: native sheet on iOS via the bundled .gdip plugin,
-	# system-browser OAuth fallback on every other platform. The fallback
-	# requires the customer to register a Services ID in their horizOn API key
-	# and to provide it here.
-	_set_buttons_disabled(true)
-	status_label.text = "Attempting Apple Sign-In..."
-
-	var services_id := ""  # Provide your Apple Services ID here for non-iOS builds.
-	var success := await Horizon.auth.sign_in_with_apple(services_id)
-	if success:
-		Horizon.crashes.record_breadcrumb("navigation", "signed_in_apple")
-		GameManager.go_to_hub()
-	else:
-		status_label.text = "Apple Sign-In is not available on this platform."
-		_set_buttons_disabled(false)
-
-
-func _set_buttons_disabled(disabled: bool) -> void:
-	guest_button.disabled = disabled
-	email_signin_button.disabled = disabled
-	create_account_button.disabled = disabled
-	google_button.disabled = disabled
-	apple_button.disabled = disabled
+	status_label.text = "Authentication failed. Check credentials and project configuration."
+	_busy = false

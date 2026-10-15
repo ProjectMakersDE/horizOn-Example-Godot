@@ -10,7 +10,7 @@ var _pickups_container: Node2D = null
 var _wave_number: int = 0
 var _wave_timer: float = 0.0
 var _wave_interval: float = 15.0
-var _viewport_size: Vector2 = Vector2(480, 270)
+var _viewport_size: Vector2 = Vector2(720, 360)
 
 var _enemy_scripts: Dictionary = {}
 var _spawning_stopped: bool = false
@@ -20,7 +20,7 @@ func setup(player: Node2D, enemies: Node2D, pickups: Node2D) -> void:
 	_player = player
 	_enemies_container = enemies
 	_pickups_container = pickups
-	_wave_interval = ConfigCache.get_float("wave_interval_seconds", 15.0)
+	_wave_interval = ConfigCache.get_float("wave_interval_seconds", 10.0)
 	_wave_timer = 2.0  # First wave after 2 seconds
 	# Load enemy scripts at runtime to avoid parse-order dependency on EnemyBase
 	_enemy_scripts = {
@@ -46,9 +46,10 @@ func _process(delta: float) -> void:
 
 
 func _spawn_wave() -> void:
-	var base_count := ConfigCache.get_int("wave_enemy_count_base", 5)
-	var growth := ConfigCache.get_float("wave_enemy_count_growth", 1.3)
-	var count := int(base_count * pow(growth, _wave_number - 1))
+	var base_count := ConfigCache.get_int("wave_enemy_count_base", 6)
+	var growth := ConfigCache.get_float("wave_enemy_count_growth", 1.2)
+	var count := clampi(int(base_count * pow(growth, _wave_number - 1)), 1, 60)
+	count = mini(count, maxi(100 - _enemies_container.get_child_count(), 0))
 
 	for i in count:
 		var enemy_type := _pick_enemy_type()
@@ -124,7 +125,7 @@ func _get_spawn_position() -> Vector2:
 	var edge := randi() % 4
 	var offset := randf_range(-200, 200)
 	var margin := 50.0
-	var player_pos := _player.global_position
+	var player_pos := Vector2.ZERO
 	match edge:
 		0: return player_pos + Vector2(offset, -_viewport_size.y / 2 - margin)  # top
 		1: return player_pos + Vector2(offset, _viewport_size.y / 2 + margin)   # bottom
@@ -141,5 +142,6 @@ func _spawn_xp_pickup(pos: Vector2, xp: int = 10) -> void:
 	var pickup := Area2D.new()
 	pickup.set_script(load("res://scripts/pickups/xp_shell.gd"))
 	pickup.xp_amount = xp
+	pickup.is_heart = randf() < 0.08
 	pickup.global_position = pos
 	_pickups_container.add_child(pickup)

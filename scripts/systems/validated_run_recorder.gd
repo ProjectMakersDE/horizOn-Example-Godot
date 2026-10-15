@@ -4,16 +4,16 @@
 ## submits the final score through Horizon.validatedActions. The server checks
 ## the ticket and the rules of the API key before it writes the leaderboard.
 ##
-## Only active when the SDK ships Validated Actions (Horizon.validatedActions,
-## horizOn SDK release with TASK-883) and Remote Config
-## `validated_runs_enabled` is true. Otherwise the game uses the normal
-## leaderboard submit.
+## Active when the player requests validation in an online session. Remote
+## Config can enable that choice by default. An unavailable ticket switches
+## the game to isolated practice; standard submit requires an explicit choice.
 ##
 ## Input log format v1 (little endian, at most MAX_LOG_BYTES):
 ##   header: u8 format version, u32 run seed
 ##   events: u16 physics ticks since the previous event, u8 event code
 ##     0x00 to 0x0F  movement: bit 0 left, bit 1 right, bit 2 up, bit 3 down
 ##     0x10 to 0x1F  level-up choice, low 4 bits = button index
+##     0x20          dash activation
 ##     0xFF          run end
 class_name ValidatedRunRecorder
 extends RefCounted
@@ -27,14 +27,20 @@ const EVENT_RUN_END := 0xFF
 const MAX_TICK_GAP := 65535
 const DEFAULT_BOARD := "default"
 
-## Board the run is bound to (Remote Config `validated_runs_board`)
+## Board chosen in the hub (Remote Config provides its initial default)
 var board_key: String = DEFAULT_BOARD
 ## Result of the last validated submit ({} when none or rejected)
 var last_result: Dictionary = {}
 ## Error code of the last start or submit failure ("" when none)
 var last_error_code: String = ""
 ## Short text for the game over screen ("" when the run was not validated)
-var last_message: String = ""
+var last_message: String:
+	get:
+		return _submit_message + (" · " + _evidence_message if not _evidence_message.is_empty() else "")
+
+var _submit_message: String = ""
+var _evidence_message: String = ""
+var _run_id: String = ""
 
 var _active: bool = false
 var _log := PackedByteArray()
@@ -48,9 +54,9 @@ static func sdk_available() -> bool:
 	return Horizon.get("validatedActions") != null
 
 
-## True when Validated Actions is available and switched on in Remote Config.
+## True when Validated Actions is available and requested for the online run.
 static func is_enabled() -> bool:
-	return sdk_available() and ConfigCache.get_bool("validated_runs_enabled", false)
+	return sdk_available() and GameManager.online_available() and GameManager.validation_requested
 
 
 ## True while a validated run waits for its submit.
@@ -59,15 +65,15 @@ func is_active() -> bool:
 
 
 ## Start a validated run bound to the game's leaderboard and seed the random
-## number generator with the server seed. Returns false (normal submit at game
-## over) when the feature is off or the server refuses the run.
+## number generator with the server seed. False means no validated ticket;
+## requested validation must then switch to practice, without standard submit.
 func begin() -> bool:
 	_reset()
 	if not is_enabled():
 		randomize()
 		return false
 
-	board_key = ConfigCache.get_string("validated_runs_board", DEFAULT_BOARD).strip_edges()
+	board_key = GameManager.selected_board.strip_edges()
 	if board_key.is_empty():
 		board_key = DEFAULT_BOARD
 
@@ -80,11 +86,12 @@ func begin() -> bool:
 	var run: Dictionary = await va.startRun(board_key)
 	if run.is_empty():
 		last_error_code = va.getLastErrorCode()
-		last_message = "Not validated: %s" % describe_error(last_error_code)
+		_submit_message = "Not validated: %s" % describe_error(last_error_code)
 		Horizon.crashes.record_breadcrumb("validated_run", "start_failed_%s" % last_error_code)
 		randomize()
 		return false
 
+	_run_id = str(run.get("runId", ""))
 	var run_seed := int(run.get("seed", 0))
 	seed(run_seed)
 	_log.append(LOG_FORMAT_VERSION)
@@ -115,6 +122,12 @@ func record_move(input: Vector2) -> void:
 		_write_event(code)
 
 
+## Record one dash activation.
+func record_dash() -> void:
+	if _active:
+		_write_event(0x20)
+
+
 ## Record which level-up button the player picked.
 func record_levelup_choice(index: int) -> void:
 	if _active:
@@ -129,6 +142,11 @@ func finish(score: int, stage: String, earned: Array = []) -> Dictionary:
 	if not _active:
 		return {}
 	_active = false
+	if _truncated:
+		Horizon.validatedActions.discardRun()
+		last_error_code = "INPUT_LOG_INCOMPLETE"
+		_submit_message = "Evidence log exceeded its limit — score stayed local."
+		return {}
 	# Room for the end marker is reserved by _write_event().
 	_append_event(EVENT_RUN_END)
 
@@ -136,13 +154,17 @@ func finish(score: int, stage: String, earned: Array = []) -> Dictionary:
 	var result: Dictionary = await va.submitValidated(score, _log, stage, board_key, earned)
 	if result.is_empty():
 		last_error_code = va.getLastErrorCode()
-		last_message = "Score not accepted: %s" % describe_error(last_error_code)
+		_submit_message = "Score not accepted: %s" % describe_error(last_error_code)
 		Horizon.crashes.record_breadcrumb("validated_run", "rejected_%s" % last_error_code)
 		return {}
 
 	last_result = result
 	var rank := int(result.get("rank", 0))
-	last_message = "Validated run" if rank <= 0 else "Validated run, rank #%d" % rank
+	_submit_message = "Server accepted run" if rank <= 0 else "Server accepted run · rank #%d" % rank
+	if not result.get("accepted", false):
+		_submit_message = "Server response did not accept the run."
+	if result.get("evidence", {}).get("required", false) and _evidence_message.is_empty():
+		_evidence_message = "evidence upload pending"
 	if _truncated:
 		push_warning("Validated run: the input log reached %d bytes and was cut" % MAX_LOG_BYTES)
 	Horizon.crashes.record_breadcrumb("validated_run", "accepted")
@@ -152,6 +174,8 @@ func finish(score: int, stage: String, earned: Array = []) -> Dictionary:
 ## Player friendly text for a Validated Actions error code.
 static func describe_error(code: String) -> String:
 	match code:
+		"INPUT_LOG_INCOMPLETE":
+			return "input evidence was incomplete"
 		"DURATION_TOO_SHORT":
 			return "run was too short"
 		"SCORE_ABOVE_MAX", "STAGE_SCORE_ABOVE_MAX":
@@ -193,7 +217,9 @@ func _reset() -> void:
 	_truncated = false
 	last_result = {}
 	last_error_code = ""
-	last_message = ""
+	_submit_message = ""
+	_evidence_message = ""
+	_run_id = ""
 
 
 ## Write one event; keeps EVENT_SIZE bytes free for the end marker.
@@ -224,10 +250,24 @@ func _connect_evidence_signals(va: Object) -> void:
 		va.connect("evidence_upload_failed", _on_evidence_upload_failed)
 
 
-func _on_evidence_uploaded(_run_id: String) -> void:
+func _on_evidence_uploaded(run_id: String) -> void:
+	if run_id.is_empty() or run_id != _run_id:
+		return
+	_evidence_message = "evidence uploaded"
 	Horizon.crashes.record_breadcrumb("validated_run", "evidence_uploaded")
+	GameManager.submission_changed.emit()
 
 
-func _on_evidence_upload_failed(_run_id: String, error: String, code: String) -> void:
+func _on_evidence_upload_failed(run_id: String, _error: String, code: String) -> void:
+	if run_id.is_empty() or run_id != _run_id:
+		return
+	_evidence_message = "evidence upload failed (%s)" % code
 	Horizon.crashes.record_breadcrumb("validated_run", "evidence_failed_%s" % code)
-	push_warning("Validated run: evidence upload failed (%s): %s" % [code, error])
+	GameManager.submission_changed.emit()
+
+
+func cancel() -> void:
+	_active = false
+	_run_id = ""
+	if sdk_available():
+		Horizon.validatedActions.discardRun()

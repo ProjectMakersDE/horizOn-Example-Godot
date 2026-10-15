@@ -413,6 +413,10 @@ Horizon.sdk_disconnected.connect(func(): print("Disconnected"))
 ```
 
 ### Authentication
+
+`quickSignInAnonymous()` never replaces a stored identity after failed restoration. Cached
+tokens, including unusable legacy tokens longer than 32 characters, stay stored for
+reconciliation. Only explicitly clearing the identity permits a new anonymous account.
 ```gdscript
 Horizon.auth.signup_completed.connect(func(user): print("Signed up: %s" % user.userId))
 Horizon.auth.signup_failed.connect(func(error): print("Signup failed: %s" % error))
@@ -565,7 +569,7 @@ entry.languageCode # e.g., "en"
 ## Support
 
 - Documentation: https://horizon.pm/quickstart
-- Discord: https://discord.gg/projectmakers
+- Discord: https://discord.gg/JFmaXtguku
 - Issues: https://github.com/ProjectMakersDE/horizOn-SDK-Godot/issues
 
 ## License

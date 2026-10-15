@@ -8,17 +8,24 @@ extends Node2D
 @onready var camera: Camera2D = $Camera2D
 @onready var wave_spawner: Node = $WaveSpawner
 
-# HUD references
-@onready var hud: Control = $CanvasLayer/HUD
-@onready var wave_label: Label = $CanvasLayer/HUD/TopBar/WaveLabel
-@onready var timer_label: Label = $CanvasLayer/HUD/TopBar/TimerLabel
-@onready var score_label: Label = $CanvasLayer/HUD/TopBar/ScoreLabel
-@onready var hp_bar: TextureProgressBar = $CanvasLayer/HUD/HPBar
-@onready var xp_bar: TextureProgressBar = $CanvasLayer/HUD/XPBar
-@onready var level_label: Label = $CanvasLayer/HUD/LevelLabel
-@onready var pause_button: Button = $CanvasLayer/HUD/PauseButton
-@onready var pause_menu: Control = $CanvasLayer/PauseMenu
-@onready var levelup_panel: Control = $CanvasLayer/LevelupOverlay
+# Native-resolution UI is separate from game-world coordinates.
+var hud: Control
+var wave_label: Label
+var timer_label: Label
+var score_label: Label
+var hp_bar: ProgressBar
+var xp_bar: ProgressBar
+var level_label: Label
+var pause_button: Button
+var pause_menu: Control
+var levelup_panel: Control
+var dash_label: Label
+var toast: Label
+var boss_bar: ProgressBar
+var _boss: Node = null
+var _toast_timer := 0.0
+var _choices: Array = []
+var _ending := false
 
 var run_timer: float = 180.0
 var boss_spawned: bool = false
@@ -27,6 +34,7 @@ var _pause_feedback_panel: Control = null
 
 
 func _ready() -> void:
+	_build_ui()
 	AudioManager.play_music("music_battle")
 
 	run_timer = ConfigCache.get_float("run_duration_seconds", 180.0)
@@ -53,20 +61,26 @@ func _ready() -> void:
 	# Generate ground
 	_generate_ground()
 
-	# Camera follows player
-	camera.position = player.position
+	# Fixed arena: the whole island and incoming enemies remain readable.
+	camera.position = Vector2.ZERO
 
 	_update_hud()
+	if not GameManager.validated_run.last_error_code.is_empty() and not GameManager.validated_run.is_active():
+		_show_toast("Validation unavailable · score stays local")
 
 
 func _process(delta: float) -> void:
+	if get_tree().paused or _ending or GameManager.run_ending():
+		return
+	_toast_timer = maxf(_toast_timer - delta, 0.0)
+	toast.visible = _toast_timer > 0
 	run_timer -= delta
 	GameManager.run_state.duration += delta
 	GameManager.run_state.timeRemaining = run_timer
 	GameManager.run_state.currentScore = _calculate_score()
 
-	# Camera follow
-	camera.position = player.position
+	if is_instance_valid(_boss):
+		boss_bar.value = float(_boss.hp) / maxf(float(_boss.max_hp), 1.0) * 100.0
 
 	# Check for boss wave
 	if run_timer <= 0 and not boss_spawned:
@@ -78,9 +92,12 @@ func _process(delta: float) -> void:
 			var boss: Node = wave_spawner.spawn_boss()
 			if boss != null and boss.has_signal("died"):
 				boss.connect("died", _on_boss_died)
+				_boss = boss
+				boss_bar.visible = true
+				_show_toast("FINAL WAVE · Defeat the storm octopus!")
 		else:
 			# No boss configured: the run ends cleanly when the timer expires
-			GameManager.end_run()
+			_finish_run(true)
 			return
 
 	# Attract XP pickups within magnet range (includes xp_magnet levelup boosts)
@@ -94,6 +111,10 @@ func _process(delta: float) -> void:
 
 
 func _input(event: InputEvent) -> void:
+	if levelup_panel != null and levelup_panel.visible and event is InputEventKey and event.pressed:
+		var choice_index: int = event.keycode - KEY_1
+		if choice_index >= 0 and choice_index < _choices.size():
+			_apply_levelup_choice(_choices[choice_index], choice_index)
 	if event.is_action_pressed("pause"):
 		_toggle_pause()
 
@@ -105,7 +126,8 @@ func _update_hud() -> void:
 	var minutes := time_left / 60
 	var seconds := time_left % 60
 	timer_label.text = "%d:%02d" % [minutes, seconds]
-	score_label.text = "Score: %d" % run.currentScore
+	score_label.text = "SCORE  %d" % run.currentScore
+	dash_label.text = "SPACE · DASH READY" if player.dash_cooldown <= 0.0 else "DASH  %.1fs" % player.dash_cooldown
 	level_label.text = "Lv. %d" % run.currentLevel
 	xp_bar.value = player.get_xp_progress() * 100.0
 	hp_bar.value = float(player.current_hp) / float(player.max_hp) * 100.0
@@ -120,11 +142,17 @@ func _on_health_changed(current: int, maximum: int) -> void:
 
 
 func _on_player_died() -> void:
-	GameManager.end_run()
+	_finish_run(false)
 
 
 func _on_boss_died(_enemy: Node2D, _pos: Vector2) -> void:
-	GameManager.end_run()
+	_finish_run(true)
+
+func _finish_run(victory: bool) -> void:
+	if _ending:
+		return
+	_ending = true
+	GameManager.end_run.call_deferred(victory)
 
 
 func _on_level_up(new_level: int) -> void:
@@ -137,19 +165,25 @@ func _on_level_up(new_level: int) -> void:
 func _on_wave_started(wave_number: int) -> void:
 	GameManager.run_state.currentWave = wave_number
 	GameManager.on_wave_started(wave_number)
+	_show_toast("WAVE %d · Keep moving. Gather shells." % wave_number)
 
 
 func _show_levelup_choices() -> void:
 	levelup_panel.visible = true
 
 	var pool = ConfigCache.get_json("levelup_pool")
-	var num_choices := ConfigCache.get_int("levelup_choices", 3)
+	var num_choices := clampi(ConfigCache.get_int("levelup_choices", 3), 1, 3)
 
 	if pool == null or not pool is Array:
 		pool = [
 			{"id": "feather_dmg", "type": "weapon_upgrade", "weight": 3},
+			{"id": "feather_speed", "type": "weapon_upgrade", "weight": 2},
+			{"id": "screech_new", "type": "weapon_new", "weight": 2},
+			{"id": "dive_new", "type": "weapon_new", "weight": 2},
+			{"id": "gust_new", "type": "weapon_new", "weight": 2},
 			{"id": "move_speed", "type": "stat_boost", "weight": 2},
-			{"id": "max_hp", "type": "stat_boost", "weight": 2}
+			{"id": "max_hp", "type": "stat_boost", "weight": 2},
+			{"id": "xp_magnet", "type": "stat_boost", "weight": 1}
 		]
 
 	# Filter out new-weapon choices whose weapon is already active
@@ -170,6 +204,7 @@ func _show_levelup_choices() -> void:
 		]
 
 	var choices: Array = _weighted_random_select(available, num_choices)
+	_choices = choices
 
 	var container := levelup_panel.get_node("ChoiceContainer")
 	_clear_children(container)
@@ -178,24 +213,18 @@ func _show_levelup_choices() -> void:
 	for i in choices.size():
 		var choice: Dictionary = choices[i]
 		var btn := Button.new()
-		btn.text = _get_choice_label(choice)
-		btn.custom_minimum_size = Vector2(100, 90)
+		btn.text = "%d
+
+%s" % [i + 1, _get_choice_label(choice)]
+		btn.custom_minimum_size = Vector2(230, 150)
 		for style_name in ["normal", "hover", "pressed", "focus"]:
 			btn.add_theme_stylebox_override(style_name, card_style)
 		btn.pressed.connect(func(): _apply_levelup_choice(choice, i))
 		container.add_child(btn)
 
 
-func _make_card_style() -> StyleBoxTexture:
-	# Upgrade card frame from ui.png, 9-slice safe margins 18 px top / 6 px others
-	var style := StyleBoxTexture.new()
-	style.texture = preload("res://assets/sprites/ui.png")
-	style.region_rect = Rect2(0, 96, 64, 80)
-	style.texture_margin_left = 6.0
-	style.texture_margin_top = 18.0
-	style.texture_margin_right = 6.0
-	style.texture_margin_bottom = 6.0
-	return style
+func _make_card_style() -> StyleBoxFlat:
+	return StormUI.box(StormUI.PANEL.lightened(0.08), StormUI.ORANGE)
 
 
 func _weapon_id_for_choice(choice_id: String) -> String:
@@ -292,7 +321,7 @@ func _add_weapon(weapon_id: String) -> void:
 
 
 func _toggle_pause() -> void:
-	if levelup_panel.visible:
+	if _ending or levelup_panel.visible:
 		return
 	get_tree().paused = not get_tree().paused
 	pause_menu.visible = get_tree().paused
@@ -320,207 +349,132 @@ func _setup_pause_menu() -> void:
 	)
 
 
+func _pause_sdk_panel() -> VBoxContainer:
+	var panel := VBoxContainer.new()
+	panel.visible = false
+	panel.process_mode = Node.PROCESS_MODE_ALWAYS
+	panel.set_script(load("res://scripts/ui/sdk_panel.gd"))
+	$CanvasLayer.add_child(panel)
+	return panel
+
 func _show_pause_news() -> void:
-	if _pause_news_panel != null:
-		_pause_news_panel.visible = true
-		return
-	# Create a simple news panel overlay
-	_pause_news_panel = PanelContainer.new()
-	_pause_news_panel.set_anchors_preset(Control.PRESET_CENTER)
-	_pause_news_panel.offset_left = -140.0
-	_pause_news_panel.offset_top = -80.0
-	_pause_news_panel.offset_right = 140.0
-	_pause_news_panel.offset_bottom = 80.0
-	_pause_news_panel.process_mode = Node.PROCESS_MODE_ALWAYS
-
-	var vbox := VBoxContainer.new()
-	var title := Label.new()
-	title.text = "NEWS"
-	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	vbox.add_child(title)
-
-	var news_list := VBoxContainer.new()
-	news_list.name = "NewsList"
-	news_list.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	vbox.add_child(news_list)
-
-	var close_btn := Button.new()
-	close_btn.text = "Close"
-	close_btn.pressed.connect(func(): _pause_news_panel.visible = false)
-	vbox.add_child(close_btn)
-
-	_pause_news_panel.add_child(vbox)
-	pause_menu.add_child(_pause_news_panel)
-
-	# Use cached news from hub loading instead of making a new request
-	var entries = Horizon.news.getCachedNews()
-	if entries.is_empty():
-		# Fallback: load from server if cache is empty
-		entries = await Horizon.news.loadNews(5, "en")
-	for entry in entries:
-		var label := Label.new()
-		var date_str := _short_date(entry.releaseDate)
-		if date_str.is_empty():
-			label.text = "* %s" % entry.title
-		else:
-			label.text = "* %s (%s)" % [entry.title, date_str]
-		label.add_theme_font_size_override("font_size", 6)
-		news_list.add_child(label)
-
-
-func _short_date(release_date: String) -> String:
-	# ISO timestamps like "2026-07-02T10:30:00Z" -> "2026-07-02"
-	if release_date.length() >= 10:
-		return release_date.substr(0, 10)
-	return release_date
-
+	var panel := _pause_sdk_panel()
+	await panel._news()
+	if is_instance_valid(panel):
+		var dialog: VBoxContainer = panel._dialog("Island news")
+		StormUI.label(dialog, panel.output.text, 16)
 
 func _show_pause_feedback() -> void:
-	if _pause_feedback_panel != null:
-		_pause_feedback_panel.visible = true
-		return
-	# Create a simple feedback dialog overlay
-	_pause_feedback_panel = PanelContainer.new()
-	_pause_feedback_panel.set_anchors_preset(Control.PRESET_CENTER)
-	_pause_feedback_panel.offset_left = -140.0
-	_pause_feedback_panel.offset_top = -100.0
-	_pause_feedback_panel.offset_right = 140.0
-	_pause_feedback_panel.offset_bottom = 100.0
-	_pause_feedback_panel.process_mode = Node.PROCESS_MODE_ALWAYS
-
-	var vbox := VBoxContainer.new()
-	vbox.add_theme_constant_override("separation", 4)
-
-	var title_lbl := Label.new()
-	title_lbl.text = "FEEDBACK"
-	title_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	vbox.add_child(title_lbl)
-
-	var title_input := LineEdit.new()
-	title_input.name = "TitleInput"
-	title_input.placeholder_text = "Title..."
-	vbox.add_child(title_input)
-
-	var msg_input := TextEdit.new()
-	msg_input.name = "MessageInput"
-	msg_input.placeholder_text = "Your message..."
-	msg_input.custom_minimum_size = Vector2(0, 50)
-	vbox.add_child(msg_input)
-
-	var email_input := LineEdit.new()
-	email_input.name = "EmailInput"
-	email_input.placeholder_text = "Email (optional)..."
-	vbox.add_child(email_input)
-
-	var category := OptionButton.new()
-	category.name = "CategoryOption"
-	category.add_item("BUG", 0)
-	category.add_item("FEATURE_REQUEST", 1)
-	category.add_item("GENERAL", 2)
-	vbox.add_child(category)
-
-	var status_lbl := Label.new()
-	status_lbl.name = "StatusLabel"
-	status_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	vbox.add_child(status_lbl)
-
-	var btn_row := HBoxContainer.new()
-	var submit_btn := Button.new()
-	submit_btn.text = "Submit"
-	submit_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	var close_btn := Button.new()
-	close_btn.text = "Close"
-	close_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	btn_row.add_child(submit_btn)
-	btn_row.add_child(close_btn)
-	vbox.add_child(btn_row)
-
-	close_btn.pressed.connect(func(): _pause_feedback_panel.visible = false)
-	submit_btn.pressed.connect(func():
-		var t := title_input.text.strip_edges()
-		var m := msg_input.text.strip_edges()
-		if t.is_empty() or m.is_empty():
-			status_lbl.text = "Fill in title and message."
-			return
-		var cat := category.get_item_text(category.selected)
-		var em := email_input.text.strip_edges()
-		status_lbl.text = "Submitting..."
-		submit_btn.disabled = true
-		var success := await Horizon.feedback.submit(t, m, cat, em)
-		if success:
-			status_lbl.text = "Feedback sent!"
-			title_input.text = ""
-			msg_input.text = ""
-			email_input.text = ""
-			Horizon.crashes.record_breadcrumb("user_action", "submitted_feedback_pause")
-		else:
-			status_lbl.text = "Failed to send."
-		submit_btn.disabled = false
-	)
-
-	_pause_feedback_panel.add_child(vbox)
-	pause_menu.add_child(_pause_feedback_panel)
+	_pause_sdk_panel()._feedback()
 
 
 func _generate_ground() -> void:
-	var tilemap := TileMapLayer.new()
-	tilemap.name = "Ground"
-	tilemap.z_index = -10
+	var ground := Sprite2D.new()
+	ground.name = "Ground"
+	ground.z_index = -10
+	ground.texture = load("res://assets/shared/arena_background.png")
+	ground.scale = Vector2(960.0 / ground.texture.get_width(), 540.0 / ground.texture.get_height())
+	add_child(ground)
 
-	var tileset := TileSet.new()
-	tileset.tile_size = Vector2i(16, 16)
+func _show_toast(message: String) -> void:
+	toast.text = message
+	toast.visible = true
+	_toast_timer = 3.0
 
-	var source := TileSetAtlasSource.new()
-	source.texture = preload("res://assets/sprites/tilemap.png")
-	source.texture_region_size = Vector2i(16, 16)
-	# Register every tile of the 8x4 atlas so set_cell can reference them
-	for cx in 8:
-		for cy in 4:
-			source.create_tile(Vector2i(cx, cy))
-	tileset.add_source(source, 0)
+func _build_ui() -> void:
+	var canvas := $CanvasLayer
+	hud = Control.new()
+	hud.theme = StormUI.theme()
+	hud.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	hud.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	canvas.add_child(hud)
+	var top := PanelContainer.new()
+	top.position = Vector2(20, 14)
+	top.size = Vector2(920, 58)
+	hud.add_child(top)
+	var row := HBoxContainer.new()
+	top.add_child(row)
+	wave_label = StormUI.label(row, "", 20, StormUI.ORANGE)
+	timer_label = StormUI.label(row, "", 26)
+	timer_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	score_label = StormUI.label(row, "", 20)
+	score_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	var bottom := PanelContainer.new()
+	bottom.position = Vector2(20, 455)
+	bottom.size = Vector2(920, 68)
+	hud.add_child(bottom)
+	var bottom_row := HBoxContainer.new()
+	bottom.add_child(bottom_row)
+	var hp_col := VBoxContainer.new()
+	hp_col.custom_minimum_size.x = 220
+	bottom_row.add_child(hp_col)
+	StormUI.label(hp_col, "HEALTH", 13, StormUI.MUTED)
+	hp_bar = _bar(hp_col, StormUI.ORANGE)
+	var xp_col := VBoxContainer.new()
+	xp_col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	bottom_row.add_child(xp_col)
+	level_label = StormUI.label(xp_col, "", 13, StormUI.MUTED)
+	xp_bar = _bar(xp_col, StormUI.TEAL)
+	dash_label = StormUI.label(bottom_row, "SPACE · DASH READY", 15, StormUI.ORANGE)
+	pause_button = StormUI.button(bottom_row, "Pause / Esc", func(): pass)
+	toast = Label.new()
+	toast.position = Vector2(180, 85)
+	toast.size = Vector2(600, 42)
+	toast.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	toast.add_theme_color_override("font_color", StormUI.NAVY)
+	toast.add_theme_font_size_override("font_size", 20)
+	hud.add_child(toast)
+	boss_bar = _bar(hud, Color("a46184"))
+	boss_bar.position = Vector2(300, 128)
+	boss_bar.size = Vector2(360, 12)
+	boss_bar.visible = false
+	pause_menu = _overlay(canvas)
+	var pause_column := VBoxContainer.new()
+	pause_column.name = "VBox"
+	pause_column.position = Vector2(335, 135)
+	pause_column.size = Vector2(290, 270)
+	pause_menu.add_child(pause_column)
+	StormUI.label(pause_column, "TAKE A BREATHER", 27)
+	for entry in [["ResumeButton", "Resume"], ["NewsButton", "News"], ["FeedbackButton", "Feedback"], ["QuitButton", "Abandon run / hub"]]:
+		var button := StormUI.button(pause_column, entry[1], func(): pass)
+		button.name = entry[0]
+		button.disabled = GameManager.practice_mode and entry[0] in ["NewsButton", "FeedbackButton"]
+	levelup_panel = _overlay(canvas)
+	var title := StormUI.label(levelup_panel, "LEVEL UP · Choose your advantage", 30, StormUI.ORANGE)
+	title.position = Vector2(150, 125)
+	title.size = Vector2(660, 50)
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	var choices := HBoxContainer.new()
+	choices.name = "ChoiceContainer"
+	choices.position = Vector2(100, 200)
+	choices.size = Vector2(760, 160)
+	choices.alignment = BoxContainer.ALIGNMENT_CENTER
+	levelup_panel.add_child(choices)
+	var hint := StormUI.label(levelup_panel, "Click a card or press 1 / 2 / 3", 18, StormUI.MUTED)
+	hint.position = Vector2(280, 390)
+	hint.size = Vector2(400, 40)
+	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 
-	tilemap.tile_set = tileset
+func _overlay(canvas: Node) -> Control:
+	var layer := Control.new()
+	layer.theme = StormUI.theme()
+	layer.process_mode = Node.PROCESS_MODE_ALWAYS
+	layer.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	canvas.add_child(layer)
+	var shade := ColorRect.new()
+	shade.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	shade.color = Color(0.07, 0.065, 0.075, 0.91)
+	layer.add_child(shade)
+	return layer
 
-	# Sand variants (row 0, cols 0-3), v1 weighted highest
-	var sand_variants: Array[Vector2i] = [
-		Vector2i(0, 0), Vector2i(0, 0), Vector2i(0, 0), Vector2i(0, 0),
-		Vector2i(1, 0), Vector2i(2, 0), Vector2i(3, 0),
-	]
-
-	# Fill a 125x125 tile area (2000x2000 pixels / 16px tiles) centered at origin:
-	# sand island interior with a water-edge border ring (row 1) and sparse
-	# sand decorations (row 0, cols 4-7).
-	var half := 62
-	for x in range(-half, half + 1):
-		for y in range(-half, half + 1):
-			var is_north := y == -half
-			var is_south := y == half
-			var is_west := x == -half
-			var is_east := x == half
-			var atlas: Vector2i
-			if is_north and is_west:
-				atlas = Vector2i(4, 1)  # water corner NW
-			elif is_north and is_east:
-				atlas = Vector2i(5, 1)  # water corner NE
-			elif is_south and is_west:
-				atlas = Vector2i(6, 1)  # water corner SW
-			elif is_south and is_east:
-				atlas = Vector2i(7, 1)  # water corner SE
-			elif is_north:
-				atlas = Vector2i(0, 1)  # water edge N
-			elif is_south:
-				atlas = Vector2i(1, 1)  # water edge S
-			elif is_east:
-				atlas = Vector2i(2, 1)  # water edge E
-			elif is_west:
-				atlas = Vector2i(3, 1)  # water edge W
-			elif randf() < 0.03:
-				atlas = Vector2i(4 + randi() % 4, 0)  # sand decoration
-			else:
-				atlas = sand_variants[randi() % sand_variants.size()]
-			tilemap.set_cell(Vector2i(x, y), 0, atlas)
-
-	add_child(tilemap)
+func _bar(parent: Node, color: Color) -> ProgressBar:
+	var result := ProgressBar.new()
+	result.show_percentage = false
+	result.custom_minimum_size.y = 12
+	result.add_theme_stylebox_override("background", StormUI.box(StormUI.NAVY))
+	result.add_theme_stylebox_override("fill", StormUI.box(color))
+	parent.add_child(result)
+	return result
 
 
 func _clear_children(node: Node) -> void:
