@@ -17,6 +17,7 @@ var _active_player: AudioStreamPlayer
 var _current_music: String = ""
 var _sfx_counts: Dictionary = {}
 var _music_tween: Tween
+var _shutting_down := false
 
 
 func _ready() -> void:
@@ -52,7 +53,7 @@ func _ensure_audio_buses() -> void:
 
 
 func play_music(track_name: String) -> void:
-	if _current_music == track_name:
+	if _shutting_down or _current_music == track_name:
 		return
 	var path := "res://assets/audio/music/%s.ogg" % track_name
 	if not ResourceLoader.exists(path):
@@ -92,6 +93,8 @@ func play_music(track_name: String) -> void:
 
 
 func stop_music() -> void:
+	if _shutting_down:
+		return
 	_current_music = ""
 	if _music_tween:
 		_music_tween.kill()
@@ -104,6 +107,8 @@ func stop_music() -> void:
 
 
 func play_sfx(sfx_name: String) -> void:
+	if _shutting_down:
+		return
 	# Check polyphony limits
 	var limit: int = _polyphony_limits.get(sfx_name, 0)
 	if limit > 0:
@@ -133,8 +138,12 @@ func play_sfx(sfx_name: String) -> void:
 	)
 
 func shutdown() -> void:
+	# Scene-ready callbacks can still arrive while an exit/test awaits its last frame.
+	# Shutdown is terminal, so those callbacks must not restart streams after cleanup.
+	_shutting_down = true
 	if _music_tween:
 		_music_tween.kill()
+		_music_tween = null
 	for child in get_children():
 		if child is AudioStreamPlayer:
 			child.stop()

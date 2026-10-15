@@ -21,6 +21,12 @@ func _run() -> void:
 	var manager = root.get_node("GameManager")
 	var cache = root.get_node("ConfigCache")
 	manager.enter_practice()
+	var space := InputEventKey.new()
+	space.keycode = KEY_SPACE
+	space.device = 0
+	space.pressed = true
+	_check(InputMap.event_is_action(space, "dash"), "Physical keyboard Space maps to dash")
+	await preload("res://tests/player_values_safety_smoke.gd").run(self, _check)
 	manager._save_path = "user://seagull_refresh_qa.json"
 	manager.save_data = GameData.new()
 	manager.save_data.coins = 20
@@ -94,6 +100,11 @@ func _run() -> void:
 	DirAccess.remove_absolute("user://seagull_refresh_qa.json")
 	if _failures.is_empty():
 		print("OFFLINE_SMOKE_PASS: movement, dash, pause, XP, weapons, waves, kills, victory, save isolation, duplicate end, boss spawn/defeat, restart, hub")
-	root.get_node("AudioManager").shutdown()
+	var audio = root.get_node("AudioManager")
+	audio.shutdown()
+	audio.play_music("music_menu")
+	audio.play_sfx("sfx_enemy_hit")
+	for child in audio.get_children():
+		_check(not child is AudioStreamPlayer or child.stream == null, "Late scene callbacks cannot restart shutdown audio")
 	await create_timer(0.15).timeout
 	call_deferred("quit", 0 if _failures.is_empty() else 1)

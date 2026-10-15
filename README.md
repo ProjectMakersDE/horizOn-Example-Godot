@@ -1,6 +1,6 @@
 # horizOn Example — Godot
 
-**Seagull Storm** is a compact survival roguelike demonstrating all 13 [horizOn](https://horizon.pm) SDK managers. It runs immediately in offline practice and adds optional cloud features when configured. Minimum Godot version is 4.5; this refresh was tested and exported with Godot 4.7.
+**Seagull Storm** is a compact survival roguelike demonstrating the core [horizOn](https://horizon.pm) SDK managers. It runs immediately in offline practice and adds optional cloud features when configured. This source revision targets and is tested with Godot4.7.
 
 ## Features Demonstrated
 
@@ -22,6 +22,7 @@ online caches are scoped to the signed-in player and never import practice score
 | Localization | EN/DE language action loads SDK keys and changes launch label | Actual UI label tested with synthetic `seagull.play` translation |
 | Player Profile | Own display name/run stats, catalog, unlocked avatar equip | Synthetic loopback get/set, locked choices omitted |
 | Validated Actions | Ticket/seed, bounded input evidence, submit/rejection, evidence status, server values | Synthetic loopback accepted/rejected/evidence paths; no authoritative replay claim |
+| Player Values | Read balances/offers, explicit purchase and +1 adjustment, persistent original-intent retry | Native loopback transport plus immutable-intent/restart/project/corruption guards; balances stay separate from practice coins |
 | Email Sending | Optional configured template queue to own email account and email status lookup | Synthetic loopback only; no real email sent in QA |
 
 The SDK lab is optional and disabled for offline practice. Every external write in
@@ -50,7 +51,7 @@ keep the existing gameplay values.
 ### Step 1 — Clone and Open
 
 1. Clone this repository
-2. Open the project in **Godot 4.5** or later
+2. Open the project in **Godot4.7**
 
 ### Step 2 — Optional Online Setup: Account and API Key
 
@@ -85,12 +86,9 @@ Press **F5** or click **Run Project** in the Godot editor.
 
 ## SDK Source and Verification
 
-Embedded SDK: complete official **v1.8.0** release package, published 2026-10-01.
-Tag ref: `5b5954cf86effc722100dc39a127bc2b3772edc2`.
-Package SHA-256: `8cf4930671a358a06d0366dee1052f26c898855fdc154c51fb7dd50f17d736b1`.
-The package already includes session-authenticated Cloud Save JSON calls and POST
-binary loads. The checked official `develop` commit `b4700a3` differs only in
-release metadata; no unpublished SDK patch is bundled in this example.
+Embedded SDK: complete tested Develop source at `e6e34af5af1c6f42f224b8eb926969788cf85209`, including Player Values, Statistics, Inbox, protected anonymous-identity restoration and realtime. This source pin does not create a new SDK release. TASK-1004 merges the two previously unpublished Seagull Storm improvements with current upstream SDK updates; the existing primary checkout and its two editor changes were separately backed up, then reconciled using portable resource paths.
+
+The Player Values action opens even offline to explain its guarded state. Online, read the snapshot and offers, inspect costs/rewards, then choose a purchase or an enabled +1 adjustment. One immutable project/player-bound command is saved before HTTP. Guest connection restores a saved anonymous identity first and fails closed if that restore is temporarily unavailable. A lost response or `OPERATION_EXPIRED` retains its original ID and payload; a new click cannot replace it. An unreadable pending file blocks replacement and remains available for reconciliation. Server state replaces the displayed balances; no local reward delta is added. Before a new purchase the panel fetches offers again; changed offers require another explicit confirmation. Persistence binds to project/player across regional host changes, while request fences also include host/session. A definitive no-write refusal may release only a first-send command with an authoritative state; a durable attempt marker and actual transport-event count protect older attempts and internal retries. The API purchases an offer key at current server conditions, so this client refresh is not a transactional quoted-price guarantee.
 
 On macOS with Godot 4.7:
 
@@ -115,6 +113,7 @@ and hurt hooks, facing, pause, death cleanup and absence of a full static sprite
 Each fixture invocation removes only its own unique QA userdata directory. The
 macOS export verifier also removes its temporary project and instrumented app,
 while preserving the normal ZIP, logs and captures under `tmp/verification-artifacts`.
+The fixture also verifies balances/offers, three requests retaining one original purchase ID after lost responses, an explicit adjustment, and unchanged practice/cloud coins. Pending-intent restart/project/corruption guards run offline.
 The fixture also checks account-switch isolation, stale config/cloud responses,
 serialized cloud snapshots, authentication across recreated title screens,
 ticket failure while controls change, early/stale evidence events and log limits.

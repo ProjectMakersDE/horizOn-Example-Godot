@@ -5,10 +5,12 @@ func _initialize() -> void:
 	call_deferred("_run")
 
 func _capture(name: String) -> void:
+	print("CAPTURE_BEGIN: ", name)
 	await process_frame
 	await process_frame
 	await RenderingServer.frame_post_draw
 	root.get_texture().get_image().save_png("res://tmp/%s.png" % name)
+	print("CAPTURE_DONE: ", name)
 
 func _run() -> void:
 	await process_frame
@@ -29,7 +31,18 @@ func _run() -> void:
 	var hub = current_scene
 	var button_rect: Rect2 = hub.play_button.get_global_rect()
 	assert(button_rect.end.y <= 540.0, "Launch action must remain visible at default viewport")
+	var values_lab: Node
+	for node in hub.find_children("*", "VBoxContainer", true, false):
+		if node.has_method("_player_values"):
+			values_lab = node
+	assert(values_lab != null)
+	values_lab._player_values()
+	var values_modal = hub.get_child(hub.get_child_count() - 1)
+	await _capture("qa-player-values")
 	root.size = Vector2i(960, 540)
+	await _capture("qa-player-values-small")
+	values_modal.queue_free()
+	await process_frame
 	await _capture("qa-hub-small")
 	await manager.start_run()
 	await process_frame

@@ -29,6 +29,8 @@ func _run() -> void:
 	horizon._isConnected = true
 	horizon._http._status = HorizonHttpClient.ConnectionStatus.CONNECTED
 	check(await horizon.auth.signInEmail("qa@example.invalid", "synthetic-password"), "Email sign-in uses SDK transport against loopback fixture")
+	horizon._config = HorizonConfig.new()
+	horizon._config.api_key = "synthetic-api-key"
 	manager.enter_online()
 	manager._save_path = "user://seagull_fixture_qa.json"
 	manager.selected_board = "storm"
@@ -39,6 +41,46 @@ func _run() -> void:
 	manager.save_data_to_cloud()
 	check(manager.buy_upgrade("speed"), "Second cloud upgrade charges the next price")
 	check(await manager.save_data_to_cloud() and manager.save_data.coins == 42, "Concurrent full snapshots save in order without losing purchases")
+	# The panel sends only explicit actions and retries one persisted command.
+	var values_panel := preload("res://scripts/ui/player_values_demo.gd").new()
+	root.add_child(values_panel)
+	await process_frame
+	await values_panel._load()
+	check(values_panel._catalogue.size() == 1 and values_panel._output.text.contains("gold: 100"), "Values panel reads authoritative balances and offers")
+	var practice_coins: int = manager.save_data.coins
+	await values_panel._purchase()
+	var pending_store := PlayerValueIntentStore.new(values_panel._scope())
+	check(not pending_store.exists() and values_panel._offer_info.text.contains("gold 11"), "Changed offer refreshes the displayed price without booking")
+	await values_panel._purchase()
+	var original := pending_store.read()
+	check(not original.is_empty(), "Lost purchase response retains persisted intent")
+	var original_host: String = horizon._http.activeHost
+	horizon._http.activeHost = "http://regional-failover.example.invalid"
+	check(PlayerValueIntentStore.new(values_panel._scope()).read().operationId == original.operationId, "Regional host failover retains original persisted command")
+	horizon._http.activeHost = original_host
+	await values_panel._purchase()
+	check(pending_store.read().operationId == original.operationId, "New purchase cannot replace unknown original command")
+	for attempt in range(3):
+		if not pending_store.exists():
+			break
+		await values_panel._retry()
+	check(not pending_store.exists() and values_panel._output.text.contains("gold: 90"), "Explicit retries confirm original command and replace server snapshot")
+	await values_panel._adjust()
+	check(values_panel._output.text.contains("gold: 91"), "Explicit adjustment uses current server response")
+	await values_panel._adjust()
+	check(not pending_store.exists() and values_panel._status.text.contains("nothing booked"), "First-send authoritative refusal permits a new explicit action")
+	await values_panel._adjust()
+	var expired := pending_store.read()
+	check(not expired.is_empty() and values_panel._status.text.contains("OPERATION_EXPIRED"), "Expired command stays blocked with original ID")
+	await values_panel._retry()
+	check(pending_store.read().operationId == expired.operationId, "Later refusal cannot clear a previously uncertain command")
+	# Deliberate QA-only cleanup isolates the next transport scenario.
+	check(pending_store.confirm(expired.operationId), "Fixture clears only its own expired command")
+	await values_panel._adjust()
+	check(pending_store.exists(), "Internal network retry prevents clearing even a final authoritative refusal")
+	check(manager.save_data.coins == practice_coins, "Server values never alter practice/cloud upgrade coins")
+	values_panel.queue_free()
+	await process_frame
 	var boards: Array = await horizon.leaderboard.listBoards()
 	check(boards.size() == 2 and boards[1].validatedOnly, "Boards preserve validated-only option")
 	var entries: Array = await horizon.leaderboard.getTop(10, false, "storm")
@@ -135,6 +177,15 @@ func _run() -> void:
 	await manager.end_run()
 	await process_frame
 	check(manager.submission_status.contains("no leaderboard"), "Failed ticket never sends account score/rewards")
+	# Transient restoration must keep the valuable identity, never create another guest.
+	horizon.auth.signOut(false)
+	horizon.auth._saveAnonymousToken("restore-fails")
+	check(not await manager.authenticate("guest"), "Failed anonymous restore fails closed")
+	check(horizon.auth.getCachedAnonymousToken() == "restore-fails", "Failed restore retains original anonymous identity")
+	var legacy := "x".repeat(36)
+	horizon.auth._saveAnonymousToken(legacy)
+	check(not await manager.authenticate("guest") and not await manager.authenticate("guest"), "Repeated legacy-token restore refuses replacement identity")
+	check(horizon.auth._loadFromStorage(HorizonAuth.CACHE_KEY_ANONYMOUS_TOKEN) == legacy, "Legacy token remains intact without destructive SDK getter")
 	DirAccess.remove_absolute("user://seagull_fixture_qa.json")
 	if failures.is_empty():
 		print("SDK_FIXTURE_SMOKE_PASS: cloud, boards/top/around/rank, validated accept/reject/evidence, profile, state, config, localization, gift, feedback, logs, crashes, email")

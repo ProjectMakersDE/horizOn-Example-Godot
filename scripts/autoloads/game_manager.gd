@@ -97,17 +97,32 @@ func authenticate(mode: String, email: String = "", password: String = "", displ
 	elif mode == "email":
 		ok = await Horizon.auth.signInEmail(email, password)
 	else:
+		var stored := _stored_guest_identity()
+		var had_identity := Horizon.auth.isSignedIn() or not stored.is_empty()
 		if Horizon.auth.isSignedIn():
 			ok = await Horizon.auth.checkAuth()
 		if generation != _navigation_generation:
 			return _auth_complete(false)
-		if not ok and Horizon.auth.hasCachedAnonymousToken():
-			ok = await Horizon.auth.restoreAnonymousSession()
+		# Read without the legacy SDK getter, which deletes overlong cached tokens.
+		# Invalid or damaged identities stay available for manual reconciliation.
+		var token: Variant = stored.get("token")
+		if not ok and token is String and not token.is_empty() and token.length() <= 32:
+			ok = await Horizon.auth.signInAnonymous(token)
 		if generation != _navigation_generation:
 			return _auth_complete(false)
-		if not ok:
-			ok = await Horizon.quickSignInAnonymous(display_name if not display_name.is_empty() else "Seagull_%d" % (randi() % 9999))
+		# A transient restore failure must not replace an identity owning pending value operations.
+		if not ok and not had_identity:
+			ok = await Horizon.auth.signUpAnonymous(display_name if not display_name.is_empty() else "Seagull_%d" % (randi() % 9999))
 	return _auth_complete(ok and generation == _navigation_generation)
+
+func _stored_guest_identity() -> Dictionary:
+	var cache := ConfigFile.new()
+	var loaded := cache.load("user://horizon_cache.cfg")
+	if loaded == ERR_FILE_NOT_FOUND:
+		return {}
+	if loaded != OK:
+		return {"damaged": true}
+	return {"token": cache.get_value("cache", HorizonAuth.CACHE_KEY_ANONYMOUS_TOKEN)} if cache.has_section_key("cache", HorizonAuth.CACHE_KEY_ANONYMOUS_TOKEN) else {}
 
 func _auth_complete(ok: bool) -> bool:
 	_auth_busy = false

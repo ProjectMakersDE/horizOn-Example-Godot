@@ -23,6 +23,7 @@ func _ready() -> void:
 	StormUI.button(row3, "Localization", _localization)
 	StormUI.button(row3, "Diagnostics", _diagnostics)
 	StormUI.button(row3, "Email Sending", _email_status)
+	StormUI.button(self, "Player Values", _player_values)
 	output = StormUI.label(self, "Run summaries use User Logs. Crash Reporting records navigation, waves and upgrades. Remote Config tunes gameplay. Profile, validated values and evidence use SDK 1.8.0.", 16)
 	if GameManager.practice_mode:
 		for row_node in [row, row2, row3]:
@@ -258,3 +259,7 @@ func _dialog(title: String) -> VBoxContainer:
 	StormUI.label(column, title, 23)
 	StormUI.button(column, "Close", func(): layer.queue_free())
 	return column
+
+func _player_values() -> void:
+	var dialog := _dialog("Player Values")
+	dialog.add_child(preload("res://scripts/ui/player_values_demo.gd").new())

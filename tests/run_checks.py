@@ -2,6 +2,7 @@
 """Isolate Godot userdata and test real scene/SDK behavior against loopback fakes."""
 from __future__ import annotations
 import base64
+from datetime import datetime, timezone
 import json
 import os
 from pathlib import Path
@@ -18,6 +19,11 @@ ROOT = Path(__file__).resolve().parents[1]
 QA = ROOT / "tmp" / "qa-project"
 GODOT = os.environ.get("GODOT_BIN", "/Applications/Godot.app/Contents/MacOS/Godot")
 REQUESTS: list[dict] = []
+VALUE_PURCHASES = 0
+VALUE_BALANCE = 100
+VALUE_REVISION = 1
+VALUE_OFFERS = 0
+VALUE_ADJUSTS = 0
 QA_RUN_ID = uuid.uuid4().hex[:12]
 QA_DATA_NAME = f"horizon-task913-godot-qa-{QA_RUN_ID}"
 
@@ -35,6 +41,7 @@ class Fixture(BaseHTTPRequestHandler):
         self.handle_fixture()
 
     def handle_fixture(self):
+        global VALUE_PURCHASES, VALUE_BALANCE, VALUE_REVISION, VALUE_OFFERS, VALUE_ADJUSTS
         path = urlparse(self.path).path
         raw = self.rfile.read(int(self.headers.get("Content-Length", "0")))
         body = json.loads(raw) if raw else {}
@@ -42,7 +49,43 @@ class Fixture(BaseHTTPRequestHandler):
                          "auth": self.headers.get("Authorization", "")})
         status = 200
         result: object = {"success": True}
-        if path.endswith("user-management/signin"):
+        if "/app/player-values" in path:
+            now = datetime.now(timezone.utc).isoformat(timespec="milliseconds").replace("+00:00", "Z")
+            if path.endswith("/purchase"):
+                VALUE_PURCHASES += 1
+                if VALUE_PURCHASES <= 2:
+                    status = 503
+                    result = {"code": "UNAVAILABLE", "message": "Synthetic lost response"}
+                else:
+                    VALUE_BALANCE = 90
+                    VALUE_REVISION = 2
+            elif path.endswith("/adjust"):
+                VALUE_ADJUSTS += 1
+                if VALUE_ADJUSTS == 1:
+                    VALUE_BALANCE = 91
+                    VALUE_REVISION = 3
+                elif VALUE_ADJUSTS == 5:
+                    status = 503
+                    result = {"code": "UNAVAILABLE", "message": "Synthetic uncertain first attempt"}
+            values = [{"key": "gold", "balance": VALUE_BALANCE, "earnedToday": 1, "dailyCap": 1000}, {"key": "gem", "balance": 1 if VALUE_PURCHASES else 0, "earnedToday": 1 if VALUE_PURCHASES else 0, "dailyCap": 1000}]
+            if status == 200:
+                if path.endswith("/offers"):
+                    VALUE_OFFERS += 1
+                    result = {"definitionVersion": 1, "serverTime": now, "definitions": values, "offers": [{"key": "pack", "name": "Pearl pack", "active": True, "costs": [{"key": "gold", "amount": 10 if VALUE_OFFERS == 1 else 11}], "rewards": [{"key": "gem", "amount": 1}], "purchasesPerDay": 5}]}
+                else:
+                    result = {"userId": "qa-player", "definitionVersion": 1, "revision": VALUE_REVISION, "day": "2026-10-16", "values": values, "operationWindow": {"serverTime": now, "oldestAcceptedAt": "2026-09-16T00:00:00Z"}}
+                    if path.endswith("/adjust") and VALUE_ADJUSTS > 1:
+                        status = 422
+                        result = {"code": "OPERATION_EXPIRED" if VALUE_ADJUSTS == 3 else "ADJUST_NOT_ALLOWED", "message": "Synthetic no-write refusal", "state": result}
+        elif path.endswith("user-management/signin"):
+            if body.get("anonymousToken") == "restore-fails":
+                data = json.dumps({"code": "UNAVAILABLE", "message": "Synthetic transient restore failure"}).encode()
+                self.send_response(503)
+                self.send_header("Content-Type", "application/json")
+                self.send_header("Content-Length", str(len(data)))
+                self.end_headers()
+                self.wfile.write(data)
+                return
             email = body.get("email", "qa@example.invalid")
             if email == "slow-player@example.invalid":
                 time.sleep(0.25)
@@ -117,9 +160,15 @@ class Fixture(BaseHTTPRequestHandler):
         self.wfile.write(data)
 
 def run(*args, env=None):
-    completed = subprocess.run([GODOT, "--path", str(QA), *args], capture_output=True, text=True, env=env, timeout=50)
-    output = completed.stdout + completed.stderr
     log = ROOT / "tmp" / ("check-" + ("import" if "--import" in args else Path(args[-1]).stem) + ".log")
+    try:
+        completed = subprocess.run([GODOT, "--path", str(QA), *args], capture_output=True, text=True, env=env, timeout=50)
+    except subprocess.TimeoutExpired as error:
+        output = (error.stdout or b"").decode(errors="replace") + (error.stderr or b"").decode(errors="replace")
+        log.write_text(output)
+        print(output[-6000:], flush=True)
+        raise
+    output = completed.stdout + completed.stderr
     log.write_text(output)
     print(log.name, "exit", completed.returncode, flush=True)
     if completed.returncode or "SCRIPT ERROR" in output or "resources still in use" in output:
@@ -156,13 +205,21 @@ def main():
         server.shutdown()
     assert "SDK_FIXTURE_SMOKE_PASS" in sdk
     protected = [r for r in REQUESTS if any(part in r["path"] for part in
-                 ["cloud-save", "validated-actions", "player-profile", "gift-codes/redeem"])]
+                 ["cloud-save", "validated-actions", "player-profile", "gift-codes/redeem", "player-values"])]
     assert protected and all(r["auth"] == "Bearer synthetic-player-session" for r in protected)
     assert any("/storm/around?" in r["path"] and "range=5" in r["path"] for r in REQUESTS)
     assert not any(r["path"].endswith("/reject/submit") for r in REQUESTS)
     assert not any("/storm/submit" in r["path"] for r in REQUESTS), "No failed validated request may become an ordinary score"
     saves = [json.loads(r["body"]["saveData"])["coins"] for r in REQUESTS if r["path"].endswith("cloud-save/save")]
     assert saves == [77, 67, 42], f"Full cloud snapshots arrive in order and no failed-ticket rewards leak: {saves}"
+    assert not any(r["path"].endswith("user-management/signup") for r in REQUESTS), "Failed restore must never create a replacement guest"
+    purchases = [r["body"] for r in REQUESTS if r["path"].endswith("player-values/purchase")]
+    assert len(purchases) == 3 and len({r["operationId"] for r in purchases}) == 1, "Retries preserve the original purchase ID"
+    assert all(r["offerKey"] == "pack" and r["userId"] == "qa-player" for r in purchases)
+    adjustments = [r["body"] for r in REQUESTS if r["path"].endswith("player-values/adjust")]
+    assert len(adjustments) == 6 and adjustments[2]["operationId"] == adjustments[3]["operationId"]
+    assert adjustments[4]["operationId"] == adjustments[5]["operationId"], "Internal retry retains its original ID"
+    assert len({r["operationId"] for r in adjustments}) == 4, "Only definite first-send refusal releases a command; expired/internal retries remain protected"
     print(f"ALL_CHECKS_PASS: offline gameplay and {len(REQUESTS)} real SDK loopback requests; authenticated protected routes; rejected validation never falls back.")
 
 if __name__ == "__main__":
