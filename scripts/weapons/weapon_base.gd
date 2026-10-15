@@ -16,6 +16,8 @@ func _process(delta: float) -> void:
 	_timer -= delta
 	if _timer <= 0:
 		_timer = cooldown
+		if is_instance_valid(owner_node) and owner_node.has_method("animate_attack"):
+			owner_node.animate_attack()
 		fire()
 
 

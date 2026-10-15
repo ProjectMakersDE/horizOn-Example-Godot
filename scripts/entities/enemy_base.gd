@@ -3,6 +3,7 @@ extends CharacterBody2D
 
 const SpriteSheetHelper = preload("res://scripts/visuals/sprite_sheet_helper.gd")
 const ENEMY_TEXTURE = preload("res://assets/sprites/enemies.png")
+const CutoutRig = preload("res://scripts/visuals/cutout_rig.gd")
 
 signal died(enemy: Node2D, position: Vector2)
 
@@ -25,14 +26,16 @@ func _physics_process(delta: float) -> void:
 		return
 
 	_attack_timer -= delta
-	_on_special_behavior(delta)
 
 	var direction := (target.global_position - global_position).normalized()
 	velocity = direction * speed
+	_on_special_behavior(delta)
 	move_and_slide()
 
 	var vis = get_node_or_null("Visual")
-	if vis and vis is AnimatedSprite2D:
+	if vis and vis is CutoutRig:
+		vis.set_locomotion(velocity.length_squared() > 0.1, direction.x)
+	elif vis and vis is AnimatedSprite2D:
 		vis.flip_h = direction.x < 0
 	elif vis and vis is Sprite2D:
 		vis.flip_h = direction.x < 0
@@ -45,6 +48,9 @@ func _physics_process(delta: float) -> void:
 
 func _attack() -> void:
 	if target and is_instance_valid(target) and target.has_method("take_damage"):
+		var visual := get_node_or_null("Visual")
+		if visual is CutoutRig:
+			visual.trigger_attack()
 		target.take_damage(damage)
 		AudioManager.play_sfx("sfx_enemy_attack")
 
@@ -56,7 +62,9 @@ func take_damage(amount: int) -> void:
 	AudioManager.play_sfx("sfx_enemy_hit")
 
 	var visual: CanvasItem = get_node_or_null("Visual")
-	if visual:
+	if visual is CutoutRig:
+		visual.trigger_hurt()
+	elif visual:
 		var orig_modulate: Color = visual.modulate
 		visual.modulate = Color(1, 0.3, 0.3)
 		var tween := create_tween()
@@ -77,7 +85,10 @@ func _die() -> void:
 	died.emit(self, global_position)
 
 	var visual := get_node_or_null("Visual")
-	if visual and visual is AnimatedSprite2D and visual.sprite_frames and visual.sprite_frames.has_animation("death"):
+	if visual is CutoutRig:
+		visual.animation_finished.connect(_on_death_animation_finished, CONNECT_ONE_SHOT)
+		visual.die()
+	elif visual and visual is AnimatedSprite2D and visual.sprite_frames and visual.sprite_frames.has_animation("death"):
 		visual.play("death")
 		visual.animation_finished.connect(_on_death_animation_finished, CONNECT_ONE_SHOT)
 	else:
@@ -108,14 +119,35 @@ func _on_special_behavior(_delta: float) -> void:
 
 func _setup_visual() -> void:
 	var visual := get_node_or_null("Visual")
+	if _get_enemy_type() == "crab":
+		if visual:
+			remove_child(visual)
+			visual.free()
+		var rig := CutoutRig.new()
+		rig.name = "Visual"
+		add_child(rig)
+		rig.setup("crab", 46.0)
+		return
 	if visual == null or not visual is AnimatedSprite2D:
 		return
 
+	var art_name := "octopus" if _get_enemy_type() == "boss" else _get_enemy_type()
+	var path := "res://assets/shared/enemy_%s.png" % art_name
+	if ResourceLoader.exists(path):
+		var texture: Texture2D = load(path)
+		var new_frames := SpriteFrames.new()
+		for animation_name in ["move", "death"]:
+			new_frames.add_animation(animation_name)
+			new_frames.add_frame(animation_name, texture)
+			new_frames.set_animation_loop(animation_name, animation_name != "death")
+			new_frames.set_animation_speed(animation_name, 6.0)
+		visual.sprite_frames = new_frames
+		visual.scale = Vector2.ONE * ((112.0 if art_name == "octopus" else 46.0) / texture.get_width())
+		visual.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
+		visual.play("move")
+		return
 	var frames := SpriteFrames.new()
 	match _get_enemy_type():
-		"crab":
-			SpriteSheetHelper.add_row_animation(frames, "move", ENEMY_TEXTURE, Vector2i(32, 32), 0, 4, 8.0)
-			SpriteSheetHelper.add_row_animation(frames, "death", ENEMY_TEXTURE, Vector2i(32, 32), 1, 3, 8.0, false)
 		"jellyfish":
 			SpriteSheetHelper.add_row_animation(frames, "move", ENEMY_TEXTURE, Vector2i(32, 32), 2, 4, 6.0)
 			SpriteSheetHelper.add_row_animation(frames, "death", ENEMY_TEXTURE, Vector2i(32, 32), 3, 3, 8.0, false)

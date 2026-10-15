@@ -17,7 +17,7 @@
 extends Node
 
 ## SDK Version
-const VERSION := "1.10.0"
+const VERSION := "1.8.0"
 
 ## Config resource path
 const CONFIG_PATH := "res://addons/horizon_sdk/horizon_config.tres"
@@ -42,6 +42,8 @@ var _http: HorizonHttpClient
 var _logger: HorizonLogger
 
 ## Feature managers
+var realtime: HorizonRealtime
+var playerValues: HorizonPlayerValues
 var auth: HorizonAuth
 var leaderboard: HorizonLeaderboard
 var cloudSave: HorizonCloudSave
@@ -50,6 +52,7 @@ var localization: HorizonLocalization
 var news: HorizonNews
 var giftCodes: HorizonGiftCodes
 var playerProfile: HorizonPlayerProfile
+var statistics: HorizonStatistics
 var validatedActions: HorizonValidatedActions
 var feedback: HorizonFeedback
 var userLogs: HorizonUserLogs
@@ -140,6 +143,12 @@ func _initializeManagers() -> void:
 	auth = HorizonAuth.new()
 	auth.initialize(_http, _logger)
 
+	realtime = HorizonRealtime.new()
+	add_child(realtime)
+	realtime.initialize(_http, auth)
+	playerValues = HorizonPlayerValues.new()
+	playerValues.initialize(_http, auth)
+
 	# Leaderboard
 	leaderboard = HorizonLeaderboard.new()
 	leaderboard.initialize(_http, _logger, auth)
@@ -152,6 +161,10 @@ func _initializeManagers() -> void:
 	# Cloud Save
 	cloudSave = HorizonCloudSave.new()
 	cloudSave.initialize(_http, _logger, auth)
+
+	# Statistics
+	statistics = HorizonStatistics.new()
+	statistics.initialize(_http, _logger, auth)
 
 	# Remote Config
 	remoteConfig = HorizonRemoteConfig.new()

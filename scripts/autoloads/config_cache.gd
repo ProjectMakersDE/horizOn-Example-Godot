@@ -1,7 +1,7 @@
 ## Config Cache - Remote config cache with typed getters
 ##
 ## Remote Config key format: flat scalar keys, one value per key. For example:
-##   enemy_crab_hp = 30, enemy_crab_speed = 40, weapon_feather_damage = 20
+##   enemy_crab_hp = 30, enemy_crab_speed = 62, weapon_feather_damage = 20
 ## Structured helpers assemble these flat keys:
 ##   get_enemy_stats() reads enemy_{type}_{hp|speed|damage|xp}
 ##   get_weapon_stats() reads weapon_{type}_{damage|cooldown|projectiles|radius|range|knockback}
@@ -11,14 +11,21 @@ extends Node
 
 var _configs: Dictionary = {}
 var _loaded: bool = false
+var _generation: int = 0
 
 
 func load_all() -> void:
 	if _loaded:
 		return
-	if not Horizon.isConnected() or not Horizon.isSignedIn():
+	if GameManager.practice_mode or not Horizon.isConnected() or not Horizon.isSignedIn():
 		return
-	_configs = await Horizon.remoteConfig.getAllConfigs()
+	var generation := _generation
+	var owner := GameManager.state_owner()
+	var scene_generation := GameManager.state_generation()
+	var configs: Dictionary = await Horizon.remoteConfig.getAllConfigs()
+	if generation != _generation or owner != GameManager.state_owner() or scene_generation != GameManager.state_generation():
+		return
+	_configs = configs
 	_loaded = true
 
 
@@ -66,7 +73,7 @@ func get_json(key: String) -> Variant:
 func get_enemy_stats(enemy_type: String) -> Dictionary:
 	return {
 		"hp": get_int("enemy_%s_hp" % enemy_type, 30),
-		"speed": get_float("enemy_%s_speed" % enemy_type, 40.0),
+		"speed": get_float("enemy_%s_speed" % enemy_type, {"crab": 62.0, "jellyfish": 52.0, "pirate": 91.0, "boss": 68.0}.get(enemy_type, 62.0)),
 		"damage": get_int("enemy_%s_damage" % enemy_type, 10),
 		"xp": get_int("enemy_%s_xp" % enemy_type, 10),
 	}
@@ -75,8 +82,8 @@ func get_enemy_stats(enemy_type: String) -> Dictionary:
 ## Helper: get weapon stats from flat config keys (weapon_{type}_damage, weapon_{type}_cooldown, etc.)
 func get_weapon_stats(weapon_type: String) -> Dictionary:
 	return {
-		"damage": get_float("weapon_%s_damage" % weapon_type, 20.0),
-		"cooldown": get_float("weapon_%s_cooldown" % weapon_type, 1.0),
+		"damage": get_float("weapon_%s_damage" % weapon_type, {"feather": 20.0, "screech": 18.0, "dive": 50.0, "gust": 10.0}.get(weapon_type, 20.0)),
+		"cooldown": get_float("weapon_%s_cooldown" % weapon_type, {"feather": 0.8, "screech": 2.2, "dive": 3.0, "gust": 2.5}.get(weapon_type, 1.0)),
 		"projectiles": get_int("weapon_%s_projectiles" % weapon_type, 1),
 		"radius": get_float("weapon_%s_radius" % weapon_type, 80.0),
 		"range": get_float("weapon_%s_range" % weapon_type, 120.0),
@@ -106,3 +113,9 @@ func get_levelup_pool() -> Array:
 	if pool is Array:
 		return pool
 	return []
+
+
+func reset() -> void:
+	_generation += 1
+	_configs.clear()
+	_loaded = false

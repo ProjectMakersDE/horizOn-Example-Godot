@@ -1,30 +1,49 @@
 # horizOn Example — Godot
 
-**Seagull Storm** is a mini Vampire Survivors-style roguelike built with Godot 4.5. It serves as an example project demonstrating 9 of the 11 [horizOn](https://horizon.pm) SDK features in a playable game. The SDK's Email Sending and Localization features are not used.
+**Seagull Storm** is a compact survival roguelike demonstrating all 13 [horizOn](https://horizon.pm) SDK managers. It runs immediately in offline practice and adds optional cloud features when configured. Minimum Godot version is 4.5; this refresh was tested and exported with Godot 4.7.
 
 ## Features Demonstrated
 
-| # | horizOn Feature | In-Game Usage |
-|---|----------------|---------------|
-| 1 | **Authentication** | Guest, Email, Apple sign-in/sign-up on title screen (the Google button explains that a platform OAuth flow is required) |
-| 2 | **Leaderboards** | Score submission, Top 10 display, player rank |
-| 3 | **Cloud Save** | Persistent coins, upgrades, highscore across sessions |
-| 4 | **Remote Config** | All game balancing (enemies, weapons, upgrades, wave timing) |
-| 5 | **News** | In-game news feed in hub and pause menu |
-| 6 | **Gift Codes** | Code redemption for coin rewards |
-| 7 | **Feedback** | Bug reports and feature requests from in-game |
-| 8 | **User Logs** | Aggregated run summary logged at game over |
-| 9 | **Crash Reporting** | Session tracking, breadcrumbs, exception capture |
-| + | **Validated Actions** (opt-in) | Run ticket and server seed at run start, input log, validated score submit, rejection reason on the game over screen (see [Validated Actions](#validated-actions)) |
+Play immediately using **Play offline practice**. Configuration and an account are
+optional for gameplay. Practice coins/upgrades/highscores use their own local file;
+online caches are scoped to the signed-in player and never import practice scores.
+
+| SDK manager | In-game operation | Verification boundary |
+|---|---|---|
+| Authentication | Guest restore/sign-in; email sign-in/sign-up; sign-out | Synthetic loopback SDK transport; OAuth providers need platform setup |
+| Leaderboards | Board picker, `validatedOnly`, Top 10, around-me ±5, player rank, ordinary submit | Loopback transport/model checks; live board contents not written |
+| Cloud Save | Player-bound JSON progress, local cache, sync after run/purchase | Authenticated loopback load/save; writes pause if initial cloud load fails |
+| Remote Config | Game balance and validated-run defaults | Loopback scalar config and built-in gameplay defaults |
+| News | SDK lab and pause menu feed | Current SDK `message` model parsed against loopback |
+| Gift Codes | Validate then redeem, coins and cosmetic unlocks | Synthetic loopback redemption only |
+| Feedback | Explicit in-game title/message/category submission | Synthetic loopback request only |
+| User Logs | Run summary; explicit diagnostic button | Synthetic loopback request only |
+| Crash Reporting | Session registration, breadcrumbs and custom keys | Synthetic loopback session; no forced crash |
+| Localization | EN/DE language action loads SDK keys and changes launch label | Actual UI label tested with synthetic `seagull.play` translation |
+| Player Profile | Own display name/run stats, catalog, unlocked avatar equip | Synthetic loopback get/set, locked choices omitted |
+| Validated Actions | Ticket/seed, bounded input evidence, submit/rejection, evidence status, server values | Synthetic loopback accepted/rejected/evidence paths; no authoritative replay claim |
+| Email Sending | Optional configured template queue to own email account and email status lookup | Synthetic loopback only; no real email sent in QA |
+
+The SDK lab is optional and disabled for offline practice. Every external write in
+that panel requires its visible in-game action. An anonymous player without an
+email cannot queue an email.
 
 ## About the Game
 
-You play as a seagull on a beach, surviving waves of crabs, jellyfish, and pirate seagulls. Auto-attack with upgradeable weapons, collect XP shells to level up, and try to survive the final boss — a giant octopus.
+You play as a seagull on a beach, surviving waves of crabs, jellyfish, and pirate seagulls. Auto-aim feathers, dash through danger with Space, collect XP shells to choose one of three upgrades, combine four weapons, and defeat the final storm octopus. Rare heart pickups restore 15 HP. Upgrade coins create a reason to come back.
 
 - **Genre:** Vampire Survivors-style auto-attack roguelike
 - **Session Length:** 3–5 minutes
-- **Art Style:** Pixel art (32x32 sprites) with a 16x16 beach tileset and textured UI atlas
-- **Font:** Press Start 2P
+- **Art Style:** Shared cel-shaded coastal artwork, square-headed horizOn seagull, dark charcoal UI and warm orange/teal accents
+- **Font:** Godot default readable UI font (legacy Press Start 2P retained for compatibility)
+
+The gull and crab use the shared cutout rig in `assets/shared/cutout/rig.json`.
+Separate full-canvas parts rotate around authored pivots, with linear filtering
+and a contact shadow. Movement controls facing and the walk cycle. Actual weapon
+fire, melee attacks and damage trigger attack and hurt poses. Pausing freezes
+the rig clock and individual limbs. The walk cycle keeps running underneath
+attacks while the actor moves. Actor sizes, collision shapes and balance
+keep the existing gameplay values.
 
 ## Getting Started
 
@@ -33,7 +52,7 @@ You play as a seagull on a beach, surviving waves of crabs, jellyfish, and pirat
 1. Clone this repository
 2. Open the project in **Godot 4.5** or later
 
-### Step 2 — Create a horizOn Account and API Key
+### Step 2 — Optional Online Setup: Account and API Key
 
 1. Go to [horizon.pm](https://horizon.pm) and create a free account
 2. Open the **Dashboard** and create a new project
@@ -50,6 +69,9 @@ The horizOn SDK is already included in this project at `addons/horizon_sdk/`.
    your API key and is ignored by Git, so it stays on your machine. Until it exists, the
    SDK logs "Config not found" and the title screen cannot connect.
 
+You can also play without importing a config: choose **Play offline practice**.
+There is no retry loop or blocked title screen when configuration is missing.
+
 If the menu entry is not visible, make sure the plugin is enabled:
 **Project > Project Settings > Plugins > horizOn SDK > Enable**
 
@@ -61,12 +83,61 @@ The game works out of the box with built-in defaults. To customize the game bala
 
 Press **F5** or click **Run Project** in the Godot editor.
 
+## SDK Source and Verification
+
+Embedded SDK: complete official **v1.8.0** release package, published 2026-10-01.
+Tag ref: `5b5954cf86effc722100dc39a127bc2b3772edc2`.
+Package SHA-256: `8cf4930671a358a06d0366dee1052f26c898855fdc154c51fb7dd50f17d736b1`.
+The package already includes session-authenticated Cloud Save JSON calls and POST
+binary loads. The checked official `develop` commit `b4700a3` differs only in
+release metadata; no unpublished SDK patch is bundled in this example.
+
+On macOS with Godot 4.7:
+
+```bash
+python3 tests/run_checks.py
+python3 tests/run_checks.py --render
+Godot --headless --editor --path . --import --quit
+Godot --headless --path . --export-release macOS exports/SeagullStorm.zip
+# Full macOS verification, including the exported native executable:
+python3 tests/verify_macos_export.py
+```
+
+The test runner copies the project without secrets to `tmp/qa-project`, uses its
+own unique `horizon-task913-godot-qa-<run>` userdata directory, and exercises real SDK transport
+against an ephemeral **127.0.0.1-only synthetic HTTP server**. It checks player
+physics, dash, pause/resume, XP/weapon choices, real waves/kills, victory, boss
+spawn/defeat, duplicate end protection, upgrades and replay. It checks protected
+SDK requests carry the fixture player session; test emails never leave loopback.
+Generated exports, logs and captures are ignored by Git.
+The cutout fixture also checks individual limb transforms, real gameplay attack
+and hurt hooks, facing, pause, death cleanup and absence of a full static sprite.
+Each fixture invocation removes only its own unique QA userdata directory. The
+macOS export verifier also removes its temporary project and instrumented app,
+while preserving the normal ZIP, logs and captures under `tmp/verification-artifacts`.
+The fixture also checks account-switch isolation, stale config/cloud responses,
+serialized cloud snapshots, authentication across recreated title screens,
+ticket failure while controls change, early/stale evidence events and log limits.
+
+A native macOS ZIP export requires the official Godot macOS export template. The
+provided preset disables code signing for local testing. Distribution signing and
+notarization are separate release steps. `--export-pack` also builds a PCK usable
+with the matching Godot runtime.
+
 ## Known Limitations
 
-- **Google Sign-In:** the Google button on the title screen only shows "Google Sign-In
-  is not available on this platform." The SDK's `signInGoogle()` needs an OAuth
-  authorization code from a platform-specific browser or loopback flow, which this
-  example does not implement.
+- There is no dedicated QA backend/key in the checked workspace. Production API
+  writes were not used for testing. Loopback fixtures verify transport and game
+  integration, but do not prove customer backend configuration or provider delivery.
+- Google/Apple OAuth needs the SDK's platform-specific setup. This compact title
+  provides guest and email flows; it does not open incomplete OAuth requests.
+- Localization changes the launch action and uses SDK translation keys, with EN/DE
+  fallback. It is a small integration example, not a complete translated game.
+- Email templates, cosmetics, gift codes, server values and validated board rules
+  must be configured for your API key in the dashboard.
+- Score acceptance means the server accepted configured rules. The client input
+  log is review evidence; it does not establish an authoritative deterministic replay.
+- This refresh does not constitute full TASK-615 production integration readiness.
 
 ## Validated Actions
 
@@ -82,8 +153,8 @@ The integration lives in `scripts/systems/validated_run_recorder.gd` and is used
 
 **Availability.** The integration only activates when the bundled SDK has
 `Horizon.validatedActions` (the first horizOn SDK for Godot release that ships Validated
-Actions, TASK-883). With an older SDK in `addons/horizon_sdk/`, or when the feature is
-switched off, the game submits scores the normal way.
+Actions, TASK-883). The project bundles SDK 1.8.0. Select a board and request validation in the hub;
+a validated-only board forces validation. A standard online run uses ordinary submit.
 
 ### Dashboard Setup
 
@@ -106,14 +177,17 @@ Set these Remote Config keys in the dashboard:
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| `validated_runs_enabled` | bool | `false` | Start every run as a validated run. When `false`, the game uses the normal leaderboard submit |
-| `validated_runs_board` | string | `default` | Leaderboard key the run ticket is bound to |
+| `validated_runs_enabled` | bool | `false` | Enable validation by default in the hub; the player can choose standard runs on ordinary boards |
+| `validated_runs_board` | string | `default` | Initial leaderboard key; the hub board picker can select another board |
 | `validated_runs_send_coins` | bool | `false` | Also send the coins of the run as earned value `coins`. Turn on only when your rules define a `coins` value, otherwise the server rejects the run (`UNKNOWN_VALUE_KEY`) |
 
-If the run ticket cannot be issued (for example the backend does not support Validated
-Actions), the run continues and the score is submitted the normal way. A rejected run
+If a requested run ticket cannot be issued, the run switches to the independent
+practice save and default balance before it starts. Its rewards and score stay local. A rejected validated submit is never retried through ordinary submit. A rejected run
 shows a short reason on the game over screen, for example "Score not accepted: run was too
 short".
+Score acceptance and evidence upload are displayed separately. If the bounded
+input log fills up, the ticket is discarded and the score stays local rather than
+submitting incomplete evidence.
 
 ### Input Log Format
 
@@ -126,8 +200,8 @@ The log is at most 32 KB (a full run uses a few kilobytes). All numbers are litt
 
 Event codes: `0x00` to `0x0F` movement (bit 0 left, bit 1 right, bit 2 up, bit 3 down,
 written when the direction changes), `0x10` to `0x1F` level-up choice (low 4 bits are the
-button index), `0xFF` run end. The game is not fully deterministic (frame timing), so the
-log serves as evidence for review, not for an exact replay.
+button index), `0xFF` run end. Event `0x20` records a dash. The game is not fully deterministic (frame timing), so
+the log serves as evidence for review, not for an exact replay.
 
 ## Remote Config Reference
 
@@ -147,9 +221,9 @@ All values are optional — the game ships with sensible built-in defaults. Set 
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| `wave_interval_seconds` | float | `15.0` | Seconds between enemy waves |
-| `wave_enemy_count_base` | int | `5` | Number of enemies in the first wave |
-| `wave_enemy_count_growth` | float | `1.3` | Enemy count multiplier per wave (e.g. 1.3 = +30% each wave) |
+| `wave_interval_seconds` | float | `10.0` | Seconds between enemy waves |
+| `wave_enemy_count_base` | int | `6` | Number of enemies in the first wave |
+| `wave_enemy_count_growth` | float | `1.2` | Enemy count multiplier per wave (e.g. 1.3 = +30% each wave) |
 | `wave_boss_hp` | float | `500.0` | Boss hit points (overrides `enemy_boss_hp`) |
 
 ### Enemy Stats
@@ -159,7 +233,7 @@ Each enemy type (`crab`, `jellyfish`, `pirate`) has four config keys following t
 | Key Pattern | Type | Default | Description |
 |-------------|------|---------|-------------|
 | `enemy_{type}_hp` | int | `30` | Hit points |
-| `enemy_{type}_speed` | float | `40.0` | Movement speed (pixels/sec) |
+| `enemy_{type}_speed` | float | crab `62`, jellyfish `52`, pirate `91`, boss `68` | Movement speed (pixels/sec) |
 | `enemy_{type}_damage` | int | `10` | Melee attack damage |
 | `enemy_{type}_xp` | int | `10` | XP dropped on death |
 
@@ -171,8 +245,8 @@ Each weapon type (`feather`, `screech`, `dive`, `gust`) has config keys followin
 
 | Key Pattern | Type | Default | Description |
 |-------------|------|---------|-------------|
-| `weapon_{type}_damage` | float | `20.0` | Base damage per hit |
-| `weapon_{type}_cooldown` | float | `1.0` | Seconds between attacks |
+| `weapon_{type}_damage` | float | feather `20`, screech `18`, dive `50`, gust `10` | Base damage per hit |
+| `weapon_{type}_cooldown` | float | feather `0.8`, screech `2.2`, dive `3.0`, gust `2.5` | Seconds between attacks |
 | `weapon_{type}_projectiles` | int | `1` | Number of projectiles (feather only) |
 | `weapon_{type}_radius` | float | `80.0` | AoE radius (screech only) |
 | `weapon_{type}_range` | float | `120.0` | Dash range (dive only) |
@@ -242,7 +316,7 @@ project.godot          # Project configuration
 ## Requirements
 
 - [Godot Engine 4.5 or later](https://godotengine.org/) (the horizOn SDK requires 4.5; the project was last checked with Godot 4.7)
-- [horizOn Account](https://horizon.pm) (free tier works)
+- [horizOn Account](https://horizon.pm) (optional for online SDK features)
 - [horizOn SDK for Godot](https://github.com/ProjectMakersDE/horizOn-SDK-Godot)
 
 ## Related Projects

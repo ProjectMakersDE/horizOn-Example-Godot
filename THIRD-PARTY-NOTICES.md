@@ -106,3 +106,14 @@ DAMAGES, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 FROM, OUT OF THE USE OR INABILITY TO USE THE FONT SOFTWARE OR FROM
 OTHER DEALINGS IN THE FONT SOFTWARE.
 ```
+
+## Shared Seagull Storm artwork (2026-10-02)
+
+The nine PNGs in `assets/shared/` were generated for these examples through
+OpenRouter with `google/gemini-2.5-flash-image`, using the horizOn square-headed
+seagull as the character reference. Character/pickup backgrounds were keyed,
+cropped and padded into real RGBA images; the arena is opaque. The manifest
+records prompts, dimensions, alpha range, provenance and SHA-256 for every file.
+
+The same assets are used by the Unity, Godot and Unreal examples. Original pixel
+atlases remain for small weapon effects and as a compatibility fallback.

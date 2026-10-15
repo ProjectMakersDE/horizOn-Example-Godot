@@ -13,3 +13,6 @@ var kills: int = 0
 var xpCollected: int = 0
 var duration: float = 0.0
 var coinsEarned: int = 0
+
+var victory: bool = false
+var dashes: int = 0
