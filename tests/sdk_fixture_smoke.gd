@@ -32,6 +32,7 @@ func _run() -> void:
 	horizon._config = HorizonConfig.new()
 	horizon._config.api_key = "synthetic-api-key"
 	manager.enter_online()
+	await preload("res://tests/statistics_fixture_smoke.gd").run(self, check)
 	manager._save_path = "user://seagull_fixture_qa.json"
 	manager.selected_board = "storm"
 	await manager.load_save_data()

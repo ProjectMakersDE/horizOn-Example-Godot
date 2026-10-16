@@ -27,6 +27,7 @@ func _run() -> void:
 	space.pressed = true
 	_check(InputMap.event_is_action(space, "dash"), "Physical keyboard Space maps to dash")
 	await preload("res://tests/player_values_safety_smoke.gd").run(self, _check)
+	await preload("res://tests/statistics_safety_smoke.gd").run(self, _check)
 	manager._save_path = "user://seagull_refresh_qa.json"
 	manager.save_data = GameData.new()
 	manager.save_data.coins = 20
