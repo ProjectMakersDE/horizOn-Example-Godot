@@ -41,6 +41,8 @@ var _run_starting: bool = false
 var _navigation_generation: int = 0
 var _run_validation_requested: bool = false
 var _run_board: String = "default"
+var _run_statistics: StatisticsRunStore
+var statistics_status := "Online run statistics wait for an explicit report."
 
 
 func _ready() -> void:
@@ -247,6 +249,7 @@ func start_run() -> void:
 		# Validation was requested: failed ticket runs use the independent practice
 		# economy and default balance, with no account rewards or cloud writes.
 		enter_practice()
+	_run_statistics = StatisticsRunStore.new(Horizon.getConfig().api_key, Horizon.getCurrentUser().userId) if online_available() else null
 	run_state = RunState.new()
 	run_state.playerMaxHP = int(get_upgrade_value("hp"))
 	run_state.playerHP = run_state.playerMaxHP
@@ -266,6 +269,10 @@ func end_run(victory: bool = false) -> void:
 	get_tree().paused = false
 	# Include the final physics tick's kill and collected XP before rewards.
 	run_state.currentScore = run_state.kills + run_state.xpCollected + int(run_state.duration)
+	if _run_statistics != null and online_available():
+		var current := StatisticsRunStore.new(Horizon.getConfig().api_key, Horizon.getCurrentUser().userId)
+		if current.scope_hash == _run_statistics.scope_hash:
+			statistics_status = "Run statistics queued; report them in the SDK lab." if _run_statistics.queue_run(run_state.kills, run_state.currentScore) else "Statistics queue needs reconciliation; existing data retained."
 	var divisor := maxi(ConfigCache.get_int("coin_divisor", 10), 1)
 	run_state.coinsEarned = int(run_state.currentScore / divisor)
 	save_data.coins += run_state.coinsEarned

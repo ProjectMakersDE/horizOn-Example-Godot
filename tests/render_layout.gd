@@ -8,7 +8,8 @@ func _capture(name: String) -> void:
 	print("CAPTURE_BEGIN: ", name)
 	await process_frame
 	await process_frame
-	await RenderingServer.frame_post_draw
+	# Explicit draw also works when macOS has stopped automatic background redraw.
+	RenderingServer.force_draw()
 	root.get_texture().get_image().save_png("res://tmp/%s.png" % name)
 	print("CAPTURE_DONE: ", name)
 
@@ -42,6 +43,11 @@ func _run() -> void:
 	root.size = Vector2i(960, 540)
 	await _capture("qa-player-values-small")
 	values_modal.queue_free()
+	await process_frame
+	values_lab._statistics()
+	var statistics_modal = hub.get_child(hub.get_child_count() - 1)
+	await _capture("qa-statistics-small")
+	statistics_modal.queue_free()
 	await process_frame
 	await _capture("qa-hub-small")
 	await manager.start_run()
@@ -84,6 +90,8 @@ func _run() -> void:
 	manager.go_to_title()
 	await _capture("qa-title-small")
 	DirAccess.remove_absolute("user://seagull_render_qa.json")
+	change_scene_to_file("res://examples/hello_statistics/hello_statistics.tscn")
+	await _capture("qa-hello-statistics-small")
 	print("NATIVE_LAYOUT_CAPTURE_PASS: default and 960x540 title/hub, run, cutout overlap, levelup, results")
 	root.get_node("AudioManager").shutdown()
 	await create_timer(0.15).timeout

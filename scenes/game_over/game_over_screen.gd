@@ -32,6 +32,8 @@ func _refresh() -> void:
 	status_label.text = GameManager.submission_status + "\n" + GameManager.cloud_status
 	if not GameManager.validated_run.last_message.is_empty():
 		status_label.text = GameManager.validated_run.last_message + "\n" + GameManager.cloud_status
+	if not GameManager.practice_mode:
+		status_label.text += "\n" + GameManager.statistics_status
 	replay.disabled = GameManager.is_finishing()
 	hub.disabled = GameManager.is_finishing()
 	if not GameManager.is_finishing() and GameManager.online_available():

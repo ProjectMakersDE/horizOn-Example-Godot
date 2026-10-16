@@ -24,6 +24,10 @@ VALUE_BALANCE = 100
 VALUE_REVISION = 1
 VALUE_OFFERS = 0
 VALUE_ADJUSTS = 0
+STATISTICS_POSTS = 0
+STATISTICS_REVISION = 0
+STATISTICS_VALUES = {"rounds": 0, "kills": 0, "best_score": 0}
+STATISTICS_RECEIPTS: dict = {}
 QA_RUN_ID = uuid.uuid4().hex[:12]
 QA_DATA_NAME = f"horizon-task913-godot-qa-{QA_RUN_ID}"
 
@@ -41,7 +45,7 @@ class Fixture(BaseHTTPRequestHandler):
         self.handle_fixture()
 
     def handle_fixture(self):
-        global VALUE_PURCHASES, VALUE_BALANCE, VALUE_REVISION, VALUE_OFFERS, VALUE_ADJUSTS
+        global VALUE_PURCHASES, VALUE_BALANCE, VALUE_REVISION, VALUE_OFFERS, VALUE_ADJUSTS, STATISTICS_POSTS, STATISTICS_REVISION
         path = urlparse(self.path).path
         raw = self.rfile.read(int(self.headers.get("Content-Length", "0")))
         body = json.loads(raw) if raw else {}
@@ -49,7 +53,30 @@ class Fixture(BaseHTTPRequestHandler):
                          "auth": self.headers.get("Authorization", "")})
         status = 200
         result: object = {"success": True}
-        if "/app/player-values" in path:
+        if "/app/statistics" in path:
+            definitions = [{"key": key, "name": key, "mode": "max" if key == "best_score" else "sum", "resetRule": "none"} for key in STATISTICS_VALUES]
+            replayed = False
+            if self.command == "POST":
+                STATISTICS_POSTS += 1
+                operation = body["operationId"]
+                replayed = operation in STATISTICS_RECEIPTS
+                if replayed:
+                    assert STATISTICS_RECEIPTS[operation] == body["updates"], "Original batch cannot change"
+                else:
+                    STATISTICS_RECEIPTS[operation] = body["updates"]
+                    for update in body["updates"]:
+                        key, value = update["key"], update["value"]
+                        STATISTICS_VALUES[key] = max(STATISTICS_VALUES[key], value) if key == "best_score" else STATISTICS_VALUES[key] + value
+                    STATISTICS_REVISION += 1
+                if STATISTICS_POSTS <= 2:
+                    status, result = 503, {"code": "UNAVAILABLE", "message": "Synthetic response lost after booking"}
+            if status == 200:
+                result = {"userId": "qa-player", "revision": STATISTICS_REVISION, "definitionVersion": 1, "definitions": definitions,
+                          "values": [{"key": key, "value": value, "hasValue": STATISTICS_REVISION > 0, "period": "all"} for key, value in STATISTICS_VALUES.items()],
+                          "operationWindow": {"serverTimeUnixMillis": int(time.time() * 1000), "maxAgeSeconds": 86400, "maxFutureSkewSeconds": 30},
+                          "newlyUnlocked": [], "replayed": replayed}
+                if self.command == "POST": result["operationId"] = body["operationId"]
+        elif "/app/player-values" in path:
             now = datetime.now(timezone.utc).isoformat(timespec="milliseconds").replace("+00:00", "Z")
             if path.endswith("/purchase"):
                 VALUE_PURCHASES += 1
@@ -205,7 +232,7 @@ def main():
         server.shutdown()
     assert "SDK_FIXTURE_SMOKE_PASS" in sdk
     protected = [r for r in REQUESTS if any(part in r["path"] for part in
-                 ["cloud-save", "validated-actions", "player-profile", "gift-codes/redeem", "player-values"])]
+                 ["cloud-save", "validated-actions", "player-profile", "gift-codes/redeem", "player-values", "/app/statistics"])]
     assert protected and all(r["auth"] == "Bearer synthetic-player-session" for r in protected)
     assert any("/storm/around?" in r["path"] and "range=5" in r["path"] for r in REQUESTS)
     assert not any(r["path"].endswith("/reject/submit") for r in REQUESTS)
@@ -220,6 +247,9 @@ def main():
     assert len(adjustments) == 6 and adjustments[2]["operationId"] == adjustments[3]["operationId"]
     assert adjustments[4]["operationId"] == adjustments[5]["operationId"], "Internal retry retains its original ID"
     assert len({r["operationId"] for r in adjustments}) == 4, "Only definite first-send refusal releases a command; expired/internal retries remain protected"
+    statistics = [r["body"] for r in REQUESTS if r["method"] == "POST" and r["path"] == "/api/v1/app/statistics"]
+    assert len(statistics) == 4 and statistics[0] == statistics[1] == statistics[2], "Lost-response retries retain exactly one immutable ID/payload"
+    assert len(STATISTICS_RECEIPTS) == 2 and STATISTICS_VALUES == {"rounds": 3, "kills": 4294967301, "best_score": 9007199254740990}, "Each batch books once, with safe int64 preserved"
     print(f"ALL_CHECKS_PASS: offline gameplay and {len(REQUESTS)} real SDK loopback requests; authenticated protected routes; rejected validation never falls back.")
 
 if __name__ == "__main__":

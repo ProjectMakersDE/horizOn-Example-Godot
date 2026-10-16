@@ -23,6 +23,7 @@ online caches are scoped to the signed-in player and never import practice score
 | Player Profile | Own display name/run stats, catalog, unlocked avatar equip | Synthetic loopback get/set, locked choices omitted |
 | Validated Actions | Ticket/seed, bounded input evidence, submit/rejection, evidence status, server values | Synthetic loopback accepted/rejected/evidence paths; no authoritative replay claim |
 | Player Values | Read balances/offers, explicit purchase and +1 adjustment, persistent original-intent retry | Native loopback transport plus immutable-intent/restart/project/corruption guards; balances stay separate from practice coins |
+| Statistics | Completed online rounds/kills/best-score, explicit snapshot/report, durable original-batch retry | Native loopback booked/lost-response/replay and project/player/restart/int64 guards; practice stays local |
 | Email Sending | Optional configured template queue to own email account and email status lookup | Synthetic loopback only; no real email sent in QA |
 
 The SDK lab is optional and disabled for offline practice. Every external write in
@@ -86,7 +87,7 @@ Press **F5** or click **Run Project** in the Godot editor.
 
 ## SDK Source and Verification
 
-Embedded SDK: complete tested Develop source at `e6e34af5af1c6f42f224b8eb926969788cf85209`, including Player Values, Statistics, Inbox, protected anonymous-identity restoration and realtime. This source pin does not create a new SDK release. TASK-1004 merges the two previously unpublished Seagull Storm improvements with current upstream SDK updates; the existing primary checkout and its two editor changes were separately backed up, then reconciled using portable resource paths.
+Embedded SDK: complete tested Develop source at `098719d36eb60d3ff8486c81590e55a4c2bd8c50`, including Player Values, Statistics, Inbox, protected anonymous-identity restoration and realtime. This source pin does not create a new SDK release. TASK-1004 merges the two previously unpublished Seagull Storm improvements with current upstream SDK updates; the existing primary checkout and its two editor changes were separately backed up, then reconciled using portable resource paths.
 
 The Player Values action opens even offline to explain its guarded state. Online, read the snapshot and offers, inspect costs/rewards, then choose a purchase or an enabled +1 adjustment. One immutable project/player-bound command is saved before HTTP. Guest connection restores a saved anonymous identity first and fails closed if that restore is temporarily unavailable. A lost response or `OPERATION_EXPIRED` retains its original ID and payload; a new click cannot replace it. An unreadable pending file blocks replacement and remains available for reconciliation. Server state replaces the displayed balances; no local reward delta is added. Before a new purchase the panel fetches offers again; changed offers require another explicit confirmation. Persistence binds to project/player across regional host changes, while request fences also include host/session. A definitive no-write refusal may release only a first-send command with an authoritative state; a durable attempt marker and actual transport-event count protect older attempts and internal retries. The API purchases an offer key at current server conditions, so this client refresh is not a transactional quoted-price guarantee.
 
@@ -122,6 +123,41 @@ A native macOS ZIP export requires the official Godot macOS export template. The
 provided preset disables code signing for local testing. Distribution signing and
 notarization are separate release steps. `--export-pack` also builds a PCK usable
 with the matching Godot runtime.
+
+## Session Statistics and standalone Hello
+
+In the Dashboard configure `rounds` and `kills` as **sum**, and `best_score` as
+**max**, each with reset **none**. Optional `maxPerUpdate` must cover the entire
+queued batch. These client-reported metrics do not replace authoritative
+Validated Actions or award balances.
+
+Every completed online run persists one local aggregate before result navigation.
+Open **SDK lab > Statistics**, choose **Read snapshot**, then **Report runs**.
+The display shows the server revision, definition version, `hasValue` and period.
+A snapshot read never clears an uncertain batch. **Retry original** uses its exact
+saved ID and payload; timeout, expiry, out-of-order rejection and corruption never
+create a replacement. Later rounds wait in a separate aggregate until the original
+batch is confirmed. Practice rounds never enter the online queue. A configuration
+mode/bound mismatch leaves the aggregate intact for reconciliation.
+
+A binary Variant file preserves int64 exactly and is scoped to the API project,
+player and example namespace. Host/session belong to the request fence and do not
+change pending ownership during regional failover. Atomic directory locks serialize queue mutations across game processes. Interrupted
+writes and stale locks remain blocked for manual reconciliation rather than
+overwriting unknown state. Queued rounds are reported against
+the current server definitions after an explicit read; counters must retain the
+same intended meaning. Catalog changes and expired intents need operator/game
+reconciliation; the sample offers no discard/rebook shortcut or quoted-time rule.
+
+Open `examples/hello_statistics/hello_statistics.tscn` and press **F6** for a minimal
+standalone Hello. It makes no automatic requests. Connect/restore the guest, queue
+an explicit sample round, then read/report. It uses the same protected authentication
+and batching code with a separate `hello` namespace. This scene is separate from the
+vendored SDK examples, which remain byte-identical to the pinned SDK source.
+
+The native fixture books a batch and loses two responses, retries the exact original,
+then reports a later aggregate once. It verifies values beyond 32-bit and near the
+safe-integer limit. These are synthetic loopback proofs, not a live cloud write.
 
 ## Known Limitations
 
