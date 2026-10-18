@@ -379,3 +379,9 @@ project.godot          # Project configuration
 
 [MIT](LICENSE). The bundled Press Start 2P font is licensed under the SIL Open Font License 1.1,
 see [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).
+
+### Integrated native checkpoint (18 October 2026)
+
+The complete local Godot4.7 gate passed on the current feature source: offline gameplay/cutout simulation,64 actual SDK loopback requests,26 separate native feature-lab requests, and rendered Hello/lab layouts at960×540 and1440×810. The macOS export contains both arm64 andx86_64 code and was actually started for isolated gameplay/cutout checks. Gift V2 preserves its exact decimal sequence across uncertainty/restart, social CAS originals remain protected and Inbox/Marketplace show current references rather than recreating old items. A standalone Hello restore with no saved identity sends no signup; creating a guest is a separate explicit action.
+
+These are local native/loopback proofs. Hosted two-client/restart acceptance against the integrated Develop deployment remains a separate controlled gate; no hosted test result is implied here.
