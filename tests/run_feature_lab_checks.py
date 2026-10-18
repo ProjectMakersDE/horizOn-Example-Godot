@@ -127,6 +127,8 @@ class Fixture(BaseHTTPRequestHandler):
         self.send_response(status);self.send_header("Content-Type","application/json");self.send_header("Content-Length",str(len(raw)));self.end_headers();self.wfile.write(raw)
 
 def main():
+    import subprocess
+    subprocess.run([os.sys.executable, str(native.ROOT/'tests/test_defense_notice.py')], check=True, timeout=90)
     runpy.run_path(str(native.ROOT/'tests/verify_sdk_source.py'),run_name='__main__')
     guide=json.loads((native.ROOT/'examples/public_marketplace/SOURCE.json').read_text())
     assert hashlib.sha256((native.ROOT/'examples/public_marketplace/marketplace_demo.gd').read_bytes()).hexdigest()==guide['sha256']
@@ -142,6 +144,7 @@ def main():
     assert 'DEVELOP_ACCEPTANCE_FILE_GATES_PASS' in native.run('--headless','--script','tests/develop_acceptance.gd','--','--develop-acceptance-self-test')
     print('DEVELOP_ACCEPTANCE_OFFLINE_PASS: exact host/approval/permanent marker; no manifest or HTTP action')
     assert 'PUBLIC_FEATURE_GUIDES_PASS' in native.run('--headless','--script','tests/public_guides_smoke.gd')
+    assert 'DEFENSE_RECIPE_OFFLINE_PASS' in native.run('--headless','--script','tests/defense_recipe_smoke.gd')
     with ThreadingHTTPServer(('127.0.0.1',0),Fixture) as server:
         thread=threading.Thread(target=server.serve_forever,daemon=True);thread.start()
         env=os.environ.copy();env['SEAGULL_LAB_URL']=f'http://127.0.0.1:{server.server_port}'
@@ -150,6 +153,8 @@ def main():
     assert 'FEATURE_LAB_SMOKE_PASS' in result
     assert Fixture.failure is None,Fixture.failure
     assert Fixture.index==len(CASES),(Fixture.index,len(CASES))
+    import defense_native_fixture
+    defense_native_fixture.run(native)
     print(f'FEATURE_LAB_NATIVE_PASS: {len(CASES)} exact HTTP requests; actual game/Hello, source-pinned helpers, unchanged public guide, uncertain social/Inbox originals, no local rewards or historical item creation.')
 
 if __name__=='__main__':
