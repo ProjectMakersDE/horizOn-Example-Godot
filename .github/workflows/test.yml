@@ -24,12 +24,7 @@ jobs:
           GODOT_BIN: godot
         run: python3 tests/run_checks.py
 
-      - name: Run current feature Hello and unchanged public guide against loopback
+      - name: Run current Hello, public guide and offline Develop gates
         env:
           GODOT_BIN: godot
         run: python3 tests/run_feature_lab_checks.py
-
-      - name: Compile explicit Develop QA entry and check offline command gates
-        env:
-          GODOT_BIN: godot
-        run: python3 tests/run_develop_entry_checks.py
