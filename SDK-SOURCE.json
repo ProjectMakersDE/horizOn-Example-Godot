@@ -1,0 +1,427 @@
+{
+  "repository": "ProjectMakersDE/horizOn-SDK-Godot",
+  "commit": "1bf60decc35712daa531f29a44573ffbf94b2b3b",
+  "source": "develop snapshot; no release",
+  "files": {
+    "addons/horizon_sdk/LICENSE": {
+      "sha256": "163f45abdd5603ac7ff97993e812b7d7ba0e66c88c48d7caba061942d6d510dd"
+    },
+    "addons/horizon_sdk/README.md": {
+      "sha256": "c4a9d0f4329271df32552e9768a852ebfddba715ad33cf6c615af1f0d401116d"
+    },
+    "addons/horizon_sdk/core/achievements.gd": {
+      "sha256": "aae6295319285f104d5c7306a3df3dd3232d91161136a7b7cf6d3eab46caa359"
+    },
+    "addons/horizon_sdk/core/auth.gd": {
+      "sha256": "2c70ea933a6c1efa911a0b929fb09d5e4070160748ca22387dc88930660eedd3"
+    },
+    "addons/horizon_sdk/core/auth.gd.uid": {
+      "sha256": "6e6d3602be987d0a4e4ead46289ce81bb1a150de8f15ef0b242f37d3782afeab"
+    },
+    "addons/horizon_sdk/core/chat.gd": {
+      "sha256": "8822d7fc05fe0b60806db4c78d262e521acbda2d2c9fd5a5547f5e4ff41e33c7"
+    },
+    "addons/horizon_sdk/core/chat_history.gd": {
+      "sha256": "f9f53341af89ad99a47fbcd863744a9e0c6b71ed046d737aa82d6132bd867dfc"
+    },
+    "addons/horizon_sdk/core/cloud_save.gd": {
+      "sha256": "2aec60f34e0113f9b3f6b085eb3f6734ea75d6506ea25ecce43142415530d225"
+    },
+    "addons/horizon_sdk/core/cloud_save.gd.uid": {
+      "sha256": "258cca4cb6a301554494d6ed93d2b657431b6386c9ca300ab2f14f496d8fc39f"
+    },
+    "addons/horizon_sdk/core/crashes.gd": {
+      "sha256": "d14c0d87f6a6f8151335e800b5357c233517d67fb87f45a6935455be9ea7fc1f"
+    },
+    "addons/horizon_sdk/core/email_sending.gd": {
+      "sha256": "8d3d2b10887697150e073d13d8c7f6a8d8aad2b43ca492bbb24fc5789d93b19d"
+    },
+    "addons/horizon_sdk/core/feedback.gd": {
+      "sha256": "9e1bf7ff5e9c0119bc213d1073b72d0430357b8fed58f541f6271f3734445e90"
+    },
+    "addons/horizon_sdk/core/feedback.gd.uid": {
+      "sha256": "13419ecc9fa57f255fd43c65da99be596e891bda828f6794d5028fda8535d9a9"
+    },
+    "addons/horizon_sdk/core/friends.gd": {
+      "sha256": "cf8ddcbf9f540b026226358647d432d4b79bf27077e95fd8c8a22bb3ef6dc3c6"
+    },
+    "addons/horizon_sdk/core/gift_codes.gd": {
+      "sha256": "6417d9a0b8fa5cb76ff82bedf6ce7cbe27e331a887aeecd6a4c052475c8a405a"
+    },
+    "addons/horizon_sdk/core/gift_codes.gd.uid": {
+      "sha256": "2ec943ca78742e196e6ef397d42f026a5bd962b34171696327335224c3d6ca9c"
+    },
+    "addons/horizon_sdk/core/groups.gd": {
+      "sha256": "54670bdc524f457efca8898159c8d0ded5cb6bf75cc55cb8a1892babd6a53c98"
+    },
+    "addons/horizon_sdk/core/horizon_config.gd": {
+      "sha256": "5131149ee116073ea254371f2f2421791eac782e7df8b4c50c90cdc36cd87d8c"
+    },
+    "addons/horizon_sdk/core/horizon_config.gd.uid": {
+      "sha256": "d50948dc0c4588e42aacd6bf4fe48e9f333a5d309b63445b216b6d2829c1e022"
+    },
+    "addons/horizon_sdk/core/http_client.gd": {
+      "sha256": "cd16101345b339b5f52cecae1471b74a5d6832af0cc63eebe6c7c4d57ac765f3"
+    },
+    "addons/horizon_sdk/core/http_client.gd.uid": {
+      "sha256": "96b249ffc4c1efe9f45b444e4f8542e222c03f2bdc69f0119216c8c1a5dc50a8"
+    },
+    "addons/horizon_sdk/core/inbox.gd": {
+      "sha256": "e2748d27e5c39bfd93fbb1d049da04aa9792e5cb9670602082e8f09a3bc5b546"
+    },
+    "addons/horizon_sdk/core/inbox.gd.uid": {
+      "sha256": "f60fcf672f3030fe3cd543efcb76721979da86fb07cf589e33d9b9b916d15cf0"
+    },
+    "addons/horizon_sdk/core/items.gd": {
+      "sha256": "0c9097b8fff149d922acc0ab7531c5904d5d96bd0b1db80c6bfc52fb682da7d4"
+    },
+    "addons/horizon_sdk/core/leaderboard.gd": {
+      "sha256": "85e2207a34eb9f166907775d7b5796910898d06aed0c4fc821e1cdb7f119cf69"
+    },
+    "addons/horizon_sdk/core/leaderboard.gd.uid": {
+      "sha256": "d7a142b0477e3eeb2d8a7042df869eb93927adff39b5aeb164b5edfdca092a91"
+    },
+    "addons/horizon_sdk/core/localization.gd": {
+      "sha256": "9a44b59163884d9ee5c20112019a2cfe5f5653ee70ea54f6bdeb1d3cbc043a78"
+    },
+    "addons/horizon_sdk/core/marketplace.gd": {
+      "sha256": "b0fb3cb3b4a4f53a5af3db1be9a1699185e90c0ecde455fac42aa035eeb9edfa"
+    },
+    "addons/horizon_sdk/core/matches.gd": {
+      "sha256": "76468442e7f0eed4f3cb9ab51df5c21ccf5257e255951b19a28f0d610952c6b3"
+    },
+    "addons/horizon_sdk/core/news.gd": {
+      "sha256": "a6ffdeabd809259a67fde56ab8586fd5e9812f3f04c06c87e51b00de43e7cfa9"
+    },
+    "addons/horizon_sdk/core/news.gd.uid": {
+      "sha256": "5d3865f81cd278c364216762189c71eceb020521c44bb0356fa511fa1e4d8ddb"
+    },
+    "addons/horizon_sdk/core/player_profile.gd": {
+      "sha256": "e77c608a5fc1323747e141dab1c4af4de7c3d4b253b0362cade92271a1ab27ab"
+    },
+    "addons/horizon_sdk/core/player_profile.gd.uid": {
+      "sha256": "83093ac5a55cd0701a22e21df5a55f29f8084abfac48f60dd54c5270c09beede"
+    },
+    "addons/horizon_sdk/core/player_values.gd": {
+      "sha256": "a8a4090bb7d4feca86814ed092068e056cede53015a7981b230f465312cb7b02"
+    },
+    "addons/horizon_sdk/core/player_values.gd.uid": {
+      "sha256": "cf595aba8af5e7390373bf7d33d83b01cabf91c8a072b171bb3adfd1377cd6ae"
+    },
+    "addons/horizon_sdk/core/realtime.gd": {
+      "sha256": "5d0eebeb2ecbc194ac3feaeb9cab638efa4629bb6f92a06bb3a5cfde631daea7"
+    },
+    "addons/horizon_sdk/core/realtime.gd.uid": {
+      "sha256": "392ef509825d17c83313e574ccbb302c1ededaa27431af1bef2eea441005af5c"
+    },
+    "addons/horizon_sdk/core/remote_config.gd": {
+      "sha256": "6c32cda5f53f6d00e08813d835c4dd6251463b19a5fadd5a9f6b5a3ab2f9e200"
+    },
+    "addons/horizon_sdk/core/remote_config.gd.uid": {
+      "sha256": "ed55c354f636f19627421f7029e7af7caf4cc65ba95c4335de160f5d704f3447"
+    },
+    "addons/horizon_sdk/core/shared_objects.gd": {
+      "sha256": "df6f7bec9d66b126ce72863896dbee999634bb25f60c3bfe48da539420717bc1"
+    },
+    "addons/horizon_sdk/core/statistics.gd": {
+      "sha256": "d356a55c2ab1c2b4875a77d35f14bb8102a9f746e2e1eb9cfc159edc4d35ef29"
+    },
+    "addons/horizon_sdk/core/statistics.gd.uid": {
+      "sha256": "e9afb3b7c9ab0315aa643b0107024cf79f10a43f88d777679ca16415c063c5e5"
+    },
+    "addons/horizon_sdk/core/user_logs.gd": {
+      "sha256": "1ecdf0c45450d7f6de3c23ddb1cec491aa13752111da9ae3ae72ce4e55164845"
+    },
+    "addons/horizon_sdk/core/user_logs.gd.uid": {
+      "sha256": "95e3af313d4f77398024a58db7289bc17f1fa71feb1d7334cb7d0d2475b0f9c0"
+    },
+    "addons/horizon_sdk/core/validated_actions.gd": {
+      "sha256": "ca227834c85f5651635717f5b196bc0ac7bcabe9fe555472f44f7cdfed4af5dd"
+    },
+    "addons/horizon_sdk/core/validated_actions.gd.uid": {
+      "sha256": "c7175bc58a649c06d4137b7f7679c94f72f59b28d0b5439933e6be211e598b8e"
+    },
+    "addons/horizon_sdk/examples/features/README.md": {
+      "sha256": "2e655ec21b207d987ba973c3f38781f7b18137727b62c7f36235a257d324b32d"
+    },
+    "addons/horizon_sdk/examples/features/achievements_example.gd": {
+      "sha256": "5b45e8bb156b8f7eb7fb7c1314c2bcc63e3efd1a322f9265ff0f9882cbcb0505"
+    },
+    "addons/horizon_sdk/examples/features/auth_example.gd": {
+      "sha256": "36432b4c3c140bfe8f62e353af191c290951d957437f134498e205c618772250"
+    },
+    "addons/horizon_sdk/examples/features/chat_demo.gd": {
+      "sha256": "f8c90b325e2f1e70861ff996cd7035a51dab7ec78b4128dcc58572bfe9fd777e"
+    },
+    "addons/horizon_sdk/examples/features/chat_demo.tscn": {
+      "sha256": "96ece01437a9228402403abd50f3f8479e22ba1cfa33c0376ce2c2ba7d79dc77"
+    },
+    "addons/horizon_sdk/examples/features/chat_example.gd": {
+      "sha256": "11fbaaa5ccf895fb7cf183bd4abf9640e18de33fd16900feedd2e72c310255be"
+    },
+    "addons/horizon_sdk/examples/features/cloud_save_example.gd": {
+      "sha256": "9357b287b7c9ce9f3844afb04daab37d5003e5aa3fbc59dc387fc00abf072ac1"
+    },
+    "addons/horizon_sdk/examples/features/crash_reporting_example.gd": {
+      "sha256": "ee2f67fcbfb4ec797a8d11d6e4a636ea75807885dcadda41acf463e3fde5d07f"
+    },
+    "addons/horizon_sdk/examples/features/email_sending_example.gd": {
+      "sha256": "9099a2613b28db03075a6b0577ae97d89db0fd0707060dc65d8fabb84a8b6359"
+    },
+    "addons/horizon_sdk/examples/features/feedback_example.gd": {
+      "sha256": "edbc6fe6d7fd49cfb7e9383b2cd712258d312071707f236274e5e563fec2445d"
+    },
+    "addons/horizon_sdk/examples/features/friends_example.gd": {
+      "sha256": "0a99cc678d063d189886f92ae070d7e7e85671e3f49af2000174553ecac65d4d"
+    },
+    "addons/horizon_sdk/examples/features/gift_codes_example.gd": {
+      "sha256": "69f189efabcaba4936ac7da41cbf4bbbd24dec3424daf92dfc2ecc3f946669d6"
+    },
+    "addons/horizon_sdk/examples/features/groups_example.gd": {
+      "sha256": "ec9fd5090b81d0722e9fdc5843a19347307a08ee840fbaeae16f58b7204a531c"
+    },
+    "addons/horizon_sdk/examples/features/inbox_example.gd": {
+      "sha256": "b94605ad374d22fb8ec79176e0541456fba097014ccf0c0e7a2e7187b4bb46dd"
+    },
+    "addons/horizon_sdk/examples/features/inbox_example.gd.uid": {
+      "sha256": "714bb33798b7c97236ce83e1c29f2f166d3a04916893a1c66ccfbe9de2057ed7"
+    },
+    "addons/horizon_sdk/examples/features/items_example.gd": {
+      "sha256": "fc7d089e05d4d35909ed91e81583fda6d2ae2801f3a44257a4fac352ed28b9f2"
+    },
+    "addons/horizon_sdk/examples/features/leaderboard_example.gd": {
+      "sha256": "ca4821343320cf06e6acf93e1f0f56f83839908973e668b5da33d9a43ea76fc8"
+    },
+    "addons/horizon_sdk/examples/features/localization_example.gd": {
+      "sha256": "730c90e5f0c8533ca7c6598c04e68f164b0a2b701b708b815270e9a5f774ce2a"
+    },
+    "addons/horizon_sdk/examples/features/marketplace_example.gd": {
+      "sha256": "ae680e0c5480b1ae70a535e5e10127312a7e3915a7b14edd27382b558cf40dff"
+    },
+    "addons/horizon_sdk/examples/features/marketplace_lease.gd": {
+      "sha256": "556db31083f317dae1ecec1267577b1b255c2d6d9232839fbdfafaad36603255"
+    },
+    "addons/horizon_sdk/examples/features/marketplace_operation.gd": {
+      "sha256": "b1db70713a2ecc75435106d4d994806f2c373909bd489ad49d22e012d90a098f"
+    },
+    "addons/horizon_sdk/examples/features/marketplace_quickstart.gd": {
+      "sha256": "94f5e3d188d208106bf2b7fb053dd2c408c513739a1de9e7921232aba5aa9745"
+    },
+    "addons/horizon_sdk/examples/features/matches_example.gd": {
+      "sha256": "f299359d16195a3e8e53eafca8f92432988b222611791bff759ecee5dca84b45"
+    },
+    "addons/horizon_sdk/examples/features/news_example.gd": {
+      "sha256": "d8fa36f17990bf796f1eabbd8b3056aff723bcde5e36f7ff2b2966a54042bd69"
+    },
+    "addons/horizon_sdk/examples/features/pending_chat.gd": {
+      "sha256": "ebecbfc8ba76d379244d41f8da937808db54a31f2b8a3d0773741d0f99355250"
+    },
+    "addons/horizon_sdk/examples/features/pending_gift_code.gd": {
+      "sha256": "5a9e4b7986c7dfbcbddab46efe75e55cb3deb983e067dfb31a5770c0fc68cf36"
+    },
+    "addons/horizon_sdk/examples/features/pending_inbox_claim.gd": {
+      "sha256": "3869e50698f27c38ea540da5e162ade45c2436a9b2869fd2fcdb1e3b0ffc8b56"
+    },
+    "addons/horizon_sdk/examples/features/pending_item_intent.gd": {
+      "sha256": "12bafdb5284ebaa63718a5963caf8862d931dce10093f92141f9030dec87a194"
+    },
+    "addons/horizon_sdk/examples/features/pending_marketplace.gd": {
+      "sha256": "b8e05c9569713551ae49382b296b96ad22c4d4cb736899f5cecc2920e4211c90"
+    },
+    "addons/horizon_sdk/examples/features/pending_match.gd": {
+      "sha256": "c26994fa55922d367e1f2f4150861ca2f4984217ab5a55e394440ebf00c93725"
+    },
+    "addons/horizon_sdk/examples/features/pending_purchase.gd": {
+      "sha256": "8d53fb58fe9293c0a09e9ef27eacadcf2e56b17425f5409580a98f364c75b491"
+    },
+    "addons/horizon_sdk/examples/features/pending_purchase.gd.uid": {
+      "sha256": "cf535bac1e82ef7060e5abbf0560fc981bf5c34418236ce76a7288777f9ca90e"
+    },
+    "addons/horizon_sdk/examples/features/pending_shared_object.gd": {
+      "sha256": "8d62ed9916605e4a168cf2465ebf1acedce921c2805568adce442051ae9cc8ff"
+    },
+    "addons/horizon_sdk/examples/features/pending_statistics.gd": {
+      "sha256": "9df435d813f2ba8c2c792f75bbf54da8b395398fade20ba3b7d4fe499f2aa1ab"
+    },
+    "addons/horizon_sdk/examples/features/player_profile_example.gd": {
+      "sha256": "f65a5740fd8196a1139d12985bbaf39b6c558b5b46a78181bcfd62e028b21f7d"
+    },
+    "addons/horizon_sdk/examples/features/player_values_example.gd": {
+      "sha256": "700a4914e13f26df4888977e39fcbd5949720e06807a7791db562c2f7e343c2f"
+    },
+    "addons/horizon_sdk/examples/features/player_values_example.gd.uid": {
+      "sha256": "9eced56bfbc0a26a28145056cac410c1c280a4d38f389fcb572efebd83cb22f3"
+    },
+    "addons/horizon_sdk/examples/features/remote_config_example.gd": {
+      "sha256": "7cad6a1bbc9450f36b6dbc358cf3b38bcd6801f8bf875e64194be7837e949e2a"
+    },
+    "addons/horizon_sdk/examples/features/shared_objects_example.gd": {
+      "sha256": "e31b44f3756502d0b9dd0eb89b7b804343bedc3ec838a864a350829e1159fd2f"
+    },
+    "addons/horizon_sdk/examples/features/statistics_example.gd": {
+      "sha256": "8e48cc729bf148b3e82590c7110a34e56bf5e1004ecc50f61d9b36e74a254fd1"
+    },
+    "addons/horizon_sdk/examples/features/statistics_example.gd.uid": {
+      "sha256": "0f628b34c746c54f8237d3ecef0ca50976750828e9f795c0a762748546bf3fa2"
+    },
+    "addons/horizon_sdk/examples/features/user_logs_example.gd": {
+      "sha256": "30e9651b3a8c7576bac6abeaae2bb1f7aaa624cf710c1aeba3f38949d8a3f898"
+    },
+    "addons/horizon_sdk/examples/features/validated_actions_example.gd": {
+      "sha256": "fcc1a6f6cc4793eb723dbbb3d19695446b49f2ec56b440cdf8cc959d30f73ece"
+    },
+    "addons/horizon_sdk/examples/features/validated_evidence_example.gd": {
+      "sha256": "5aa0588cce4744424f0b43693e8fe7f4b15e1162341796bb0c7f92985ef7ac50"
+    },
+    "addons/horizon_sdk/examples/features/validated_state_example.gd": {
+      "sha256": "6dda8ea4db80360b8c6214829ad6296d0854414bf11338c7ee575a7dc9bd1ec7"
+    },
+    "addons/horizon_sdk/examples/hello_horizon/README.md": {
+      "sha256": "5b7edd0455b3201a92c5f9d41459bf8a09d94741510d3c5f304cddb35f769ecc"
+    },
+    "addons/horizon_sdk/examples/hello_horizon/hello_horizon.gd": {
+      "sha256": "ab2e109653ce7feb4c7fd96af5eb1c534770d6b74ae226180fc7aeee261870e0"
+    },
+    "addons/horizon_sdk/examples/hello_horizon/hello_horizon.gd.uid": {
+      "sha256": "eb13c5702965447b2734bd4bf212121eb95eb0c41aaf5407de8bdab947f36fa7"
+    },
+    "addons/horizon_sdk/examples/hello_horizon/hello_horizon.tscn": {
+      "sha256": "175d24927642058e894803fe6f80c5e0110f5e210244469c51e1704fab8b45d5"
+    },
+    "addons/horizon_sdk/examples/horizon_test_scene.tscn": {
+      "sha256": "f562946890fa5cc444ef655d5a38e4543497dd83a92528d79287fd1ccaa75e21"
+    },
+    "addons/horizon_sdk/examples/horizon_test_ui.gd": {
+      "sha256": "39f595ff8314cde824b84e8da293b96f7d25b42540b9925db8e06a180e5fbf35"
+    },
+    "addons/horizon_sdk/examples/horizon_test_ui.gd.uid": {
+      "sha256": "67e6263f97d9dc7c364d263e16a902b9340ea0f2e588ec474c6059e590fe8081"
+    },
+    "addons/horizon_sdk/horizOn_logo.png": {
+      "sha256": "bd4b7f75871857d91ac6269611414def1c471486620883af0cb0813ae22938c9"
+    },
+    "addons/horizon_sdk/horizon_config.tres": {
+      "sha256": "7d1d8169f3f52429302c6d9f8e8f03fb004852cda1bd691c606dbb624a2dd9d2"
+    },
+    "addons/horizon_sdk/horizon_plugin.gd": {
+      "sha256": "1b2383ab7c8eb32f824d514376a09c4e6d99fd90ec74b332b4e5a629477ca30f"
+    },
+    "addons/horizon_sdk/horizon_plugin.gd.uid": {
+      "sha256": "d6d65930ad89e384ab31b06b54559f8b2bdfde44f1656dad70defb890b69a49b"
+    },
+    "addons/horizon_sdk/horizon_sdk.gd": {
+      "sha256": "0bc5bcc57f4b1bd43c99361c89335207772064bf8e27a5ef34ea8e820883f1e8"
+    },
+    "addons/horizon_sdk/horizon_sdk.gd.uid": {
+      "sha256": "0a90c3f2c005ba7483524318aaccfa397eb439b89263237b3d051821c771e78c"
+    },
+    "addons/horizon_sdk/icon.svg": {
+      "sha256": "aeec2a3ee03b721ad7022c350195eb6e8c4dc837a4ee9c94e53eea88bb976be4"
+    },
+    "addons/horizon_sdk/icon.svg.import": {
+      "sha256": "df6e791623dfb430df3f8e8e5534a5697a403098da12703f63615984421486a0"
+    },
+    "addons/horizon_sdk/ios/HorizonAppleSignIn/HorizonAppleSignIn.gdip": {
+      "sha256": "8388061e28a5c149dcfa698b1d1fd0bf57a3b020ff0392f4acdd4a2f3df7f87e"
+    },
+    "addons/horizon_sdk/ios/HorizonAppleSignIn/HorizonAppleSignIn.h": {
+      "sha256": "2c439b67e4aa838068f1950e83afe447ab519fe3ab2cc72709efdf6dda25b0a9"
+    },
+    "addons/horizon_sdk/ios/HorizonAppleSignIn/HorizonAppleSignIn.mm": {
+      "sha256": "c54782497d771236c8847746b4b70666d5c1f34caa9a8ffd5a1a0c0da5c007f8"
+    },
+    "addons/horizon_sdk/ios/HorizonAppleSignIn/README.md": {
+      "sha256": "bfc0dbe55e47905cda57ec66cefcccb52e8b6e5b28c1858e5f08fa574f3bcfec"
+    },
+    "addons/horizon_sdk/models/chat_models.gd": {
+      "sha256": "b54cbfd7a7ee6f6cc18362b946d6c615d1815cf05dd7ce667b3a8da250266a7d"
+    },
+    "addons/horizon_sdk/models/group_json_data.gd": {
+      "sha256": "064d4e6e5c2e28e8c6336a9e4a8558c707834cac1795c8e1251f95ae3e64bca6"
+    },
+    "addons/horizon_sdk/models/item_models.gd": {
+      "sha256": "90611fdd0604e8fe243b44d704ce3938100f0dca232943d5e1e0815c4a3045b9"
+    },
+    "addons/horizon_sdk/models/item_string_data.gd": {
+      "sha256": "e932b33f094eabcd3eb9bcaa228343a2221301215326dc36ca59bcff25d06a77"
+    },
+    "addons/horizon_sdk/models/leaderboard_entry.gd": {
+      "sha256": "71b777bbfe164c8256b1b478ffe805cf66df799d108d685c8e38e02c0e91da67"
+    },
+    "addons/horizon_sdk/models/leaderboard_entry.gd.uid": {
+      "sha256": "e5d113aba904ffef37b0017f5705c646d4dd4076927ab4b7cd2ec326b8926251"
+    },
+    "addons/horizon_sdk/models/marketplace_models.gd": {
+      "sha256": "61508209b1948a77621e604a74b3195cfee962f5b73985756aafc08e5239d7ba"
+    },
+    "addons/horizon_sdk/models/match_models.gd": {
+      "sha256": "ad5de21dca2a10ee0fb0de1cc648f4080d3fec007fa66045979921615a2b2356"
+    },
+    "addons/horizon_sdk/models/network_response.gd": {
+      "sha256": "7102cf50464d0c9185a4e6e04f1c2dbe852d119d6fb393faa91fbdddf0415534"
+    },
+    "addons/horizon_sdk/models/network_response.gd.uid": {
+      "sha256": "d90f069a9aa13a4e5c8c4f26f3c9ab7c411b58f0143d3b4e16aaba99798bf6b2"
+    },
+    "addons/horizon_sdk/models/news_entry.gd": {
+      "sha256": "6256722dfa47e9455a4be0a255b166989d1665274496958a190e1f82e5bff9ce"
+    },
+    "addons/horizon_sdk/models/news_entry.gd.uid": {
+      "sha256": "dcd92067e5eb0e6bf51985ccd81a8bfebdff9ddfa5dfd5f8c83e55e018b7ac47"
+    },
+    "addons/horizon_sdk/models/player_profile_data.gd": {
+      "sha256": "e635f88afe82c74d8ce59e805fb2b9185994b4300f335269aaa50177b71e6228"
+    },
+    "addons/horizon_sdk/models/player_profile_data.gd.uid": {
+      "sha256": "f44b1f0e728be913a6689f7e88754e7552f88ba3ad9eb8b6b7226cc42ee7f4c7"
+    },
+    "addons/horizon_sdk/models/shared_object_models.gd": {
+      "sha256": "74f2b408667adc6dba27cd8ab75b390c5f2bbb3f7d4a6f18edc1a8d7210416ad"
+    },
+    "addons/horizon_sdk/models/user_data.gd": {
+      "sha256": "e34d166eca71045c83e679fe725324a4dad86e3db8cab9fa8b36498690ce32a7"
+    },
+    "addons/horizon_sdk/models/user_data.gd.uid": {
+      "sha256": "eb9fd7b13ec10a57869cf3a6938540a2682358a1d3d755ca9dbe8c665e0ca8ef"
+    },
+    "addons/horizon_sdk/models/validated_evidence_request.gd": {
+      "sha256": "074b2b0d7318663af66d0bfa8e37adef2bb727a90a44a7326bc47718f7f62e6e"
+    },
+    "addons/horizon_sdk/models/validated_evidence_request.gd.uid": {
+      "sha256": "3c96b77831ebaaee4da11ebf57b8712974d4ac9ba79634a2200a173aaacebcf7"
+    },
+    "addons/horizon_sdk/models/validated_player_state.gd": {
+      "sha256": "4da0aa9b9cfc184cd6be55681822289735d48bb8b143b1b172367532e00279e6"
+    },
+    "addons/horizon_sdk/models/validated_player_state.gd.uid": {
+      "sha256": "9b2a58eddf5064b567495f34e9c669bd3702268ef09af186bb9535bc1fa113fd"
+    },
+    "addons/horizon_sdk/models/validated_run.gd": {
+      "sha256": "7bdd6eb5dd1a19c9509ee4f3517859313ebf8d737af2fe6f7c7d116b3ac24ee2"
+    },
+    "addons/horizon_sdk/models/validated_run.gd.uid": {
+      "sha256": "98d14144f81ac55c340e24ef956e0547e10cc0dbb2af7db199a2684566e24533"
+    },
+    "addons/horizon_sdk/models/validated_submit_result.gd": {
+      "sha256": "bdbd85444559552fe2921500d1211b188b6c329bfeed3231d5468285fc22dd03"
+    },
+    "addons/horizon_sdk/models/validated_submit_result.gd.uid": {
+      "sha256": "c6d88670ddf0a8bb8b99bfec95413b957403f3991a0fbebbbfea97b2c77c128c"
+    },
+    "addons/horizon_sdk/plugin.cfg": {
+      "sha256": "d4f4c8a648d342aa3f9ec1db5ffa074e91dedb5be509ea6f48d514b08678b844"
+    },
+    "addons/horizon_sdk/utils/error_codes.gd": {
+      "sha256": "6fe73100ad98247775bcf0232572b700db67b93b03eda35da444ba95a69180c7"
+    },
+    "addons/horizon_sdk/utils/error_codes.gd.uid": {
+      "sha256": "9f49e8b80bddead9e10cf565496a5c1be2597bbb4b5e0ef569fc6dfd21b553c6"
+    },
+    "addons/horizon_sdk/utils/logger.gd": {
+      "sha256": "7f015a5ec7e217467e80dcb63f8c223d387cfdac1f8ad8234de4608fb581c044"
+    },
+    "addons/horizon_sdk/utils/logger.gd.uid": {
+      "sha256": "79a14bc808577b2f68ad654840b03ccf9701ea8f3a69db1aa6b878eec5cd3bfc"
+    }
+  }
+}

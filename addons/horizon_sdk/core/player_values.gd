@@ -1,6 +1,7 @@
 ## Server-owned balances. Keep an operation ID stable across every retry of one action.
 class_name HorizonPlayerValues
 extends RefCounted
+signal item_inventory_invalidated()
 
 const ENDPOINT := "/api/v1/app/player-values"
 const MAX_SAFE_INTEGER: int = 9007199254740991
@@ -20,6 +21,11 @@ func initialize(http: HorizonHttpClient, auth: HorizonAuth) -> void:
 	_http = http
 	_auth = auth
 	_auth.signout_completed.connect(_resetIdentity)
+
+## Epoch for peer feature responses; cache invalidation fences late handoffs.
+func getCacheEpoch() -> int:
+	_syncIdentity()
+	return _epoch
 
 func getCurrentState() -> Dictionary:
 	_syncIdentity()
@@ -71,7 +77,18 @@ func getState(user_id: String) -> Dictionary:
 func purchase(user_id: String, offer_key: String, operation_id: String) -> Dictionary:
 	if offer_key.strip_edges().is_empty() or not _validOperationId(operation_id):
 		return _failure("INVALID_REQUEST")
-	return await _stateCall(user_id, "/purchase", {"userId": user_id, "offerKey": offer_key, "operationId": operation_id})
+	if not _begin(user_id): return _failure(lastErrorCode)
+	var starting_identity: String = _identity
+	var starting_epoch: int = _epoch
+	item_inventory_invalidated.emit()
+	_syncIdentity()
+	if starting_identity != _identity or starting_epoch != _epoch: return _failure("STALE_RESPONSE")
+	var result: Dictionary = await _stateCall(user_id, "/purchase", {"userId": user_id, "offerKey": offer_key, "operationId": operation_id})
+	var identity: String = _identity
+	var epoch: int = _epoch
+	item_inventory_invalidated.emit()
+	_syncIdentity()
+	return _failure("STALE_RESPONSE") if identity != _identity or epoch != _epoch else result
 
 func adjust(user_id: String, key: String, amount: Variant, reason: String, operation_id: String) -> Dictionary:
 	if typeof(amount) != TYPE_INT or not _safeNumber(amount) or amount == 0 or key.strip_edges().is_empty() or reason.strip_edges().is_empty() or not _validOperationId(operation_id):
@@ -138,7 +155,7 @@ func _begin(user_id: String) -> bool:
 	return lastErrorCode.is_empty()
 
 func _syncIdentity() -> void:
-	var value: String = _auth.getCurrentUser().userId + "|" + _http.sessionToken + "|" + _http.apiKey + "|" + _http.activeHost
+	var value: String = JSON.stringify([_auth.getCurrentUser().userId,_http.sessionToken,_http.apiKey,_http.activeHost,_http.getContextGeneration()])
 	if value != _identity:
 		_resetIdentity()
 		_identity = value
@@ -201,6 +218,9 @@ static func _normalizeState(raw: Variant) -> Dictionary:
 	state.revision = int(state.revision)
 	state.definitionVersion = int(state.definitionVersion)
 	if state.get("operation") is Dictionary:
+		var items: Variant = HorizonItemModels.references(state.operation.get("items", []))
+		if items == null: return {}
+		state.operation.items = items
 		for delta: Variant in state.operation.get("applied", []):
 			if not delta is Dictionary or not _safeNumber(delta.get("amount")):
 				return {}
@@ -219,6 +239,9 @@ static func _normalizeOffers(raw: Variant) -> Dictionary:
 	for offer: Variant in result.offers:
 		if not offer is Dictionary:
 			return {}
+		var rewards: Variant = HorizonItemModels.rewards(offer.get("itemRewards", []))
+		if rewards == null: return {}
+		offer.itemRewards = rewards
 		for field: String in ["costs", "rewards"]:
 			if not offer.get(field) is Array:
 				return {}
@@ -237,16 +260,32 @@ static func _validOperationId(value: String) -> bool:
 	expression.compile("^[0-9]{1,16}:[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")
 	return expression.search(value) != null and int(value.get_slice(":", 0)) > 0
 
-static func _safeJsonIntegers(json: String) -> bool:
-	var expression := RegEx.new()
-	expression.compile('"(balance|earnedToday|dailyCap|amount|revision|definitionVersion|purchasesPerDay)"\\s*:\\s*([^,}\\]\\s]+)')
-	for item: RegExMatch in expression.search_all(json):
-		var value := item.get_string(2)
-		if value == "null" and item.get_string(1) in ["dailyCap", "purchasesPerDay"]:
-			continue
-		if not value.is_valid_int() or value.length() > 17 or not _safeNumber(int(value)):
-			return false
-	return true
+static func _safeJsonIntegers(json: String, fields: Array[String] = ["balance", "earnedToday", "dailyCap", "amount", "revision", "definitionVersion", "purchasesPerDay", "quantity"]) -> bool:
+	# Other feature contracts may have opaque versions; existing PV/Gift defaults stay strict.
+	# Tokenize whole JSON strings, so escaped keys are decoded and opaque giftData stays opaque.
+	# Track objects independently to reject duplicate decoded names without confusing array entries.
+	var tokens: RegEx = RegEx.new()
+	tokens.compile('"(?:[^"\\\\]++|(?:\\\\(?:u[0-9a-fA-F]{4}|.))++)*+"|[{}\\[\\]:,]|true|false|null|-?[0-9]+(?:\\.[0-9]+)?(?:[eE][+-]?[0-9]+)?')
+	var matches: Array[RegExMatch] = tokens.search_all(json)
+	var containers: Array = []
+	var integer: RegEx = RegEx.create_from_string("^-?(0|[1-9][0-9]*)\\z")
+	for index: int in range(matches.size()):
+		var text: String = matches[index].get_string()
+		if text == "{": containers.append({})
+		elif text == "[": containers.append(null)
+		elif text == "}" or text == "]":
+			if containers.is_empty() or (text == "}") != (containers.back() is Dictionary): return false
+			containers.pop_back()
+		elif text.begins_with('"') and index + 1 < matches.size() and matches[index + 1].get_string() == ":":
+			var key: Variant = JSON.parse_string(text)
+			if not key is String or containers.is_empty() or not containers.back() is Dictionary or containers.back().has(key): return false
+			containers.back()[key] = true
+			if not key in fields: continue
+			if index + 2 >= matches.size(): return false
+			var number: String = matches[index + 2].get_string()
+			if number == "null" and key in ["dailyCap","purchasesPerDay"]: continue
+			if integer.search(number) == null or number.length() > 17 or not _safeNumber(int(number)): return false
+	return containers.is_empty()
 
 static func _responseCode(response: HorizonNetworkResponse) -> String:
 	return response.serverCode if not response.serverCode.is_empty() else "HTTP_%d" % response.statusCode

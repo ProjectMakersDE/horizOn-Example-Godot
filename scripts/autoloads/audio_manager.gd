@@ -148,6 +148,10 @@ func shutdown() -> void:
 		if child is AudioStreamPlayer:
 			child.stop()
 			child.stream = null
+			child.queue_free()
+	_music_player_a = null
+	_music_player_b = null
+	_active_player = null
 	_current_music = ""
 	_sfx_counts.clear()
 
