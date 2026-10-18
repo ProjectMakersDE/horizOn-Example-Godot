@@ -136,6 +136,7 @@ def main():
     project=native.QA/'project.godot'
     project.write_text(project.read_text().replace('config/name="Seagull Storm"',f'config/name="Seagull Features QA"\nconfig/use_custom_user_dir=true\nconfig/custom_user_dir_name="{native.QA_DATA_NAME}"'))
     native.run('--headless','--editor','--import','--quit')
+    assert 'PUBLIC_FEATURE_GUIDES_PASS' in native.run('--headless','--script','tests/public_guides_smoke.gd')
     with ThreadingHTTPServer(('127.0.0.1',0),Fixture) as server:
         thread=threading.Thread(target=server.serve_forever,daemon=True);thread.start()
         env=os.environ.copy();env['SEAGULL_LAB_URL']=f'http://127.0.0.1:{server.server_port}'

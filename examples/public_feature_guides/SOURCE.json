@@ -1,0 +1,23 @@
+{
+  "sdk": "1bf60decc35712daa531f29a44573ffbf94b2b3b",
+  "dashboardBase": "bfa5b2dfc0b4b882d73e34f33cffd74a61193ce9",
+  "sourceManifestSha256": "6f7fadd53010a1d56433db0b5048b6bdadd29464435ffa1e7e7823f594389ba0",
+  "files": {
+    "groups.gd": {
+      "feature": "groups",
+      "sha256": "a34705e39cf817b7d417f431f64fdb3afdc95a417849cd07f86d4ea8b0b8b293"
+    },
+    "items.gd": {
+      "feature": "items",
+      "sha256": "456b05389873e1b841fd047f8905e0b35d93dfdb8e1ae3af58363c57293a5d28"
+    },
+    "matches.gd": {
+      "feature": "matches",
+      "sha256": "2a5dc21497216c18468dc26044dc1c55222e7916f82a27b997d2f5ec2eb6b974"
+    },
+    "shared_objects.gd": {
+      "feature": "shared-objects",
+      "sha256": "a983c91129a7bee231f9e124344f581c5845e685de6d8c347c203bb9bb442459"
+    }
+  }
+}

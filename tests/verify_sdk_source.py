@@ -22,3 +22,5 @@ if(root/'.git').exists():
  assert {relocated.get(name,name)for name in files}.issubset(tracked),'Official source files are locally ignored instead of tracked'
  assert 'addons/horizon_sdk/horizon_config.tres'not in tracked,'Imported personal runtime config must stay ignored'
 print(f"Official SDK {record['commit']}: {len(files)} exact files, one relocated blank config template; personal runtime config stays ignored")
+guides=root/'examples/public_feature_guides';guide_proof=json.loads((guides/'SOURCE.json').read_text());assert guide_proof['sdk']==record['commit']
+for name,proof in guide_proof['files'].items():assert hashlib.sha256((guides/name).read_bytes()).hexdigest()==proof['sha256'],name
