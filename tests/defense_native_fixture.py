@@ -24,7 +24,12 @@ def obj(identity=O, owner=V, data=None):
 
 class NativeFixture(contract.Fixture):
     def reply(self, value):
-        self.send_response(200); self.end_headers(); self.wfile.write(C.encoded(value))
+        raw = C.encoded(value)
+        self.send_response(200)
+        self.send_header("Content-Type", "application/json")
+        self.send_header("Content-Length", str(len(raw)))
+        self.end_headers()
+        self.wfile.write(raw)
 
     def do_GET(self):
         if self.path.startswith("/api/v1/admin/"):

@@ -22,6 +22,7 @@ func _run() -> void:
 	h._isConnected = true; h._http._status = HorizonHttpClient.ConnectionStatus.CONNECTED
 	h._config = HorizonConfig.new(); h._config.api_key = h._http.apiKey
 	check(await h.auth.signInEmail("defense@example.invalid", "synthetic-password"), "Actual SDK existing-session transport")
+	if not failures.is_empty(): quit(1); return
 	root.get_node("GameManager").enter_online()
 	var panel: Node = preload("res://scripts/ui/defense_recipe_panel.gd").new(); root.add_child(panel)
 	await process_frame

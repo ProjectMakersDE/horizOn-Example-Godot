@@ -157,7 +157,9 @@ class Api:
         try:
             response = opener.open(request, timeout=30)
         except urllib.error.HTTPError as error:
-            raise Refused("HTTP_" + str(error.code)) from None
+            code = error.code
+            error.close()
+            raise Refused("HTTP_" + str(code)) from None
         with response:
             raw = response.read(self.maximum + 1)
             require(len(raw) <= self.maximum, "OPERATOR_RESPONSE_BUDGET_EXCEEDED")
