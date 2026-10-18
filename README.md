@@ -1,5 +1,7 @@
 # horizOn Example — Godot
 
+The optional [world-map / trusted asynchronous defense recipe](examples/defense/README.md) opens explicitly from the existing Game or Hello feature lab. Its separate operator CLI verifies actual server evidence before delivering an ordinary defender Inbox notice; no account credential is shipped in the client.
+
 **Seagull Storm** is a compact survival roguelike demonstrating the core [horizOn](https://horizon.pm) SDK managers. It runs immediately in offline practice and adds optional cloud features when configured. This source revision targets and is tested with Godot 4.7.
 
 ## Features Demonstrated

@@ -72,10 +72,25 @@ func _ready() -> void:
 	StormUI.button(self, "Inspect saved Friends/Groups original (local only)", func(): _show(inspect_social_original(feature)))
 	StormUI.button(self, "Acknowledge social original after a newer authoritative read", func(): _show(acknowledge_social_original(feature)))
 	StormUI.button(self, "Open Chat: explicit subscription, plain text and device history", _chat)
+	StormUI.button(self, "Open world map / trusted defense recipe", _defense)
 	_status = StormUI.label(self, "No network action has run.", 15, StormUI.TEAL)
 	_output = TextEdit.new(); _output.editable = false; _output.custom_minimum_size.y = 220; add_child(_output)
 	var index: int = FEATURES.keys().find(feature)
 	_feature.select(maxi(index, 0)); _select_feature(_feature.selected)
+
+func _defense() -> void:
+	var window := Window.new()
+	window.title = "World map / asynchronous defense recipe"
+	window.size = Vector2i(700, 780)
+	var scroll := ScrollContainer.new()
+	scroll.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	window.add_child(scroll)
+	var panel := preload("res://scripts/ui/defense_recipe_panel.gd").new()
+	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	scroll.add_child(panel)
+	add_child(window)
+	window.close_requested.connect(window.queue_free)
+	window.popup_centered()
 
 func _select_feature(index: int) -> void:
 	feature = _feature.get_item_text(index)
