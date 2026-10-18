@@ -69,6 +69,7 @@ func _run() -> void:
 			var output: Dictionary = {"id": id, "action": command.action, "startedAtUtc": Time.get_datetime_string_from_system(true) + "Z"}
 			if not claim_started(input): output.error = "UNKNOWN_OUTCOME_ORIGINAL_RETAINED"
 			else: output.merge(await _execute(command), true)
+			if h.auth.isSignedIn(): output.userId = h.auth.getCurrentUser().userId
 			output.completedAtUtc = Time.get_datetime_string_from_system(true) + "Z"
 			if not _write_result(destination, output): _stop("RESULT_STORAGE_ERROR_ORIGINAL_RETAINED"); return
 			if command.action == "quit":
