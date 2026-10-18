@@ -57,7 +57,7 @@ class Fixture(BaseHTTPRequestHandler):
         status = 200
         result: object = {"success": True}
         if "/app/statistics" in path:
-            definitions = [{"key": key, "name": key, "mode": "max" if key == "best_score" else "sum", "resetRule": "none"} for key in STATISTICS_VALUES]
+            definitions = [{"key": key, "name": key, "mode": "max" if key == "best_score" else "sum", "reset": "none"} for key in STATISTICS_VALUES]
             replayed = False
             if self.command == "POST":
                 STATISTICS_POSTS += 1

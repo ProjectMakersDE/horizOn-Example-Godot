@@ -8,7 +8,7 @@ static func run(tree: SceneTree, check: Callable) -> void:
 	check.call(StatisticsRunStore.new("another-project", "qa-player", "safety").path != store.path, "Project isolates statistics owner")
 	check.call(StatisticsRunStore.new("qa-project", "another-player", "safety").path != store.path, "Player isolates statistics owner")
 	check.call(StatisticsRunStore.new("qa-project", "qa-player", "hello").path != store.path, "Hello queue stays separate from game")
-	var definitions: Array = [{"key": "rounds", "mode": "sum", "resetRule": "none"}, {"key": "kills", "mode": "sum", "resetRule": "none"}, {"key": "best_score", "mode": "max", "resetRule": "none"}]
+	var definitions: Array = [{"key": "rounds", "mode": "sum", "reset": "none"}, {"key": "kills", "mode": "sum", "reset": "none"}, {"key": "best_score", "mode": "max", "reset": "none"}]
 	var operation := "1760000000000:11111111-1111-4111-8111-111111111111"
 	var lock_path := ProjectSettings.globalize_path(store.path + ".lock")
 	check.call(DirAccess.make_dir_absolute(lock_path) == OK, "Competing process owns queue lock")
@@ -21,6 +21,10 @@ static func run(tree: SceneTree, check: Callable) -> void:
 	check.call(store.read().pending.updates[0].value == 1, "Local mutations cannot change persisted original batch")
 	check.call(not store.confirm("other-id"), "Wrong completion cannot release pending batch")
 	check.call(store.confirm(operation) and store.read().rounds == 1 and store.read().kills == 2, "Confirm preserves later aggregate")
+	var before_daily: Dictionary = store.read()
+	definitions[0].reset = "daily"
+	check.call(not store.reserve(operation, definitions) and store.read() == before_daily, "Daily reset refuses a new intent without changing the queued aggregate")
+	definitions[0].reset = "none"
 	definitions[0].mode = "last"
 	check.call(not store.reserve(operation, definitions), "Unexpected Dashboard mode refuses new intent")
 	var file := FileAccess.open(store.path, FileAccess.WRITE)
