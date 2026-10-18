@@ -7,7 +7,8 @@ func _ready() -> void:
 	var page: VBoxContainer = StormUI.page(self, "Hello / current SDK", "The same explicit integrations used by Seagull Storm, without starting a game.")
 	var card: VBoxContainer = StormUI.scroll_card(page)
 	_status = StormUI.label(card, "Import your project config first. Existing identity and unresolved originals stay protected.", 15)
-	StormUI.button(card, "Connect / restore existing guest", _connect)
+	StormUI.button(card, "Connect / restore existing identity", _connect)
+	StormUI.button(card, "Create a new guest explicitly", func(): await _connect(true))
 	card.add_child(preload("res://scripts/ui/gift_redemption_demo.gd").new())
 	card.add_child(preload("res://scripts/ui/feature_lab.gd").new())
 	card.add_child(preload("res://scripts/ui/player_values_demo.gd").new())
@@ -15,9 +16,9 @@ func _ready() -> void:
 	statistics.example = "hello"
 	card.add_child(statistics)
 
-func _connect() -> void:
+func _connect(create_guest: bool = false) -> void:
 	var manager: Node = get_node("/root/GameManager")
-	if await manager.authenticate("guest"):
+	if await manager.authenticate("guest" if create_guest else "restore"):
 		manager.enter_online()
 		_status.text = "Existing player: " + get_node("/root/Horizon").getCurrentUser().userId + ". Read current state before confirming any action."
 	else:

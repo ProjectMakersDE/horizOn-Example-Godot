@@ -91,6 +91,8 @@ func _run() -> void:
 	check(is_instance_valid(lab._chat_screen), "Game reuses the existing plain-text Chat UI")
 	await lab._chat_screen._open()
 	check(lab._chat_screen._status.text.contains("NOT_SUPPORTED"), "Actual Chat open preserves PHP unsupported; no polling or fake hosted chat")
+	h.auth.signOut()
+	check(not await manager.authenticate("restore"), "Hello restore without saved identity never creates a replacement guest")
 	game_panel.queue_free(); guide.queue_free(); lab.queue_free(); hello.queue_free()
 	root.get_node("AudioManager").shutdown()
 	await process_frame
