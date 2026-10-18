@@ -18,7 +18,49 @@
     "shared_objects.gd": {
       "feature": "shared-objects",
       "sha256": "a983c91129a7bee231f9e124344f581c5845e685de6d8c347c203bb9bb442459"
+    },
+    "player_values.gd": {
+      "feature": "player-values",
+      "sha256": "2dcb3767c96315beb055f3a038ad38c0916b3dc366c7789d67b05bd97068a285",
+      "dashboardSource": "742180e7710e5648db17ed1b64b14a59686165c1"
+    },
+    "statistics.gd": {
+      "feature": "statistics",
+      "sha256": "30f4348737ab16f9ee765d27b43f868e7dada64b812535cf3757b2494386aca9",
+      "dashboardSource": "742180e7710e5648db17ed1b64b14a59686165c1"
+    },
+    "achievements.gd": {
+      "feature": "achievements",
+      "sha256": "43604919dc0964908e8639d22204acd5734417e96ea6bdea2fa84407297aa5a0",
+      "dashboardSource": "742180e7710e5648db17ed1b64b14a59686165c1"
+    },
+    "inbox.gd": {
+      "feature": "inbox",
+      "sha256": "2f21678947d004d849a833a812b72c89fe7995e9961f44bfcb8abcd2c6b0c86b",
+      "dashboardSource": "742180e7710e5648db17ed1b64b14a59686165c1"
+    },
+    "friends.gd": {
+      "feature": "friends",
+      "sha256": "b7c052f311e1d6fafa05aeecaf076c18e11d9441de1d5f5b2014ede2e37516e9",
+      "dashboardSource": "742180e7710e5648db17ed1b64b14a59686165c1"
+    },
+    "chat.gd": {
+      "feature": "chat",
+      "sha256": "79c5fb7b0d8574a3da34ce30f405d77de891b40257572dc4a1f269a25b30629b",
+      "dashboardSource": "742180e7710e5648db17ed1b64b14a59686165c1"
     }
   },
-  "commentOnlyNativeEquivalence": "Prior native3534/3535: identical executable lines; only Items replay explanation changed"
+  "commentOnlyNativeEquivalence": "Prior native3534/3535: identical executable lines; only Items replay explanation changed",
+  "additionalGuides": {
+    "features": [
+      "player-values",
+      "statistics",
+      "achievements",
+      "inbox",
+      "friends",
+      "chat"
+    ],
+    "sourceManifestSha256": "120d0bb9a7ace8062f798fd7eba731df34826514c3ebedf7eabc302156ac2d32",
+    "native": "Full file compilation and actual Statistics O1/O2 HTTP race; hosted Develop timing remains separate"
+  }
 }
