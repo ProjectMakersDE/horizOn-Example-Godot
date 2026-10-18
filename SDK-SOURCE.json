@@ -1,13 +1,13 @@
 {
   "repository": "ProjectMakersDE/horizOn-SDK-Godot",
-  "commit": "1bf60decc35712daa531f29a44573ffbf94b2b3b",
+  "commit": "ea0393590c16c761151e664551021c567bbad333",
   "source": "develop snapshot; no release",
   "files": {
     "addons/horizon_sdk/LICENSE": {
       "sha256": "163f45abdd5603ac7ff97993e812b7d7ba0e66c88c48d7caba061942d6d510dd"
     },
     "addons/horizon_sdk/README.md": {
-      "sha256": "c4a9d0f4329271df32552e9768a852ebfddba715ad33cf6c615af1f0d401116d"
+      "sha256": "ba0a3b85dda486209bc33bec977218a7dbdb82b060fd47b6a68ef5519964cbe0"
     },
     "addons/horizon_sdk/core/achievements.gd": {
       "sha256": "aae6295319285f104d5c7306a3df3dd3232d91161136a7b7cf6d3eab46caa359"
@@ -142,10 +142,10 @@
       "sha256": "c7175bc58a649c06d4137b7f7679c94f72f59b28d0b5439933e6be211e598b8e"
     },
     "addons/horizon_sdk/examples/features/README.md": {
-      "sha256": "2e655ec21b207d987ba973c3f38781f7b18137727b62c7f36235a257d324b32d"
+      "sha256": "555be5759b2beafa59caed144e6691e2ca246c442c97ef7aa72629d32fe6b8a5"
     },
     "addons/horizon_sdk/examples/features/achievements_example.gd": {
-      "sha256": "5b45e8bb156b8f7eb7fb7c1314c2bcc63e3efd1a322f9265ff0f9882cbcb0505"
+      "sha256": "a165425bac5bdaca4b682ad4765ceb74bf4e6f17ec92a9bd30b727028b95f8ac"
     },
     "addons/horizon_sdk/examples/features/auth_example.gd": {
       "sha256": "36432b4c3c140bfe8f62e353af191c290951d957437f134498e205c618772250"
