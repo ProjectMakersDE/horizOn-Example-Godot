@@ -423,5 +423,8 @@
     "addons/horizon_sdk/utils/logger.gd.uid": {
       "sha256": "79a14bc808577b2f68ad654840b03ccf9701ea8f3a69db1aa6b878eec5cd3bfc"
     }
+  },
+  "configurationTemplates": {
+    "addons/horizon_sdk/horizon_config.tres": "config/official-sdk/horizon_config.tres.example"
   }
 }
