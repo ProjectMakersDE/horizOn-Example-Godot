@@ -1,0 +1,24 @@
+{
+  "sdk": "1bf60decc35712daa531f29a44573ffbf94b2b3b",
+  "dashboardBase": "bfa5b2dfc0b4b882d73e34f33cffd74a61193ce9",
+  "sourceManifestSha256": "72d4bfe1cbd7b34d76d0ec6f98df9916560262dba5fa68e2dfce3256d5789939",
+  "files": {
+    "groups.gd": {
+      "feature": "groups",
+      "sha256": "a34705e39cf817b7d417f431f64fdb3afdc95a417849cd07f86d4ea8b0b8b293"
+    },
+    "items.gd": {
+      "feature": "items",
+      "sha256": "827f0c7305f36d7c9d5f30b8011ab5d1eb2489d5ca25af5e25dd34fe590d4015"
+    },
+    "matches.gd": {
+      "feature": "matches",
+      "sha256": "2a5dc21497216c18468dc26044dc1c55222e7916f82a27b997d2f5ec2eb6b974"
+    },
+    "shared_objects.gd": {
+      "feature": "shared-objects",
+      "sha256": "a983c91129a7bee231f9e124344f581c5845e685de6d8c347c203bb9bb442459"
+    }
+  },
+  "commentOnlyNativeEquivalence": "Prior native3534/3535: identical executable lines; only Items replay explanation changed"
+}

@@ -1,6 +1,6 @@
 # horizOn Example — Godot
 
-**Seagull Storm** is a compact survival roguelike demonstrating the core [horizOn](https://horizon.pm) SDK managers. It runs immediately in offline practice and adds optional cloud features when configured. This source revision targets and is tested with Godot4.7.
+**Seagull Storm** is a compact survival roguelike demonstrating the core [horizOn](https://horizon.pm) SDK managers. It runs immediately in offline practice and adds optional cloud features when configured. This source revision targets and is tested with Godot 4.7.
 
 ## Features Demonstrated
 
@@ -15,7 +15,7 @@ online caches are scoped to the signed-in player and never import practice score
 | Cloud Save | Player-bound JSON progress, local cache, sync after run/purchase | Authenticated loopback load/save; writes pause if initial cloud load fails |
 | Remote Config | Game balance and validated-run defaults | Loopback scalar config and built-in gameplay defaults |
 | News | SDK lab and pause menu feed | Current SDK `message` model parsed against loopback |
-| Gift Codes | Validate then redeem, coins and cosmetic unlocks | Synthetic loopback redemption only |
+| Gift Codes | Read-only V2 preparation, explicit confirmation, durable original tuple and exact Int64 sequence strings | Synthetic loopback lost responses/restart/same-original replay; server rewards never alter practice coins |
 | Feedback | Explicit in-game title/message/category submission | Synthetic loopback request only |
 | User Logs | Run summary; explicit diagnostic button | Synthetic loopback request only |
 | Crash Reporting | Session registration, breadcrumbs and custom keys | Synthetic loopback session; no forced crash |
@@ -25,6 +25,13 @@ online caches are scoped to the signed-in player and never import practice score
 | Player Values | Read balances/offers, explicit purchase and +1 adjustment, persistent original-intent retry | Native loopback transport plus immutable-intent/restart/project/corruption guards; balances stay separate from practice coins |
 | Statistics | Completed online rounds/kills/best-score, explicit snapshot/report, durable original-batch retry | Native loopback booked/lost-response/replay and project/player/restart/int64 guards; practice stays local |
 | Email Sending | Optional configured template queue to own email account and email status lookup | Synthetic loopback only; no real email sent in QA |
+| Achievements | Current definitions/progress, explicit manual unlock and legacy reward reconciliation | Actual official sample methods; no local achievement reward addition |
+| Friends / Groups | Current retained relationships/memberships, explicit pages and original revision/request actions | Durable local original blocks replacement through uncertainty and configuration changes |
+| Inbox | Typed source references, current reward inspection and exact-entry claim | Official claim recipe; no historical item/value recreation |
+| Inventory | Current instances, catalog pages, offer purchase, equip/deltas/discard | Official original-intent sample, current-state responses and retained data after lowering |
+| Marketplace | All ten app routes, listing read/review, create/buy/cancel and protected returns | Stable project UUID; official durable journal/lease and Inventory/Values/Market reconciliation |
+| Matches | Current ledger/detail, lifecycle actions and minimal original pending ranked sources | Server revisions/bytes retained; no automatic move, fresh replacement run or historical result reconstruction |
+| Shared Objects / Chat | Current collection pages and opaque bytes; explicit channel subscription/plain-text send | Official sample bounds and current capabilities; account keys never enter the game |
 
 The SDK lab is optional and disabled for offline practice. Every external write in
 that panel requires its visible in-game action. An anonymous player without an
@@ -52,7 +59,7 @@ keep the existing gameplay values.
 ### Step 1 — Clone and Open
 
 1. Clone this repository
-2. Open the project in **Godot4.7**
+2. Open the project in **Godot 4.7**
 
 ### Step 2 — Optional Online Setup: Account and API Key
 
@@ -87,14 +94,20 @@ Press **F5** or click **Run Project** in the Godot editor.
 
 ## SDK Source and Verification
 
-Embedded SDK: complete tested Develop source at `098719d36eb60d3ff8486c81590e55a4c2bd8c50`, including Player Values, Statistics, Inbox, protected anonymous-identity restoration and realtime. This source pin does not create a new SDK release. TASK-1004 merges the two previously unpublished Seagull Storm improvements with current upstream SDK updates; the existing primary checkout and its two editor changes were separately backed up, then reconciled using portable resource paths.
+Embedded SDK: complete merged Develop snapshot `1bf60decc35712daa531f29a44573ffbf94b2b3b`, including all current compact feature contracts and configurable-limit readers. `SDK-SOURCE.json` records all140 official file hashes, with the blank configuration template relocated to `config/official-sdk/horizon_config.tres.example` so imported personal configuration stays ignored; `python3 tests/verify_sdk_source.py` checks them. Generated Godot UID/import companions are separate. This pin creates no SDK release. Existing primary-checkout commits and editor changes remain separately backed up and untouched.
+
+The current feature lab reuses the official SDK examples. No network action runs when a panel or Hello scene opens. Choose a read, inspect its state, then explicitly confirm a write. Empty definitions and unsupported capabilities remain visible. Marketplace asks for the stable project UUID once per API project key; regional host changes do not replace pending ownership. Pending originals, expired operations and migration refusals require reconciliation instead of a new identifier.
+
+Group member pages accept the current configured size; Group/Friends pending timestamps may be unknown. Retained lists and exact metadata remain readable after lowering current limits. Match state accepts its physical 14,648 KiB envelope, Shared Objects its 1 MiB envelope; those technical shapes are separate from SystemConfig product quotas. The minimal pending Match reference permits only recovery of its original final revision/run, without reconstructing historical items or results.
 
 The Player Values action opens even offline to explain its guarded state. Online, read the snapshot and offers, inspect costs/rewards, then choose a purchase or an enabled +1 adjustment. One immutable project/player-bound command is saved before HTTP. Guest connection restores a saved anonymous identity first and fails closed if that restore is temporarily unavailable. A lost response or `OPERATION_EXPIRED` retains its original ID and payload; a new click cannot replace it. An unreadable pending file blocks replacement and remains available for reconciliation. Server state replaces the displayed balances; no local reward delta is added. Before a new purchase the panel fetches offers again; changed offers require another explicit confirmation. Persistence binds to project/player across regional host changes, while request fences also include host/session. A definitive no-write refusal may release only a first-send command with an authoritative state; a durable attempt marker and actual transport-event count protect older attempts and internal retries. The API purchases an offer key at current server conditions, so this client refresh is not a transactional quoted-price guarantee.
 
 On macOS with Godot 4.7:
 
 ```bash
+python3 tests/verify_sdk_source.py
 python3 tests/run_checks.py
+python3 tests/run_feature_lab_checks.py
 python3 tests/run_checks.py --render
 Godot --headless --editor --path . --import --quit
 Godot --headless --path . --export-release macOS exports/SeagullStorm.zip
@@ -149,6 +162,8 @@ the current server definitions after an explicit read; counters must retain the
 same intended meaning. Catalog changes and expired intents need operator/game
 reconciliation; the sample offers no discard/rebook shortcut or quoted-time rule.
 
+Open `examples/hello_features/hello_features.tscn` and press **F6** for the complete current Hello: connect/restore explicitly, choose an official sample read, then confirm one reviewed action. It shares the protected Gift V2 and feature-lab integrations with the game. `examples/public_marketplace/marketplace_demo.gd` is the unchanged public quickstart: one explicit listing read and one explicit reviewed purchase through the SDK's durable helper.
+
 Open `examples/hello_statistics/hello_statistics.tscn` and press **F6** for a minimal
 standalone Hello. It makes no automatic requests. Connect/restore the guest, queue
 an explicit sample round, then read/report. It uses the same protected authentication
@@ -188,7 +203,7 @@ The integration lives in `scripts/systems/validated_run_recorder.gd` and is used
 
 **Availability.** The integration only activates when the bundled SDK has
 `Horizon.validatedActions` (the first horizOn SDK for Godot release that ships Validated
-Actions, TASK-883). The project bundles SDK 1.8.0. Select a board and request validation in the hub;
+Actions, TASK-883). The project bundles the exact Develop snapshot described above. Select a board and request validation in the hub;
 a validated-only board forces validation. A standard online run uses ordinary submit.
 
 ### Dashboard Setup
@@ -364,3 +379,13 @@ project.godot          # Project configuration
 
 [MIT](LICENSE). The bundled Press Start 2P font is licensed under the SIL Open Font License 1.1,
 see [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).
+
+### Integrated native checkpoint (18 October 2026)
+
+The complete local Godot4.7 gate passed on the current feature source: offline gameplay/cutout simulation,64 actual SDK loopback requests,26 separate native feature-lab requests, and rendered Hello/lab layouts at960×540 and1440×810. The macOS export contains both arm64 andx86_64 code and was actually started for isolated gameplay/cutout checks. Gift V2 preserves its exact decimal sequence across uncertainty/restart, social CAS originals remain protected and Inbox/Marketplace show current references rather than recreating old items. A standalone Hello restore with no saved identity sends no signup; creating a guest is a separate explicit action.
+
+These are local native/loopback proofs. Hosted two-client/restart acceptance against the integrated Develop deployment remains a separate controlled gate; no hosted test result is implied here.
+
+Group create/update arguments carry the final data argument as an original JSON string, for example `"{\"epsilon\":0.000001}"`. The Groups codec validates that string independently of integer-only revision fields. It preserves decimal lexemes, exact integers and string escapes in the saved original; the argument editor does not round arbitrary Group data through native JSON dictionaries. Existing programmatic Dictionary arguments remain accepted.
+
+Final native checkpoint: the current feature-input implementation passed the complete26-request game/Hello consumer check and all four public read-guide compilations (3534). The same current source passed the full64-request game fixture, actual rendered UI, universal macOS export and exported-player gameplay/cutout tests (3537); both arm64 and x86_64 Mach-O architectures were verified. The subsequent Items-guide change modifies comments only, with executable lines independently equal. Hosted Develop two-client/restart acceptance is still pending.

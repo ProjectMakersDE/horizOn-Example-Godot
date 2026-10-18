@@ -4,6 +4,8 @@ extends RefCounted
 
 signal statistics_loaded(snapshot: Dictionary)
 signal statistics_updated(snapshot: Dictionary)
+## Emitted before HTTP because a committed reward can outlive a lost response.
+signal statistics_updating()
 signal definitions_loaded(catalog: Dictionary)
 signal statistics_failed(error: String, code: String)
 
@@ -71,8 +73,9 @@ func getDefinitions() -> Dictionary:
 func updateStatistics(updates: Array, operation_id: String) -> Dictionary:
 	_syncScope()
 	if not _hasSession(): return _fail("Player session required", "SESSION_REQUIRED")
-	if _operationRegex.search(operation_id) == null or updates.is_empty() or updates.size() > 100:
-		return _fail("A timestamp:UUID and 1 to 100 updates are required", "INVALID_REQUEST")
+	# Catalog limits belong to the server, including replays after a limit reduction.
+	if _operationRegex.search(operation_id) == null or updates.is_empty():
+		return _fail("A timestamp:UUID and at least one update are required", "INVALID_REQUEST")
 	var keys: Dictionary = {}
 	for update: Variant in updates:
 		if not update is Dictionary or not update.get("key") is String or _keyRegex.search(update["key"]) == null:
@@ -85,6 +88,8 @@ func updateStatistics(updates: Array, operation_id: String) -> Dictionary:
 	var epoch: int = _cacheEpoch
 	var body: Dictionary = {"userId": scope["user"], "operationId": operation_id, "updates": updates.duplicate(true)}
 	_lastOperationId = operation_id
+	statistics_updating.emit()
+	if not _sameScope(scope, epoch): return _fail("Request context changed before updating statistics", _lastErrorCode)
 	var response: HorizonNetworkResponse = await _http.postAsync(ENDPOINT, body, true)
 	if not _sameScope(scope, epoch): return _fail("Request context changed while updating statistics", _lastErrorCode)
 	if not response.isSuccess: return _networkFailure(response)
@@ -165,7 +170,7 @@ func _acceptCatalog(data: Dictionary) -> bool:
 	var definitions: Variant = data.get("definitions")
 	if definitions == null:
 		return int(version) == _version
-	if not definitions is Array or definitions.size() > 100: return false
+	if not definitions is Array: return false
 	var normalized: Array = definitions.duplicate(true)
 	var keys: Dictionary = {}
 	for definition: Variant in normalized:

@@ -25,6 +25,7 @@ func _ready() -> void:
 	StormUI.button(row3, "Email Sending", _email_status)
 	StormUI.button(self, "Player Values", _player_values)
 	StormUI.button(self, "Statistics", _statistics)
+	StormUI.button(self, "Current SDK feature lab", _feature_lab)
 	output = StormUI.label(self, "Run summaries use User Logs. Crash Reporting records navigation, waves and upgrades. Remote Config tunes gameplay. Profile, validated values and evidence use SDK 1.8.0.", 16)
 	if GameManager.practice_mode:
 		for row_node in [row, row2, row3]:
@@ -103,47 +104,8 @@ func _save() -> void:
 	_done(GameManager.cloud_status)
 
 func _gift() -> void:
-	var dialog := _dialog("Redeem a gift code")
-	var field := StormUI.input(dialog, "Gift code")
-	var info := StormUI.label(dialog, "Validate first, then redeem. Cosmetic unlocks appear in your player profile.", 15, StormUI.MUTED)
-	var validated_code := [""]
-	var redeem := StormUI.button(dialog, "Redeem", func():
-		if field.text.strip_edges() != validated_code[0] or validated_code[0].is_empty():
-			return
-		if not GameManager.can_mutate_progress():
-			info.text = "Wait for the initial cloud save load before redeeming rewards."
-			return
-		var generation := GameManager.state_generation()
-		var owner := GameManager.state_owner()
-		info.text = "Redeeming…"
-		var requested_code: String = validated_code[0]
-		validated_code[0] = ""
-		var result: Dictionary = await Horizon.giftCodes.redeem(requested_code)
-		if generation != GameManager.state_generation() or owner != GameManager.state_owner():
-			return
-		if result.get("success", false):
-			if is_instance_valid(info):
-				info.text = "Gift redeemed. Unlocks: " + str(result.get("grantedUnlocks", []))
-			var reward: Variant = JSON.parse_string(str(result.get("giftData", "")))
-			if reward is Dictionary:
-				GameManager.save_data.coins += maxi(int(reward.get("coins", 0)), 0)
-				GameManager.coins_changed.emit(GameManager.save_data.coins)
-				await GameManager.save_data_to_cloud()
-		elif is_instance_valid(info):
-			info.text = "Redemption refused: " + str(result.get("message", "unavailable"))
-		validated_code[0] = ""
-	)
-	redeem.disabled = true
-	field.text_changed.connect(func(_text): redeem.disabled = true)
-	StormUI.button(dialog, "Validate code", func():
-		var requested_code := field.text.strip_edges()
-		var value: Variant = await Horizon.giftCodes.validate(requested_code)
-		if not is_instance_valid(info) or not is_instance_valid(field):
-			return
-		validated_code[0] = requested_code if value == true and field.text.strip_edges() == requested_code else ""
-		redeem.disabled = validated_code[0].is_empty()
-		info.text = "Code valid — ready to redeem." if value == true else "Code invalid or validation unavailable."
-	)
+	var dialog := _dialog("Gift code / V2")
+	dialog.add_child(preload("res://scripts/ui/gift_redemption_demo.gd").new())
 
 func _feedback() -> void:
 	var dialog := _dialog("Send feedback to your project")
@@ -268,3 +230,7 @@ func _player_values() -> void:
 func _statistics() -> void:
 	var dialog := _dialog("Session statistics")
 	dialog.add_child(preload("res://scripts/ui/statistics_demo.gd").new())
+
+func _feature_lab() -> void:
+	var dialog := _dialog("SDK feature lab")
+	dialog.add_child(preload("res://scripts/ui/feature_lab.gd").new())
