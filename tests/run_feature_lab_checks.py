@@ -6,6 +6,7 @@ import hashlib
 import json
 import os
 from pathlib import Path
+import runpy
 import shutil
 import threading
 import uuid
@@ -126,8 +127,7 @@ class Fixture(BaseHTTPRequestHandler):
         self.send_response(status);self.send_header("Content-Type","application/json");self.send_header("Content-Length",str(len(raw)));self.end_headers();self.wfile.write(raw)
 
 def main():
-    source=json.loads((native.ROOT/'SDK-SOURCE.json').read_text())
-    for path,entry in source['files'].items(): assert hashlib.sha256((native.ROOT/path).read_bytes()).hexdigest()==entry['sha256'],path
+    runpy.run_path(str(native.ROOT/'tests/verify_sdk_source.py'),run_name='__main__')
     guide=json.loads((native.ROOT/'examples/public_marketplace/SOURCE.json').read_text())
     assert hashlib.sha256((native.ROOT/'examples/public_marketplace/marketplace_demo.gd').read_bytes()).hexdigest()==guide['sha256']
     native.QA=native.ROOT/'tmp/feature-lab-project'
