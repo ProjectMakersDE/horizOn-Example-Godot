@@ -35,8 +35,16 @@ func _run() -> void:
 	button(panel, "Save this reviewed trusted challenge").pressed.emit()
 	check(recipe.inspect().get("data", {}).get("phase") == "prepared", "Actual UI saves trusted public challenge without account credentials")
 	var second: Node = preload("res://scripts/ui/defense_recipe_panel.gd").new(); root.add_child(second); await process_frame
+	# Independent SDK readers model two clients sharing the same pending file.
+	# A single manager queues identical reads and correctly returns REFRESH_NOT_DUE;
+	# do not disable that cadence merely to exercise the storage CAS.
+	var first_reader: HorizonSharedObjects = h.sharedObjects
+	var second_reader: HorizonSharedObjects = HorizonSharedObjects.new()
+	second_reader.initialize(h._http, h.auth)
 	button(panel, "Read original defense and start").pressed.emit()
+	h.sharedObjects = second_reader
 	button(second, "Read original defense and start").pressed.emit()
+	h.sharedObjects = first_reader
 	var deadline: int = Time.get_ticks_msec() + 10000
 	while recipe.inspect().get("data", {}).get("phase") != "playing" and Time.get_ticks_msec() < deadline: await create_timer(0.01).timeout
 	check(recipe.inspect().get("data", {}).get("phase") == "playing", "Actual UI reads original object and starts real SDK run")
