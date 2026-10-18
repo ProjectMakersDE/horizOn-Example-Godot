@@ -2,9 +2,9 @@ name: Game and SDK Tests
 
 on:
   push:
-    branches: [master]
+    branches: [master, develop]
   pull_request:
-    branches: [master]
+    branches: [master, develop]
 
 jobs:
   game-tests:
@@ -17,7 +17,14 @@ jobs:
           version: 4.7.0
           use-dotnet: false
           include-templates: false
+      - name: Verify the complete pinned official SDK source
+        run: python3 tests/verify_sdk_source.py
       - name: Run isolated gameplay and loopback transport tests
         env:
           GODOT_BIN: godot
         run: python3 tests/run_checks.py
+
+      - name: Run current Hello, public guide and offline Develop gates
+        env:
+          GODOT_BIN: godot
+        run: python3 tests/run_feature_lab_checks.py

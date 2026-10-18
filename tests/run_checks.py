@@ -28,6 +28,9 @@ STATISTICS_POSTS = 0
 STATISTICS_REVISION = 0
 STATISTICS_VALUES = {"rounds": 0, "kills": 0, "best_score": 0}
 STATISTICS_RECEIPTS: dict = {}
+GIFT_COUNT = 9007199254740993
+GIFT_REDEEMS = 0
+GIFT_ORIGINALS: dict = {}
 QA_RUN_ID = uuid.uuid4().hex[:12]
 QA_DATA_NAME = f"horizon-task913-godot-qa-{QA_RUN_ID}"
 
@@ -45,7 +48,7 @@ class Fixture(BaseHTTPRequestHandler):
         self.handle_fixture()
 
     def handle_fixture(self):
-        global VALUE_PURCHASES, VALUE_BALANCE, VALUE_REVISION, VALUE_OFFERS, VALUE_ADJUSTS, STATISTICS_POSTS, STATISTICS_REVISION
+        global VALUE_PURCHASES, VALUE_BALANCE, VALUE_REVISION, VALUE_OFFERS, VALUE_ADJUSTS, STATISTICS_POSTS, STATISTICS_REVISION, GIFT_COUNT, GIFT_REDEEMS
         path = urlparse(self.path).path
         raw = self.rfile.read(int(self.headers.get("Content-Length", "0")))
         body = json.loads(raw) if raw else {}
@@ -169,8 +172,29 @@ class Fixture(BaseHTTPRequestHandler):
             result = {"translations": {"seagull.play": "Fixture spielen"}, "total": 1}
         elif path.endswith("gift-codes/validate"):
             result = {"valid": True}
+            if body.get("includeIntent"):
+                assert body.get("userId") == "qa-player"
+                if body.get("code") == "QA-MIGRATION":
+                    status, result = 409, {"code": "MIGRATION_REQUIRED", "message": "Original source needs studio reconciliation"}
+                else:
+                    result.update(protocolVersion=2, campaignId="abcdefab-cdef-4abc-8def-abcdef123456", expectedCount=str(GIFT_COUNT), configRevision="9223372036854775806")
         elif path.endswith("gift-codes/redeem"):
-            result = {"success": True, "giftData": '{"coins":10}', "grantedUnlocks": ["seagull"]}
+            assert body.get("protocolVersion") == 2 and isinstance(body.get("expectedCount"), str) and isinstance(body.get("configRevision"), str)
+            assert body.get("campaignId") == "abcdefab-cdef-4abc-8def-abcdef123456" and body.get("configRevision") == "9223372036854775806"
+            identity = (body["campaignId"], body["userId"], body["expectedCount"])
+            replayed = identity in GIFT_ORIGINALS
+            if not replayed:
+                assert int(body["expectedCount"]) == GIFT_COUNT
+                GIFT_ORIGINALS[identity] = body
+                GIFT_COUNT += 1
+            else:
+                assert GIFT_ORIGINALS[identity] == body, "V2 retries must preserve the full original tuple"
+            GIFT_REDEEMS += 1
+            if GIFT_REDEEMS <= 2:
+                status, result = 503, {"code": "UNAVAILABLE", "message": "Response lost after source commit"}
+            else:
+                result = {"success": True, "giftData": None if replayed else '{"coins":10}', "grantedUnlocks": [], "grantedValues": [], "playerValues": None,
+                          "replayed": replayed, "alreadyApplied": replayed, "campaignId": body["campaignId"], "count": str(GIFT_COUNT), "configRevision": body["configRevision"]}
         elif path.endswith("user-logs/create"):
             result = {"id": "qa-log", "createdAt": "2026-10-02T00:00:00Z"}
         elif path.endswith("crash-reports/session"):
@@ -223,6 +247,9 @@ def main():
     assert "CUTOUT_ANIMATION_SMOKE_PASS" in animation
     offline = run("--headless", "--verbose", "--script", "tests/offline_smoke.gd")
     assert "OFFLINE_SMOKE_PASS" in offline
+    if "--offline-only" in sys.argv:
+        print("OFFLINE_ONLY_CHECKS_PASS: actual gameplay and terminal audio ownership.")
+        return
     with ThreadingHTTPServer(("127.0.0.1", 0), Fixture) as server:
         thread = threading.Thread(target=server.serve_forever, daemon=True)
         thread.start()
@@ -240,6 +267,10 @@ def main():
     saves = [json.loads(r["body"]["saveData"])["coins"] for r in REQUESTS if r["path"].endswith("cloud-save/save")]
     assert saves == [77, 67, 42], f"Full cloud snapshots arrive in order and no failed-ticket rewards leak: {saves}"
     assert not any(r["path"].endswith("user-management/signup") for r in REQUESTS), "Failed restore must never create a replacement guest"
+    gifts = [r["body"] for r in REQUESTS if r["path"].endswith("gift-codes/redeem")]
+    assert len(gifts) == 4 and gifts[0] == gifts[1] == gifts[2], "Lost Gift response and restart retain the exact V2 original"
+    assert len(GIFT_ORIGINALS) == 2 and GIFT_COUNT == 9007199254740995
+    assert gifts[0]["expectedCount"] == "9007199254740993" and gifts[3]["expectedCount"] == "9007199254740994", "Int64 sequence strings never round"
     purchases = [r["body"] for r in REQUESTS if r["path"].endswith("player-values/purchase")]
     assert len(purchases) == 3 and len({r["operationId"] for r in purchases}) == 1, "Retries preserve the original purchase ID"
     assert all(r["offerKey"] == "pack" and r["userId"] == "qa-player" for r in purchases)

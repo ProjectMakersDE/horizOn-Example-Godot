@@ -54,6 +54,14 @@ var news: HorizonNews
 var giftCodes: HorizonGiftCodes
 var playerProfile: HorizonPlayerProfile
 var statistics: HorizonStatistics
+var achievements: HorizonAchievements
+var sharedObjects: HorizonSharedObjects
+var matches: HorizonMatches
+var chat: HorizonChat
+var items: HorizonItems
+var marketplace: HorizonMarketplace
+var groups: HorizonGroups
+var friends: HorizonFriends
 var validatedActions: HorizonValidatedActions
 var feedback: HorizonFeedback
 var userLogs: HorizonUserLogs
@@ -168,6 +176,23 @@ func _initializeManagers() -> void:
 	# Statistics
 	statistics = HorizonStatistics.new()
 	statistics.initialize(_http, _logger, auth)
+	achievements = HorizonAchievements.new()
+	achievements.initialize(_http, auth, inbox, statistics, playerValues)
+	sharedObjects = HorizonSharedObjects.new()
+	sharedObjects.initialize(_http, auth)
+	matches = HorizonMatches.new()
+	matches.initialize(_http, auth, validatedActions, realtime)
+	chat = HorizonChat.new()
+	add_child(chat)
+	chat.initialize(_http, auth, realtime)
+	items = HorizonItems.new()
+	items.initialize(_http, auth, playerValues)
+	marketplace = HorizonMarketplace.new()
+	marketplace.initialize(_http, auth)
+	groups = HorizonGroups.new()
+	groups.initialize(_http, auth)
+	friends = HorizonFriends.new()
+	friends.initialize(_http, auth)
 
 	# Remote Config
 	remoteConfig = HorizonRemoteConfig.new()
@@ -189,6 +214,7 @@ func _initializeManagers() -> void:
 	giftCodes = HorizonGiftCodes.new()
 	giftCodes.initialize(_http, _logger, auth)
 	giftCodes.setPlayerProfile(playerProfile)
+	giftCodes.setPlayerValues(playerValues)
 
 	# Feedback
 	feedback = HorizonFeedback.new()

@@ -108,4 +108,19 @@ func _run() -> void:
 	for child in audio.get_children():
 		_check(not child is AudioStreamPlayer or child.stream == null, "Late scene callbacks cannot restart shutdown audio")
 	await create_timer(0.15).timeout
+	_check(audio.get_child_count() == 0, "Terminal audio shutdown releases its owned player nodes")
+	# stop() schedules AudioServer fade-out/deletion on the mixer. Native process
+	# exit must wait for those actual references, not just a fixed number of frames.
+	var owned_paths := ["res://assets/audio/music/music_menu.ogg", "res://assets/audio/music/music_boss.ogg", "res://assets/audio/sfx/sfx_enemy_hit.ogg"]
+	var deadline := Time.get_ticks_msec() + 3000
+	while Time.get_ticks_msec() < deadline:
+		var pending := false
+		for path in owned_paths:
+			pending = pending or ResourceLoader.has_cached(path)
+		if not pending:
+			break
+		await process_frame
+	for path in owned_paths:
+		_check(not ResourceLoader.has_cached(path), "Stopped mixer releases stream resource: " + path)
+	print("AUDIO_SHUTDOWN_DRAIN: driver=" + AudioServer.get_driver_name() + " lastMixSeconds=" + str(AudioServer.get_time_since_last_mix()))
 	call_deferred("quit", 0 if _failures.is_empty() else 1)

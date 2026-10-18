@@ -113,7 +113,7 @@ func authenticate(mode: String, email: String = "", password: String = "", displ
 		if generation != _navigation_generation:
 			return _auth_complete(false)
 		# A transient restore failure must not replace an identity owning pending value operations.
-		if not ok and not had_identity:
+		if not ok and not had_identity and mode != "restore":
 			ok = await Horizon.auth.signUpAnonymous(display_name if not display_name.is_empty() else "Seagull_%d" % (randi() % 9999))
 	return _auth_complete(ok and generation == _navigation_generation)
 
