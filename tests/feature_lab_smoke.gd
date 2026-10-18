@@ -56,8 +56,10 @@ func _run() -> void:
 	check(lab.acknowledge_social_original("Friends").success, "Permanently advanced CAS anchor allows explicit reconciliation")
 	check((await lab.execute("Friends", "change_relationship", ["request", W, R+1, ""])).success, "A separate confirmed action uses the reviewed current revision")
 	check((await lab.execute("Groups", "refresh_groups", [])).success, "Current player group ledger loads")
-	check(not (await lab.execute("Groups", "create_group", [R, "Seagulls", "open", {}])).success, "Lost group-create response stays protected")
+	var group_data_json: String = '{"epsilon":0.000001,"exact":9007199254740991,"text":"a\\u0000雪"}'
+	check(not (await lab.execute_input("Groups", "create_group", JSON.stringify({"args": [R, "Seagulls", "open", group_data_json]}))).success, "Actual input dispatch accepts decimal Group data and protects uncertain create")
 	var group_original: Dictionary = lab.inspect_social_original("Groups")
+	check(group_original.success and group_original.data.args[-1] == group_data_json, "Stored Group original preserves decimal/integer/string tokens exactly")
 	lab.queue_free(); await process_frame
 	lab = Lab.new(); root.add_child(lab)
 	check(lab.inspect_social_original("Groups").data == group_original.data, "Original group creation survives screen recreation")

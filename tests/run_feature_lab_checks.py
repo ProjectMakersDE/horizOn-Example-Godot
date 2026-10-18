@@ -71,7 +71,7 @@ add("POST", "/api/v1/app/friends/request", {"userId":U,"targetUserId":V,"expecte
 add("GET", "/api/v1/app/friends", None, friend_state(R+1,[V]))
 add("POST", "/api/v1/app/friends/request", {"userId":U,"targetUserId":W,"expectedRevision":R+1}, friend_state(R+2,[V,W]))
 add("GET", "/api/v1/app/groups", None, groups_state(R))
-add("POST", "/api/v1/app/groups", {"userId":U,"expectedPlayerRevision":R,"name":"Seagulls","description":"","joinMode":"open","data":{}}, {"code":"UNAVAILABLE"},503)
+add("POST", "/api/v1/app/groups", {"userId":U,"expectedPlayerRevision":R,"name":"Seagulls","description":"","joinMode":"open","data":{"epsilon":0.000001,"exact":9007199254740991,"text":"a\u0000雪"}}, {"code":"UNAVAILABLE"},503)
 add("GET", "/api/v1/app/groups", None, groups_state(R+1,True))
 add("GET", "/api/v1/app/inbox", None, inbox())
 add("POST", "/api/v1/app/inbox/claim", {"userId":U,"entryId":ENTRY}, {"code":"UNAVAILABLE"},503)

@@ -11,8 +11,8 @@ const FEATURES: Dictionary = {
 	"Groups": [preload("res://addons/horizon_sdk/examples/features/groups_example.gd"), [
 		["Read own groups", "refresh_groups", []], ["Read exact group", "inspect_group", [""]],
 		["Read one configured member page", "load_member_page", ["", "", null]], ["Read original pending requests", "load_pending", [""]],
-		["Confirm create at original player revision", "create_group", [0, "Seagulls", "open", {}]],
-		["Confirm metadata at original group revision", "update_group", ["", 0, "Seagulls", "", "open", {}]],
+		["Confirm create at original player revision", "create_group", [0, "Seagulls", "open", "{}"]],
+		["Confirm metadata at original group revision", "update_group", ["", 0, "Seagulls", "", "open", "{}"]],
 		["Confirm group action", "confirm_action", ["join", "", 0, "", "", ""]]]],
 	"Inbox": [preload("res://addons/horizon_sdk/examples/features/inbox_example.gd"), [
 		["Read current Inbox", "refresh_inbox", []], ["Claim / retry the same original entry", "claim_selected_entry", [""]]]],
@@ -85,9 +85,14 @@ func _select_feature(index: int) -> void:
 func _select_action(index: int) -> void:
 	_arguments.text = JSON.stringify({"args": FEATURES[feature][1][index][2]}, "  ")
 func _run_selected() -> void:
-	var parsed: Dictionary = HorizonItemModels.parseTransport(_arguments.text)
-	if not parsed.get("args") is Array: _show(_failure("INVALID_ARGUMENTS")); return
-	_show(await execute(feature, FEATURES[feature][1][_action.selected][1], parsed.args))
+	_show(await execute_input(feature, FEATURES[feature][1][_action.selected][1], _arguments.text))
+
+## Group data is an original JSON string inside the argument envelope. Its own
+## lossless Groups codec permits finite decimals/depth independently of counters.
+func execute_input(selected: String, method: String, json: String) -> Dictionary:
+	var parsed: Dictionary = HorizonItemModels.parseTransport(json)
+	if not parsed.get("args") is Array: return _failure("INVALID_ARGUMENTS")
+	return await execute(selected, method, parsed.args)
 
 ## Public boundary also exercised by the native consumer fixture, with the same SDK recipes.
 func execute(selected: String, method: String, arguments: Array) -> Dictionary:
@@ -98,6 +103,9 @@ func execute(selected: String, method: String, arguments: Array) -> Dictionary:
 	var recipe: Node = _recipe(selected, h)
 	if recipe == null: return _failure("PROJECT_BINDING_REQUIRED")
 	var args: Array = arguments.duplicate(true)
+	if selected == "Groups" and method in ["create_group", "update_group"] and args[-1] is String:
+		args[-1] = HorizonGroupJsonData.fromJson(args[-1])
+		if args[-1] == null: return _failure("INVALID_ARGUMENTS")
 	if selected == "Shared Objects" and method in ["create_marker", "update_reviewed_marker"]:
 		var bytes: Variant = HorizonSharedObjectModels.decodeBytes(args[0])
 		if not bytes is PackedByteArray: return _failure("INVALID_ARGUMENTS")
@@ -123,6 +131,11 @@ func _known(selected: String, method: String, args: Array) -> bool:
 		if action[1] != method: continue
 		if args.size() != action[2].size(): return false
 		for index: int in args.size():
+			if selected == "Groups" and method in ["create_group", "update_group"] and index == args.size() - 1:
+				if args[index] is String:
+					if HorizonGroupJsonData.fromJson(args[index]) == null: return false
+				elif not args[index] is Dictionary or HorizonGroupJsonData.fromDictionary(args[index]) == null: return false
+				continue
 			var expected: int = typeof(action[2][index])
 			if expected == TYPE_NIL:
 				if args[index] != null and not HorizonItemModels.integer(args[index]): return false
