@@ -86,6 +86,7 @@ func _execute(command: Dictionary) -> Dictionary:
 	if action == "createGuest":
 		if h.auth.isSignedIn() or not manager._stored_guest_identity().is_empty(): return {"error": "EXISTING_IDENTITY_REQUIRES_RESTORE"}
 		var success: bool = await manager.authenticate("guest", "", "", str(command.get("displayName", "DevelopQA")))
+		if success: manager.enter_online()
 		return {"success": success, "userId": h.auth.getCurrentUser().userId if success else "", "privateAnonymousToken": h.auth.getCurrentUser().anonymousToken if success else ""}
 	if action == "restoreGuest":
 		if h.auth.isSignedIn() or not manager._stored_guest_identity().is_empty(): return {"error": "EXISTING_IDENTITY_REQUIRES_RESTORE"}
@@ -96,6 +97,7 @@ func _execute(command: Dictionary) -> Dictionary:
 		return {"success": success, "userId": h.auth.getCurrentUser().userId if success else ""}
 	if action == "restoreSaved":
 		var success: bool = await manager.authenticate("restore")
+		if success: manager.enter_online()
 		return {"success": success, "userId": h.auth.getCurrentUser().userId if success else ""}
 	if action == "quit": return {"success": true}
 	if not manager.online_available() or not h.auth.isSignedIn(): return {"error": "SESSION_REQUIRED"}
