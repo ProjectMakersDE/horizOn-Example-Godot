@@ -48,7 +48,7 @@ func import_challenge(text: String) -> Dictionary:
 	if not loaded.success: return loaded
 	if not loaded.data.is_empty(): return _fail("PENDING_DEFENSE_REQUIRES_RECONCILIATION")
 	var record: Dictionary = {"scope": _scope(h), "phase": "prepared", "challenge": value.duplicate(true), "run": {}, "moves": []}
-	return _save(h, record) if not _busy else _fail("BUSY")
+	return _save(h, record, {}) if not _busy else _fail("BUSY")
 
 func read_map(collection: String = "defenses") -> Dictionary:
 	return await shared.query_rectangle(collection, 0, 100, 0, 100)
@@ -72,6 +72,7 @@ func start_reviewed_defense() -> Dictionary:
 	if not loaded.success: return loaded
 	var original: Dictionary = loaded.data
 	if original.is_empty() or original.phase != "prepared": return _fail("ORIGINAL_START_ALREADY_SENT_OR_MISSING")
+	var expected: Dictionary = original.duplicate(true)
 	var context: String = _context(h)
 	_busy = true
 	var c: Dictionary = original.challenge
@@ -82,14 +83,15 @@ func start_reviewed_defense() -> Dictionary:
 	if row.ownerId != c.defenderId or row.revision != c.revision or HorizonValidatedActions.computeInputLogHash(row.data) != c.digest or HorizonSharedObjectModels.parse(row.data.get_string_from_utf8()) != c.parameters:
 		_busy = false; return _fail("TRUSTED_DEFENSE_CHANGED")
 	original.phase = "start-unconfirmed"
-	if not _save(h, original).success: _busy = false; return _fail("PENDING_STORAGE_ERROR")
+	if not _save(h, original, expected).success: _busy = false; return _fail("ORIGINAL_CHANGED_OR_STORAGE_ERROR")
+	expected = original.duplicate(true)
 	var result: Dictionary = await shared.begin_defense_run(row, c.leaderboardKey)
 	_busy = false
 	if not _same(h, context): return _fail("STALE_RESPONSE")
 	if not result.get("success", false): return result # The pre-send original remains protected.
 	original.run = result.data.run.duplicate(true)
 	original.phase = "playing"
-	return _save(h, original)
+	return _save(h, original, expected)
 
 func play(move: int) -> Dictionary:
 	var h: Node = _authorized()
@@ -102,8 +104,9 @@ func play(move: int) -> Dictionary:
 	if h.validatedActions.getCurrentRun().get("runId") != original.run.runId: return _fail("RESTART_REQUIRES_TRUSTED_RECONCILIATION")
 	var before: Dictionary = simulate(original.run.seed, original.challenge.parameters, original.moves, false)
 	if before.is_empty() or before.terminal: return _fail("GAME_FINISHED")
+	var expected: Dictionary = original.duplicate(true)
 	original.moves.append(move)
-	return _save(h, original)
+	return _save(h, original, expected)
 
 func submit_finished_defense() -> Dictionary:
 	var h: Node = _authorized()
@@ -118,8 +121,10 @@ func submit_finished_defense() -> Dictionary:
 	if outcome.is_empty(): return _fail("GAME_NOT_FINISHED")
 	var log: PackedByteArray = _input_log(original)
 	var context: String = _context(h)
+	var expected: Dictionary = original.duplicate(true)
 	original.phase = "submit-unconfirmed"
-	if not _save(h, original).success: return _fail("PENDING_STORAGE_ERROR")
+	if not _save(h, original, expected).success: return _fail("ORIGINAL_CHANGED_OR_STORAGE_ERROR")
+	expected = original.duplicate(true)
 	_busy = true
 	var result: Dictionary = await shared.submit_defense_run(outcome.score, log)
 	_busy = false
@@ -129,7 +134,7 @@ func submit_finished_defense() -> Dictionary:
 	original.run = {"runId": original.run.runId, "seed": original.run.seed}
 	original.logHash = HorizonValidatedActions.computeInputLogHash(log)
 	original.score = outcome.score
-	var saved: Dictionary = _save(h, original)
+	var saved: Dictionary = _save(h, original, expected)
 	if _uploaded_run == original.run.runId: _evidence_uploaded(_uploaded_run)
 	return inspect() if saved.success else saved
 
@@ -158,9 +163,10 @@ func _evidence_uploaded(run_id: String) -> void:
 	if not loaded.success or loaded.data.is_empty(): return
 	var original: Dictionary = loaded.data
 	if original.phase != "accepted-evidence-pending" or original.run.get("runId") != run_id: return
+	var expected: Dictionary = original.duplicate(true)
 	original.phase = "evidence-confirmed-awaiting-trusted-verification"
 	original.erase("moves")
-	_save(h, original) # The separate CLI still independently verifies and sends the notice.
+	_save(h, original, expected) # A late callback cannot replace a newer local original.
 
 func acknowledge_local_success() -> Dictionary:
 	var h: Node = _authorized()
@@ -198,9 +204,15 @@ func inspect() -> Dictionary:
 	var h: Node = _authorized()
 	return _public(_load(h)) if h != null else _fail("SESSION_REQUIRED")
 
-func _save(h: Node, record: Dictionary) -> Dictionary:
+func _save(h: Node, record: Dictionary, expected: Dictionary) -> Dictionary:
 	var file: String = _path(h)
-	if not Storage._locked(file, func() -> bool: return Storage._write(file, record)): return _fail("PENDING_STORAGE_ERROR")
+	var success: bool = Storage._locked(file, func() -> bool:
+		if FileAccess.file_exists(file + ".next"): return false
+		if expected.is_empty():
+			if FileAccess.file_exists(file): return false
+		elif not FileAccess.file_exists(file) or Storage._read(file) != expected: return false
+		return Storage._write(file, record))
+	if not success: return _fail("ORIGINAL_CHANGED_OR_STORAGE_ERROR")
 	return _public({"success": true, "data": record})
 
 func _load(h: Node) -> Dictionary:

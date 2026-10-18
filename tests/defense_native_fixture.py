@@ -33,6 +33,11 @@ class NativeFixture(contract.Fixture):
         if "/usage?" in self.path:
             return self.reply(dict(userId=U, collection="defenses", revision=0, count=0, limits=LIMITS, pollAfterSeconds=1, serverTime=T))
         if "/objects/" in self.path:
+            with self.server.object_lock:
+                self.server.object_reads += 1
+                index = self.server.object_reads
+            if index == 2:
+                assert self.server.first_started.wait(10), 'First panel must start before delayed second GET returns'
             return self.reply({"object": obj(), "pollAfterSeconds": 1, "serverTime": T})
         self.send_error(404)
 
@@ -53,6 +58,7 @@ class NativeFixture(contract.Fixture):
         if self.path.endswith("/validated-actions/runs"):
             assert body["userId"] == U and body["leaderboardKey"] == "defense_recipe"
             assert C.digest(base64.b64decode(body["context"]["initialState"])) == body["context"]["contentDigest"]
+            self.server.first_started.set()
             return self.reply({"runId": R, "ticket": "synthetic-defense-ticket", "seed": 7, "leaderboardKey": "defense_recipe", "issuedAt": T, "expiresAt": "2026-10-18T14:00:00.000Z", "expiresInSeconds": 7200})
         if self.path.endswith("/validated-actions/submit"):
             assert body["userId"] == U and body["ticket"] == "synthetic-defense-ticket" and body["score"] == 1201
@@ -76,6 +82,7 @@ def run(native):
         root = Path(folder); root.chmod(0o700)
         with ThreadingHTTPServer(("127.0.0.1", 0), NativeFixture) as server:
             server.calls = []; server.app_calls = []; server.original = None
+            server.object_reads = 0; server.object_lock = threading.Lock(); server.first_started = threading.Event()
             server.text_bytes = 256; server.retention_days = 17
             server.drop = False; server.refuse = False; server.malformed = False
             thread = threading.Thread(target=server.serve_forever, daemon=True); thread.start()
@@ -88,7 +95,8 @@ def run(native):
                 env = os.environ.copy(); env['SEAGULL_DEFENSE_URL'] = api.base; env['SEAGULL_DEFENSE_CHALLENGE'] = json.dumps(challenge)
                 output = native.run('--headless', '--script', 'tests/defense_recipe_transport.gd', env=env)
                 assert 'DEFENSE_RECIPE_NATIVE_HTTP_PASS' in output
-                assert len(server.app_calls) == 9, server.app_calls
+                assert len(server.app_calls) == 10, server.app_calls
+                assert len([item for item in server.app_calls if item[1].endswith('/validated-actions/runs')]) == 1
                 assert server.app_calls[-1][0] == 'PUT' and not any('/admin/' in item[1] for item in server.app_calls)
                 C.verify(api, state_path, C.decode(state_path.read_bytes()), R, 3600)
                 first = C.send(api, state_path, C.decode(state_path.read_bytes()))
@@ -96,6 +104,6 @@ def run(native):
                 assert not first['replayed'] and replay['replayed'] and first['entryId'] == replay['entryId']
                 posts = [item[2] for item in server.calls if item[0] == 'POST']
                 assert len(posts) == 2 and posts[0] == posts[1]
-                print('DEFENSE_NATIVE_TRUSTED_COMPOSITION_PASS: 9 actual native UI/SDK requests; actual uploaded input independently replayed by CLI; identical 7-field ordinary delivery/replay; zero client-admin requests.')
+                print('DEFENSE_NATIVE_TRUSTED_COMPOSITION_PASS: 10 actual native UI/SDK requests including delayed two-panel CAS; one run; actual uploaded input independently replayed by CLI; identical 7-field ordinary delivery/replay; zero client-admin requests.')
             finally:
                 server.shutdown(); thread.join(timeout=5)

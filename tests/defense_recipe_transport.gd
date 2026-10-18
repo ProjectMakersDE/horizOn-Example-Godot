@@ -33,10 +33,15 @@ func _run() -> void:
 	panel._challenge.text = OS.get_environment("SEAGULL_DEFENSE_CHALLENGE")
 	button(panel, "Save this reviewed trusted challenge").pressed.emit()
 	check(recipe.inspect().get("data", {}).get("phase") == "prepared", "Actual UI saves trusted public challenge without account credentials")
+	var second: Node = preload("res://scripts/ui/defense_recipe_panel.gd").new(); root.add_child(second); await process_frame
 	button(panel, "Read original defense and start").pressed.emit()
+	button(second, "Read original defense and start").pressed.emit()
 	var deadline: int = Time.get_ticks_msec() + 10000
 	while recipe.inspect().get("data", {}).get("phase") != "playing" and Time.get_ticks_msec() < deadline: await create_timer(0.01).timeout
 	check(recipe.inspect().get("data", {}).get("phase") == "playing", "Actual UI reads original object and starts real SDK run")
+	await create_timer(0.25).timeout
+	check(recipe.inspect().get("data", {}).get("run", {}).get("runId") != null and second._output.text.contains("ORIGINAL_CHANGED_OR_STORAGE_ERROR"), "Late second-panel GET cannot overwrite first original run binding")
+	second.queue_free()
 	button(panel, "Attack").pressed.emit()
 	check(recipe.inspect().get("data", {}).get("preview", {}).get("score") == 1201, "Actual one-turn UI gameplay has independent score")
 	button(panel, "Submit the finished").pressed.emit()
