@@ -24,5 +24,7 @@ func read_catalog_page() -> void:
     print("Catalog revision: ", result.data.revision)
     # Explicit Next retains revision and nextAfterKey; no automatic page loop.
 # Durable mutations: addons/horizon_sdk/examples/features/items_example.gd.
-# Preserve original instance/body/revision. Purchase recovery keeps the original PV operationId.
-# Refresh inventory after a confirmed purchase; never synthesize or buy replacement items.
+# Preserve original instance/body/revision and the original PV purchase operationId.
+# Initial success may include item references; retained replay may return empty applied/items.
+# Read the current inventory separately; never reconstruct earlier item references.
+# A failed refresh never authorizes another purchase or a local item grant.
