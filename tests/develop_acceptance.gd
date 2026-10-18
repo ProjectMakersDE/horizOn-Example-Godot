@@ -79,7 +79,8 @@ func _run() -> void:
 func _execute(command: Dictionary) -> Dictionary:
 	var action: String = command.action
 	var read: bool = action in ["loadJson", "loadBinary", "guide", "capture", "quit", "restoreSaved"]
-	if not read and (_manifest.get("allowWrites") != true or command.get("confirm") != true): return {"error": "EXPLICIT_DEVELOP_CONFIRMATION_REQUIRED"}
+	var guide_writes: bool = action == "guide" and str(command.get("feature", "")) in ["statistics", "achievements"]
+	if (not read or guide_writes) and (_manifest.get("allowWrites") != true or command.get("confirm") != true): return {"error": "EXPLICIT_DEVELOP_CONFIRMATION_REQUIRED"}
 	var h: Node = root.get_node("Horizon")
 	var manager: Node = root.get_node("GameManager")
 	if action == "createGuest":
@@ -115,25 +116,41 @@ func _execute(command: Dictionary) -> Dictionary:
 		if Marshalls.raw_to_base64(data) != encoded or (action == "saveJson" and data.get_string_from_utf8().to_utf8_buffer() != data): return {"error": "ORIGINAL_BYTES_REQUIRED"}
 		var written: Dictionary = await h.cloudSave.saveDataAtRevision(data.get_string_from_utf8(), int(revision)) if action == "saveJson" else await h.cloudSave.saveBytesAtRevision(data, int(revision))
 		return {"success": written.success, "conflict": written.conflict, "revision": str(written.revision) if written.revision >= 0 else "", "statusCode": written.statusCode}
-	if action == "guide": return await _guide(str(command.get("feature", "")))
+	if action == "guide": return await _guide(command)
 	if action == "capture":
 		await process_frame
 		var file: String = _manifest.controlDirectory.path_join("results").path_join(command.id + ".png")
 		return {"success": root.get_texture().get_image().save_png(file) == OK}
 	return {"error": "UNKNOWN_ACTION"}
 
-func _guide(feature: String) -> Dictionary:
-	var methods: Dictionary = {"groups": ["groups", "read_my_groups", "/groups"], "items": ["items", "read_inventory", "/items"], "matches": ["matches", "read_my_matches", "/matches"], "shared-objects": ["shared_objects", "read_world_map", "/shared-objects/"]}
+func _guide(command: Dictionary) -> Dictionary:
+	var feature: String = str(command.get("feature", ""))
+	var methods: Dictionary = {"groups": ["groups", "read_my_groups", "/groups"], "items": ["items", "read_inventory", "/items"], "matches": ["matches", "read_my_matches", "/matches"], "shared-objects": ["shared_objects", "read_world_map", "/shared-objects/"], "player-values": ["player_values", "run_reviewed_action", "/player-values"], "statistics": ["statistics", "run_reviewed_action", "/statistics"], "achievements": ["achievements", "run_reviewed_action", "/achievements"], "inbox": ["inbox", "run_reviewed_action", "/inbox"], "friends": ["friends", "run_reviewed_action", "/friends"], "chat": ["chat", "read_chat_snapshot", "/chat/channels/"], "marketplace": ["marketplace_demo", "read_listing", "/marketplace/"]}
 	if not methods.has(feature): return {"error": "UNKNOWN_GUIDE"}
+	if feature == "chat" and (not HorizonItemModels.uuid(command.get("channelId")) or command.channelId != command.channelId.to_lower()): return {"error": "ORIGINAL_CHANNEL_ID_REQUIRED"}
+	if feature == "marketplace" and (not HorizonItemModels.uuid(command.get("listingId")) or command.listingId != command.listingId.to_lower()): return {"error": "ORIGINAL_LISTING_ID_REQUIRED"}
+	var expected_responses: int = 2 if feature in ["statistics", "achievements"] else 1
 	var observed: Dictionary = {}
 	var began: int = Time.get_ticks_usec()
 	var callback: Callable = func(url: String, response: HorizonNetworkResponse) -> void:
-		if observed.is_empty() and url.begins_with(HOST + "/api/v1/app" + methods[feature][2]): observed.merge({"statusCode": response.statusCode, "secondsToHttpResponse": float(Time.get_ticks_usec() - began) / 1000000.0})
+		if not url.begins_with(HOST + "/api/v1/app" + methods[feature][2]): return
+		if observed.is_empty(): observed.merge({"statusCode": response.statusCode, "secondsToHttpResponse": float(Time.get_ticks_usec() - began) / 1000000.0, "observedResponses": 0})
+		observed.observedResponses += 1; observed.lastStatusCode = response.statusCode
 	var h: Node = root.get_node("Horizon"); h._http.request_completed.connect(callback)
-	var guide: Node = load("res://examples/public_feature_guides/" + methods[feature][0] + ".gd").new(); root.add_child(guide)
-	await guide.call(methods[feature][1]); guide.queue_free(); h._http.request_completed.disconnect(callback)
+	var folder: String = "res://examples/public_marketplace/" if feature == "marketplace" else "res://examples/public_feature_guides/"
+	var guide: Node = load(folder + methods[feature][0] + ".gd").new(); root.add_child(guide)
+	var market_screen: Node = null
+	if feature == "marketplace":
+		market_screen = load("res://addons/horizon_sdk/examples/features/marketplace_example.gd").new()
+		market_screen.project_id = _manifest.projectId; root.add_child(market_screen); guide.screen = market_screen
+	if feature == "marketplace": await guide.call(methods[feature][1], command.listingId)
+	elif feature == "chat": await guide.call(methods[feature][1], command.channelId)
+	else: await guide.call(methods[feature][1])
+	guide.queue_free()
+	if market_screen != null: market_screen.queue_free()
+	h._http.request_completed.disconnect(callback)
 	if observed.is_empty(): return {"error": "NO_ACTUAL_HTTP_RESPONSE"}
-	observed.success = observed.statusCode >= 200 and observed.statusCode < 300 and observed.secondsToHttpResponse < 300
+	observed.success = observed.observedResponses >= expected_responses and observed.statusCode >= 200 and observed.statusCode < 300 and observed.lastStatusCode >= 200 and observed.lastStatusCode < 300 and observed.secondsToHttpResponse < 300
 	observed.output = "Complete guide in an existing native session. HTTP timing is separate from DTO/business acceptance."
 	return observed
 

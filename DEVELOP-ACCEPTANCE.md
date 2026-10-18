@@ -21,3 +21,16 @@ A permanent `.started` directory is claimed before dispatch. Restart cannot auto
 TASK-1024 uses this native Godot client with the original Unity guest identity: both load R, Unity JSON→R+1, Godot original stale write409, reload exact JSON, Godot binary→R+2, Unity original stale write409, reload exact binary, explicit JSON→R+3. Confirm identical player IDs and exact payload hashes before reporting actual Develop success.
 
 `GODOT_BIN=/path/to/godot python3 tests/run_feature_lab_checks.py` imports the full native source once, then checks this entry's exact host, approval and permanent command markers in isolated temporary userdata before starting its synthetic loopback fixture. The QA gate supplies no manifest and executes no HTTP action. The following game/Hello synthetic transport checks remain separate from actual Develop acceptance.
+
+The `guide` action invokes the complete published code files for all eleven current
+features: Player Values, Statistics, Achievements, Inbox, Friends, Groups, Items,
+Shared Objects, Matches, Chat and Marketplace. Statistics and Achievements require
+`allowWrites: true` in the private manifest and `confirm: true` in the original
+command. Chat requires the original canonical `channelId`; Marketplace requires
+the original canonical `listingId`. Every invocation uses the existing session.
+
+The result records the first actual feature HTTP response time and the observed
+response count. The two deliberate Statistics/Achievements calls must both return
+successful HTTP statuses. This measures a prepared SDK/project/session, not a fresh
+installation; DTO acceptance and authoritative business reconciliation are separate
+E4/E5 checks in the official Game and Hello. No source guide runs during startup.
