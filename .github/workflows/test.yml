@@ -41,3 +41,31 @@ jobs:
         env:
           GODOT_BIN: godot
         run: python3 tests/run_feature_lab_checks.py
+
+  macos-export-smoke:
+    needs: game-tests
+    runs-on: macos-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Godot with export templates
+        uses: chickensoft-games/setup-godot@v2
+        with:
+          version: 4.7.0
+          use-dotnet: false
+          include-templates: true
+      - name: Export and smoke-test the unsigned macOS player
+        env:
+          GODOT_BIN: godot
+        run: python3 tests/verify_macos_export.py
+      - name: Retain export and native smoke evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: godot-macos-export-smoke
+          path: |
+            tmp/verification-artifacts/
+            tmp/release-*.log
+            tmp/check-*.log
+          if-no-files-found: warn
+          retention-days: 7
