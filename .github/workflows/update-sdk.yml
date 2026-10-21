@@ -58,8 +58,29 @@ jobs:
           rm -rf addons/horizon_sdk
           cp -r sdk-source/addons/horizon_sdk addons/horizon_sdk
 
+      - name: Record and verify complete official SDK provenance
+        run: |
+          python3 tests/pin_sdk_source.py --sdk-source sdk-source --tag "v${{ steps.sdk.outputs.version }}"
+          # Official UID companions must remain tracked despite the project's *.uid ignore rule.
+          git add --force addons/horizon_sdk config/official-sdk/horizon_config.tres.example SDK-SOURCE.json
+          python3 tests/verify_sdk_source.py --sdk-source sdk-source
+
       - name: Cleanup
         run: rm -rf sdk-source
+
+      - name: Set up Godot
+        uses: chickensoft-games/setup-godot@v2
+        with:
+          version: 4.7.0
+          use-dotnet: false
+          include-templates: false
+
+      - name: Verify native import, gameplay and SDK compatibility before committing
+        env:
+          GODOT_BIN: godot
+        run: |
+          python3 tests/run_checks.py
+          python3 tests/run_feature_lab_checks.py
 
       - name: Commit and push
         env:
