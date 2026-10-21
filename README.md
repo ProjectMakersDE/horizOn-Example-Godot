@@ -96,7 +96,14 @@ Press **F5** or click **Run Project** in the Godot editor.
 
 ## SDK Source and Verification
 
-Embedded SDK: complete merged Develop snapshot `1bf60decc35712daa531f29a44573ffbf94b2b3b`, including all current compact feature contracts and configurable-limit readers. `SDK-SOURCE.json` records all140 official file hashes, with the blank configuration template relocated to `config/official-sdk/horizon_config.tres.example` so imported personal configuration stays ignored; `python3 tests/verify_sdk_source.py` checks them. Generated Godot UID/import companions are separate. This pin creates no SDK release. Existing primary-checkout commits and editor changes remain separately backed up and untouched.
+Embedded SDK: complete merged Develop snapshot `1bf60decc35712daa531f29a44573ffbf94b2b3b`, including all current compact feature contracts and configurable-limit readers. `SDK-SOURCE.json` records all 140 official file hashes, with the blank configuration template relocated to `config/official-sdk/horizon_config.tres.example` so imported personal configuration stays ignored; `python3 tests/verify_sdk_source.py` checks them. Generated Godot UID/import companions are separate. This pin creates no SDK release. Existing primary-checkout commits and editor changes remain separately backed up and untouched.
+
+CI compares the complete addon with the exact official Git revision, then runs
+the native import, gameplay and loopback transport gates. Release synchronization
+regenerates that provenance and relocates the blank config before running the
+same native gates and committing. Public guide source records retain their
+original SDK revision; the feature-lab gate checks compatibility with the newly
+pinned addon. An incompatible release is rejected before it reaches the example.
 
 The current feature lab reuses the official SDK examples. No network action runs when a panel or Hello scene opens. Choose a read, inspect its state, then explicitly confirm a write. Empty definitions and unsupported capabilities remain visible. Marketplace asks for the stable project UUID once per API project key; regional host changes do not replace pending ownership. Pending originals, expired operations and migration refusals require reconciliation instead of a new identifier.
 

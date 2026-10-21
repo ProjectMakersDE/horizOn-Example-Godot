@@ -11,6 +11,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Read pinned official SDK revision
+        id: sdk
+        run: python3 -c 'import json,os; open(os.environ["GITHUB_OUTPUT"],"a").write("commit="+json.load(open("SDK-SOURCE.json"))["commit"]+"\n")'
+      - name: Checkout exact official SDK for byte comparison
+        uses: actions/checkout@v4
+        with:
+          repository: ProjectMakersDE/horizOn-SDK-Godot
+          ref: ${{ steps.sdk.outputs.commit }}
+          path: official-sdk
+      - name: Compare all addon files with the official revision
+        run: python3 tests/verify_sdk_source.py --sdk-source official-sdk
+      - name: Remove comparison checkout before native fixtures copy the project
+        run: rm -rf official-sdk
       - name: Set up Godot
         uses: chickensoft-games/setup-godot@v2
         with:
