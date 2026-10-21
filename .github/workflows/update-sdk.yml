@@ -61,7 +61,8 @@ jobs:
       - name: Record and verify complete official SDK provenance
         run: |
           python3 tests/pin_sdk_source.py --sdk-source sdk-source --tag "v${{ steps.sdk.outputs.version }}"
-          git add addons/horizon_sdk config/official-sdk/horizon_config.tres.example SDK-SOURCE.json
+          # Official UID companions must remain tracked despite the project's *.uid ignore rule.
+          git add --force addons/horizon_sdk config/official-sdk/horizon_config.tres.example SDK-SOURCE.json
           python3 tests/verify_sdk_source.py --sdk-source sdk-source
 
       - name: Cleanup
