@@ -1,13 +1,16 @@
 {
   "repository": "ProjectMakersDE/horizOn-SDK-Godot",
-  "commit": "1bf60decc35712daa531f29a44573ffbf94b2b3b",
-  "source": "develop snapshot; no release",
+  "commit": "8f422e3fc57c84bcf83b210237fd8b7a00b5e88f",
+  "source": "release tag v1.11.0",
+  "configurationTemplates": {
+    "addons/horizon_sdk/horizon_config.tres": "config/official-sdk/horizon_config.tres.example"
+  },
   "files": {
     "addons/horizon_sdk/LICENSE": {
       "sha256": "163f45abdd5603ac7ff97993e812b7d7ba0e66c88c48d7caba061942d6d510dd"
     },
     "addons/horizon_sdk/README.md": {
-      "sha256": "c4a9d0f4329271df32552e9768a852ebfddba715ad33cf6c615af1f0d401116d"
+      "sha256": "ba0a3b85dda486209bc33bec977218a7dbdb82b060fd47b6a68ef5519964cbe0"
     },
     "addons/horizon_sdk/core/achievements.gd": {
       "sha256": "aae6295319285f104d5c7306a3df3dd3232d91161136a7b7cf6d3eab46caa359"
@@ -142,10 +145,10 @@
       "sha256": "c7175bc58a649c06d4137b7f7679c94f72f59b28d0b5439933e6be211e598b8e"
     },
     "addons/horizon_sdk/examples/features/README.md": {
-      "sha256": "2e655ec21b207d987ba973c3f38781f7b18137727b62c7f36235a257d324b32d"
+      "sha256": "555be5759b2beafa59caed144e6691e2ca246c442c97ef7aa72629d32fe6b8a5"
     },
     "addons/horizon_sdk/examples/features/achievements_example.gd": {
-      "sha256": "5b45e8bb156b8f7eb7fb7c1314c2bcc63e3efd1a322f9265ff0f9882cbcb0505"
+      "sha256": "a165425bac5bdaca4b682ad4765ceb74bf4e6f17ec92a9bd30b727028b95f8ac"
     },
     "addons/horizon_sdk/examples/features/auth_example.gd": {
       "sha256": "36432b4c3c140bfe8f62e353af191c290951d957437f134498e205c618772250"
@@ -166,7 +169,7 @@
       "sha256": "ee2f67fcbfb4ec797a8d11d6e4a636ea75807885dcadda41acf463e3fde5d07f"
     },
     "addons/horizon_sdk/examples/features/email_sending_example.gd": {
-      "sha256": "9099a2613b28db03075a6b0577ae97d89db0fd0707060dc65d8fabb84a8b6359"
+      "sha256": "d25efc47520e2aec9cc4af1620229c321439e4992317c049d10184d1526166b9"
     },
     "addons/horizon_sdk/examples/features/feedback_example.gd": {
       "sha256": "edbc6fe6d7fd49cfb7e9383b2cd712258d312071707f236274e5e563fec2445d"
@@ -310,7 +313,7 @@
       "sha256": "d6d65930ad89e384ab31b06b54559f8b2bdfde44f1656dad70defb890b69a49b"
     },
     "addons/horizon_sdk/horizon_sdk.gd": {
-      "sha256": "0bc5bcc57f4b1bd43c99361c89335207772064bf8e27a5ef34ea8e820883f1e8"
+      "sha256": "c25543731bd3df4d2d937e364a186cf9734e2d6e0b4c6b4b36649aa331d12dc5"
     },
     "addons/horizon_sdk/horizon_sdk.gd.uid": {
       "sha256": "0a90c3f2c005ba7483524318aaccfa397eb439b89263237b3d051821c771e78c"
@@ -409,7 +412,7 @@
       "sha256": "c6d88670ddf0a8bb8b99bfec95413b957403f3991a0fbebbbfea97b2c77c128c"
     },
     "addons/horizon_sdk/plugin.cfg": {
-      "sha256": "d4f4c8a648d342aa3f9ec1db5ffa074e91dedb5be509ea6f48d514b08678b844"
+      "sha256": "cdf5b690eadba1ec5b2bdc399dac90b41f00d6a59d6dbdb055f0851b21cb0e86"
     },
     "addons/horizon_sdk/utils/error_codes.gd": {
       "sha256": "6fe73100ad98247775bcf0232572b700db67b93b03eda35da444ba95a69180c7"
@@ -424,7 +427,5 @@
       "sha256": "79a14bc808577b2f68ad654840b03ccf9701ea8f3a69db1aa6b878eec5cd3bfc"
     }
   },
-  "configurationTemplates": {
-    "addons/horizon_sdk/horizon_config.tres": "config/official-sdk/horizon_config.tres.example"
-  }
+  "tag": "v1.11.0"
 }
