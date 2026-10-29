@@ -20,6 +20,8 @@ jobs:
         with:
           repository: ProjectMakersDE/horizOn-SDK-Godot
           ref: ${{ steps.sdk.outputs.commit }}
+          # Provenance also verifies the release tag, absent from a SHA-only checkout.
+          fetch-depth: 0
           path: official-sdk
       - name: Compare all addon files with the official revision
         run: python3 tests/verify_sdk_source.py --sdk-source official-sdk
