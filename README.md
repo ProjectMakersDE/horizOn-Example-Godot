@@ -398,3 +398,11 @@ These are local native/loopback proofs. Hosted two-client/restart acceptance aga
 Group create/update arguments carry the final data argument as an original JSON string, for example `"{\"epsilon\":0.000001}"`. The Groups codec validates that string independently of integer-only revision fields. It preserves decimal lexemes, exact integers and string escapes in the saved original; the argument editor does not round arbitrary Group data through native JSON dictionaries. Existing programmatic Dictionary arguments remain accepted.
 
 Final native checkpoint: the current feature-input implementation passed the complete26-request game/Hello consumer check and all four public read-guide compilations (3534). The same current source passed the full64-request game fixture, actual rendered UI, universal macOS export and exported-player gameplay/cutout tests (3537); both arm64 and x86_64 Mach-O architectures were verified. The subsequent Items-guide change modifies comments only, with executable lines independently equal. Hosted Develop two-client/restart acceptance is still pending.
+
+### macOS export verification
+
+The Linux gameplay/SDK checks run on GitHub for pushes and pull requests.
+Native macOS exports are explicit: dispatch `Game and SDK Tests` and start the
+registered `daniel-macbook-native` ARM64 macOS runner on Daniel's current
+MacBook. Public pull requests never run code on that Mac automatically.
+There is no GitHub-hosted or Proxmox fallback for the macOS export.
