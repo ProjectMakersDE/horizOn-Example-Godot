@@ -51,7 +51,7 @@ func reserve(operation_id: String, definitions: Array) -> bool:
 		var updates: Array = [{"key": "rounds", "value": saved.rounds}, {"key": "kills", "value": saved.kills}, {"key": "best_score", "value": saved.bestScore}]
 		for index in range(KEYS.size()):
 			var matching := definitions.filter(func(d: Dictionary) -> bool: return d.get("key") == KEYS[index])
-			if matching.size() != 1 or matching[0].get("mode") != ("max" if index == 2 else "sum") or matching[0].get("resetRule") != "none":
+			if matching.size() != 1 or matching[0].get("mode") != ("max" if index == 2 else "sum") or matching[0].get("reset") != "none":
 				return {}
 			var bound: Variant = matching[0].get("maxPerUpdate")
 			if bound != null and (not _safe(bound) or bound <= 0 or updates[index].value > bound):

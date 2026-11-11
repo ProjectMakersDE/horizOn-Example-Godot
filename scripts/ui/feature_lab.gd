@@ -151,6 +151,9 @@ func _known(selected: String, method: String, args: Array) -> bool:
 					if HorizonGroupJsonData.fromJson(args[index]) == null: return false
 				elif not args[index] is Dictionary or HorizonGroupJsonData.fromDictionary(args[index]) == null: return false
 				continue
+			if selected == "Shared Objects" and method in ["create_marker", "update_reviewed_marker"] and index == 2:
+				if not HorizonSharedObjectModels.position(args[index]): return false
+				continue
 			var expected: int = typeof(action[2][index])
 			if expected == TYPE_NIL:
 				if args[index] != null and not HorizonItemModels.integer(args[index]): return false

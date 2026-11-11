@@ -75,6 +75,23 @@ func _run() -> void:
 	check(inventory.success and inventory.data.instances.is_empty(), "Current empty inventory stays empty after historical item-return replay")
 	check((await lab.execute("Items", "load_catalog_page", ["", null])).success, "Current item catalog uses explicit bounded pages")
 	check((await lab.execute("Shared Objects", "load_collections", ["", null])).success, "Opaque object collection catalog loads without fabricating content")
+	for method: String in ["create_marker", "update_reviewed_marker"]:
+		for position: Variant in [null, {"x": 10, "y": 10}]:
+			var args: Array = ["AP8=", {}, position]
+			if method == "create_marker": args.append("")
+			check((await lab.execute_input("Shared Objects", method, JSON.stringify({"args": args}))).errorCode == "REVIEW_REQUIRED", "Valid nullable Shared position reaches the real sample, which still requires a reviewed object/usage before HTTP")
+		for invalid: Variant in [{}, {"x": 10}, {"x": 10, "y": 10, "z": 0}, {"x": "10", "y": 10}, 10]:
+			var args: Array = ["AP8=", {}, invalid]
+			if method == "create_marker": args.append("")
+			check((await lab.execute_input("Shared Objects", method, JSON.stringify({"args": args}))).errorCode == "INVALID_ARGUMENTS", "Invalid Shared position shape or scalar is rejected before the sample/HTTP")
+	for page: Array in [["Groups", "load_member_page", ["", "", null]], ["Items", "load_catalog_page", ["", null]], ["Marketplace", "read_rules_page", ["", null]], ["Shared Objects", "load_collections", ["", null]]]:
+		var args: Array = page[2].duplicate()
+		check(lab._known(page[0], page[1], args), "Nullable pagination still accepts null")
+		args[-1] = 1
+		check(lab._known(page[0], page[1], args), "Nullable pagination still accepts integers")
+		for invalid: Variant in [{"x": 10, "y": 10}, 1.0, "1"]:
+			args[-1] = invalid
+			check(not lab._known(page[0], page[1], args), "Position handling must not loosen nullable-integer pagination")
 	check((await lab.execute("Matches", "read_matches", [])).success, "Match ledger loads explicitly")
 	var options: Dictionary = Lab.FEATURES.Matches[1][3][2][0].duplicate(true)
 	check((await lab.execute("Matches", "create_reviewed", [options])).success, "Explicit match create reuses the durable official recipe and original If-Match")
