@@ -44,6 +44,9 @@ jobs:
 
       - name: Checkout example project
         uses: actions/checkout@v4
+        with:
+          # SDK updates land on develop first and reach release with the next develop -> release merge.
+          ref: develop
 
       - name: Checkout SDK at release tag
         uses: actions/checkout@v4

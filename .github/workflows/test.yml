@@ -3,9 +3,9 @@ name: Game and SDK Tests
 on:
   workflow_dispatch:
   push:
-    branches: [master, develop]
+    branches: [release, develop]
   pull_request:
-    branches: [master, develop]
+    branches: [release, develop]
 
 jobs:
   game-tests:
