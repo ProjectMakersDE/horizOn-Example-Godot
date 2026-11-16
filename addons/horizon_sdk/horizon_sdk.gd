@@ -17,7 +17,7 @@
 extends Node
 
 ## SDK Version
-const VERSION := "1.11.0"
+const VERSION := "1.12.0"
 
 ## Config resource path
 const CONFIG_PATH := "res://addons/horizon_sdk/horizon_config.tres"
@@ -60,6 +60,7 @@ var matches: HorizonMatches
 var chat: HorizonChat
 var items: HorizonItems
 var marketplace: HorizonMarketplace
+var itemGifts: HorizonItemGifts
 var groups: HorizonGroups
 var friends: HorizonFriends
 var validatedActions: HorizonValidatedActions
@@ -189,6 +190,8 @@ func _initializeManagers() -> void:
 	items.initialize(_http, auth, playerValues)
 	marketplace = HorizonMarketplace.new()
 	marketplace.initialize(_http, auth)
+	itemGifts = HorizonItemGifts.new()
+	itemGifts.initialize(_http, auth)
 	groups = HorizonGroups.new()
 	groups.initialize(_http, auth)
 	friends = HorizonFriends.new()
