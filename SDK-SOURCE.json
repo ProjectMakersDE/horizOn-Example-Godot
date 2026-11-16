@@ -1,7 +1,7 @@
 {
   "repository": "ProjectMakersDE/horizOn-SDK-Godot",
-  "commit": "c6ca554da3506f127205b54b9f27cf2299d32d3d",
-  "source": "release tag v1.11.1",
+  "commit": "b54526b251fa814898c8c128fa122c5eea21119e",
+  "source": "release tag v1.12.0",
   "configurationTemplates": {
     "addons/horizon_sdk/horizon_config.tres": "config/official-sdk/horizon_config.tres.example"
   },
@@ -10,7 +10,7 @@
       "sha256": "163f45abdd5603ac7ff97993e812b7d7ba0e66c88c48d7caba061942d6d510dd"
     },
     "addons/horizon_sdk/README.md": {
-      "sha256": "ba0a3b85dda486209bc33bec977218a7dbdb82b060fd47b6a68ef5519964cbe0"
+      "sha256": "88e365bf55d2fc7a423d4ff9b9dc22b332f0df438a58a48fa3c705bcb60ea4e1"
     },
     "addons/horizon_sdk/core/achievements.gd": {
       "sha256": "aae6295319285f104d5c7306a3df3dd3232d91161136a7b7cf6d3eab46caa359"
@@ -22,7 +22,7 @@
       "sha256": "6e6d3602be987d0a4e4ead46289ce81bb1a150de8f15ef0b242f37d3782afeab"
     },
     "addons/horizon_sdk/core/chat.gd": {
-      "sha256": "8822d7fc05fe0b60806db4c78d262e521acbda2d2c9fd5a5547f5e4ff41e33c7"
+      "sha256": "576dd6c21fc7333efa3f4ca39ce22118518987775089cb7d1105a4b98a9cf138"
     },
     "addons/horizon_sdk/core/chat_history.gd": {
       "sha256": "f9f53341af89ad99a47fbcd863744a9e0c6b71ed046d737aa82d6132bd867dfc"
@@ -64,16 +64,19 @@
       "sha256": "d50948dc0c4588e42aacd6bf4fe48e9f333a5d309b63445b216b6d2829c1e022"
     },
     "addons/horizon_sdk/core/http_client.gd": {
-      "sha256": "cd16101345b339b5f52cecae1471b74a5d6832af0cc63eebe6c7c4d57ac765f3"
+      "sha256": "132560ceaeeb554a1a93dddf50605286ac1cf66d575bfa46d756e0d0d46d8879"
     },
     "addons/horizon_sdk/core/http_client.gd.uid": {
       "sha256": "96b249ffc4c1efe9f45b444e4f8542e222c03f2bdc69f0119216c8c1a5dc50a8"
     },
     "addons/horizon_sdk/core/inbox.gd": {
-      "sha256": "e2748d27e5c39bfd93fbb1d049da04aa9792e5cb9670602082e8f09a3bc5b546"
+      "sha256": "00bd3e2b4e615b457327d4ef06e86e0c762544e1148c4e954b4635aafe25ecb5"
     },
     "addons/horizon_sdk/core/inbox.gd.uid": {
       "sha256": "f60fcf672f3030fe3cd543efcb76721979da86fb07cf589e33d9b9b916d15cf0"
+    },
+    "addons/horizon_sdk/core/item_gifts.gd": {
+      "sha256": "5d5f44e8ed3108ab4676a5816889222431769d5364d89b889ad06b1081839507"
     },
     "addons/horizon_sdk/core/items.gd": {
       "sha256": "0c9097b8fff149d922acc0ab7531c5904d5d96bd0b1db80c6bfc52fb682da7d4"
@@ -91,7 +94,7 @@
       "sha256": "b0fb3cb3b4a4f53a5af3db1be9a1699185e90c0ecde455fac42aa035eeb9edfa"
     },
     "addons/horizon_sdk/core/matches.gd": {
-      "sha256": "76468442e7f0eed4f3cb9ab51df5c21ccf5257e255951b19a28f0d610952c6b3"
+      "sha256": "e327497b2f429bef56101f05148f7001c5c7fd2eeb7d23792494099220c5faa0"
     },
     "addons/horizon_sdk/core/news.gd": {
       "sha256": "a6ffdeabd809259a67fde56ab8586fd5e9812f3f04c06c87e51b00de43e7cfa9"
@@ -112,7 +115,7 @@
       "sha256": "cf595aba8af5e7390373bf7d33d83b01cabf91c8a072b171bb3adfd1377cd6ae"
     },
     "addons/horizon_sdk/core/realtime.gd": {
-      "sha256": "5d0eebeb2ecbc194ac3feaeb9cab638efa4629bb6f92a06bb3a5cfde631daea7"
+      "sha256": "e96e90487288b40ff43ec4f2d7726094f054669c8b102f0de05faeb3be172071"
     },
     "addons/horizon_sdk/core/realtime.gd.uid": {
       "sha256": "392ef509825d17c83313e574ccbb302c1ededaa27431af1bef2eea441005af5c"
@@ -145,7 +148,7 @@
       "sha256": "c7175bc58a649c06d4137b7f7679c94f72f59b28d0b5439933e6be211e598b8e"
     },
     "addons/horizon_sdk/examples/features/README.md": {
-      "sha256": "555be5759b2beafa59caed144e6691e2ca246c442c97ef7aa72629d32fe6b8a5"
+      "sha256": "0cd3e87ceb6414b2cbb918ef84e1fb3b4413e854bc7f39b84835ad126495e7ef"
     },
     "addons/horizon_sdk/examples/features/achievements_example.gd": {
       "sha256": "a165425bac5bdaca4b682ad4765ceb74bf4e6f17ec92a9bd30b727028b95f8ac"
@@ -189,6 +192,15 @@
     "addons/horizon_sdk/examples/features/inbox_example.gd.uid": {
       "sha256": "714bb33798b7c97236ce83e1c29f2f166d3a04916893a1c66ccfbe9de2057ed7"
     },
+    "addons/horizon_sdk/examples/features/item_gift_operation.gd": {
+      "sha256": "7c509a5ac14cc286853b4800c4de86fd3988e500561ae2feb74c2e3f3e94d307"
+    },
+    "addons/horizon_sdk/examples/features/item_gifts_example.gd": {
+      "sha256": "9a887548c8fd80b1372446bebbde5b1b3786d742e67d998633f921e5565c557f"
+    },
+    "addons/horizon_sdk/examples/features/item_gifts_quickstart.gd": {
+      "sha256": "86628bd28f4927cabf051e963b173104452d5bcb1adf43f8cb1373d2f6f12c36"
+    },
     "addons/horizon_sdk/examples/features/items_example.gd": {
       "sha256": "fc7d089e05d4d35909ed91e81583fda6d2ae2801f3a44257a4fac352ed28b9f2"
     },
@@ -224,6 +236,9 @@
     },
     "addons/horizon_sdk/examples/features/pending_inbox_claim.gd": {
       "sha256": "3869e50698f27c38ea540da5e162ade45c2436a9b2869fd2fcdb1e3b0ffc8b56"
+    },
+    "addons/horizon_sdk/examples/features/pending_item_gift.gd": {
+      "sha256": "9369f015b59ee76685747a07a91f87d3371359b286a93a708c970a7d3785abfb"
     },
     "addons/horizon_sdk/examples/features/pending_item_intent.gd": {
       "sha256": "12bafdb5284ebaa63718a5963caf8862d931dce10093f92141f9030dec87a194"
@@ -313,7 +328,7 @@
       "sha256": "d6d65930ad89e384ab31b06b54559f8b2bdfde44f1656dad70defb890b69a49b"
     },
     "addons/horizon_sdk/horizon_sdk.gd": {
-      "sha256": "bf0ee9f2e75b6fc5e7673eed0e6fe2a65d2b5618445f2989739e6f8a8ed26076"
+      "sha256": "e66218069484e889dd9993e008319788f790c7e0536f3945fa15b52b631737f1"
     },
     "addons/horizon_sdk/horizon_sdk.gd.uid": {
       "sha256": "0a90c3f2c005ba7483524318aaccfa397eb439b89263237b3d051821c771e78c"
@@ -341,6 +356,9 @@
     },
     "addons/horizon_sdk/models/group_json_data.gd": {
       "sha256": "064d4e6e5c2e28e8c6336a9e4a8558c707834cac1795c8e1251f95ae3e64bca6"
+    },
+    "addons/horizon_sdk/models/item_gift_models.gd": {
+      "sha256": "d3e86d5d5142bfcefe8dc6d6e09c52487ef8cecf9f3d6993c5d91d6018489ecb"
     },
     "addons/horizon_sdk/models/item_models.gd": {
       "sha256": "90611fdd0604e8fe243b44d704ce3938100f0dca232943d5e1e0815c4a3045b9"
@@ -412,7 +430,7 @@
       "sha256": "c6d88670ddf0a8bb8b99bfec95413b957403f3991a0fbebbbfea97b2c77c128c"
     },
     "addons/horizon_sdk/plugin.cfg": {
-      "sha256": "25b808c31683e1b4f54c994fd7feb766912e904e4df47efc61a95acaac25a8c9"
+      "sha256": "772dd4427614ab8478d84abc3ac0f19bc6ea99e318044c5d9a727dd44bd10ffa"
     },
     "addons/horizon_sdk/utils/error_codes.gd": {
       "sha256": "6fe73100ad98247775bcf0232572b700db67b93b03eda35da444ba95a69180c7"
@@ -427,5 +445,5 @@
       "sha256": "79a14bc808577b2f68ad654840b03ccf9701ea8f3a69db1aa6b878eec5cd3bfc"
     }
   },
-  "tag": "v1.11.1"
+  "tag": "v1.12.0"
 }
