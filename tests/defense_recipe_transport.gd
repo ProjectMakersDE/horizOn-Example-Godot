@@ -1,5 +1,12 @@
 extends SceneTree
 var failures: Array[String] = []
+# A second client whose GET is truly late: it waits until the first panel owns the run.
+# Without the gate the arrival order of the two GETs depended on machine load.
+class LateShared extends HorizonSharedObjects:
+	var gate: Callable
+	func getObject(user_id: String, collection: String, object_id: String) -> Dictionary:
+		while not gate.call(): await Engine.get_main_loop().create_timer(0.01).timeout
+		return await super.getObject(user_id, collection, object_id)
 func check(value: bool, message: String) -> void:
 	if not value: failures.append(message); push_error(message)
 func _initialize() -> void:
@@ -39,7 +46,8 @@ func _run() -> void:
 	# A single manager queues identical reads and correctly returns REFRESH_NOT_DUE;
 	# do not disable that cadence merely to exercise the storage CAS.
 	var first_reader: HorizonSharedObjects = h.sharedObjects
-	var second_reader: HorizonSharedObjects = HorizonSharedObjects.new()
+	var second_reader: LateShared = LateShared.new()
+	second_reader.gate = func() -> bool: return recipe.inspect().get("data", {}).get("phase") == "playing"
 	second_reader.initialize(h._http, h.auth)
 	button(panel, "Read original defense and start").pressed.emit()
 	h.sharedObjects = second_reader
@@ -48,7 +56,8 @@ func _run() -> void:
 	var deadline: int = Time.get_ticks_msec() + 10000
 	while recipe.inspect().get("data", {}).get("phase") != "playing" and Time.get_ticks_msec() < deadline: await create_timer(0.01).timeout
 	check(recipe.inspect().get("data", {}).get("phase") == "playing", "Actual UI reads original object and starts real SDK run")
-	await create_timer(0.25).timeout
+	deadline = Time.get_ticks_msec() + 10000
+	while not second._output.text.contains("ORIGINAL_CHANGED_OR_STORAGE_ERROR") and Time.get_ticks_msec() < deadline: await create_timer(0.01).timeout
 	check(recipe.inspect().get("data", {}).get("run", {}).get("runId") != null and second._output.text.contains("ORIGINAL_CHANGED_OR_STORAGE_ERROR"), "Late second-panel GET cannot overwrite first original run binding")
 	second.queue_free()
 	button(panel, "Attack").pressed.emit()
