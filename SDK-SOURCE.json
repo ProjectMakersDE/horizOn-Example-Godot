@@ -1,7 +1,7 @@
 {
   "repository": "ProjectMakersDE/horizOn-SDK-Godot",
-  "commit": "4ebdd272b9d97b3ebe53d1d9c1a642c441825ff4",
-  "source": "release tag v1.13.0",
+  "commit": "8c76958cb4f48e01b7a150109037106eb0bc2df5",
+  "source": "release tag v1.13.1",
   "configurationTemplates": {
     "addons/horizon_sdk/horizon_config.tres": "config/official-sdk/horizon_config.tres.example"
   },
@@ -328,7 +328,7 @@
       "sha256": "d6d65930ad89e384ab31b06b54559f8b2bdfde44f1656dad70defb890b69a49b"
     },
     "addons/horizon_sdk/horizon_sdk.gd": {
-      "sha256": "300b7470b4f9d807e87064a1ec4a50141c0ea9fbb6e72271d3b9eb1b407ac6f5"
+      "sha256": "0ae939f387a4bdf05116009032b7c8c2159cc220785a1d848ece257b62f3e6a1"
     },
     "addons/horizon_sdk/horizon_sdk.gd.uid": {
       "sha256": "0a90c3f2c005ba7483524318aaccfa397eb439b89263237b3d051821c771e78c"
@@ -430,7 +430,7 @@
       "sha256": "c6d88670ddf0a8bb8b99bfec95413b957403f3991a0fbebbbfea97b2c77c128c"
     },
     "addons/horizon_sdk/plugin.cfg": {
-      "sha256": "ef531056abc7963b6da0d091316167d0b1b4ba678a2c7e39f4d7a207ea7bdf0b"
+      "sha256": "f92917d6803666d3f7987860c805423d84770db01271968c544bd996fc22bf69"
     },
     "addons/horizon_sdk/utils/error_codes.gd": {
       "sha256": "6fe73100ad98247775bcf0232572b700db67b93b03eda35da444ba95a69180c7"
@@ -445,5 +445,5 @@
       "sha256": "79a14bc808577b2f68ad654840b03ccf9701ea8f3a69db1aa6b878eec5cd3bfc"
     }
   },
-  "tag": "v1.13.0"
+  "tag": "v1.13.1"
 }
