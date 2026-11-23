@@ -401,8 +401,5 @@ Final native checkpoint: the current feature-input implementation passed the com
 
 ### macOS export verification
 
-The Linux gameplay/SDK checks run on GitHub for pushes and pull requests.
-Native macOS exports are explicit: dispatch `Game and SDK Tests` and start the
-registered `daniel-macbook-native` ARM64 macOS runner on Daniel's current
-MacBook. Public pull requests never run code on that Mac automatically.
-There is no GitHub-hosted or Proxmox fallback for the macOS export.
+The Linux gameplay/SDK checks run on the local Linux runner for pushes and pull requests.
+The macOS export is not part of CI. Run `python3 tests/verify_macos_export.py` by hand on a Mac with the Godot export templates.
